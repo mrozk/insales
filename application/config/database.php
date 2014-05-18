@@ -2,7 +2,7 @@
 
 return array
 (
-	'default' => array
+	'alternate' => array
 	(
 		'type'       => 'MySQL',
 		'connection' => array(
@@ -19,16 +19,16 @@ return array
 			 * Ports and sockets may be appended to the hostname.
 			 */
 			'hostname'   => 'localhost',
-			'database'   => 'kohana',
-			'username'   => 'root',
-			'password'   => 'root',
+			'database'   => 'c1insales',
+			'username'   => 'c1dba',
+			'password'   => 'OH2AgbFiU',
 			'persistent' => FALSE,
 		),
 		'table_prefix' => '',
 		'charset'      => 'utf8',
 		'caching'      => FALSE,
 	),
-	'alternate' => array(
+	'default' => array(
 		'type'       => 'PDO',
 		'connection' => array(
 			/**
@@ -39,9 +39,9 @@ return array
 			 * string   password    database password
 			 * boolean  persistent  use persistent connections?
 			 */
-			'dsn'        => 'mysql:host=localhost;dbname=kohana',
-			'username'   => 'root',
-			'password'   => 'root',
+			'dsn'        => 'mysql:host=localhost;dbname=c1insales',
+			'username'   => 'c1dba',
+			'password'   => 'OH2AgbFiU',
 			'persistent' => FALSE,
 		),
 		/**

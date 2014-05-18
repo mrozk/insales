@@ -137,13 +137,23 @@ Kohana::modules(array(
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
+/*
 Route::set('test', 'test(/<controller>(/<action>(/<id>)))')
     ->defaults(array(
             'controller' => 'test',
             'action'     => 'index',
             'directory'  => 'test',
         ));
-Route::set('default', '(<controller>(/<action>(/<id>)))', array('controller'=>'(welcome|hello)'))
+*/
+Route::set('dir', '<directory>(/<controller>(/<action>(/<id>)))',
+    array('controller'=>'(welcome|hello|install|enter)',
+          'directory'=>'(layout)'))
+    ->defaults(array(
+            'controller' => 'default',
+            'action'     => 'index'
+        ));
+Route::set('default', '(<controller>(/<action>(/<id>)))',
+           array('controller'=>'(welcome|hello|install|enter)'))
 	->defaults(array(
 		'controller' => 'welcome',
 		'action'     => 'index'
