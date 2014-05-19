@@ -10,7 +10,6 @@ class Controller_Enter extends  Controller_Base{
         if( $insales_id )
         {
             $usr_ins = Model::factory('Enter')->get_insales($insales_id);
-           // $this->template->set();
         }
         else
         {
