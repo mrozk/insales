@@ -14,15 +14,15 @@
 ?><!DOCTYPE html>
 <html>
 <head>
-    <title><?php echo isset($title) ? $title :  Arr::path($config, 'blog.name')  ?></title>
+    <title><?php /* echo isset($title) ? $title :  Arr::path($config, 'blog.name')  */ ?></title>
 
     <!-- Base URL -->
     <base href="<?php echo URL::base(true, false) ?>">
 
     <!-- System -->
-    <meta name="author" content="<?php echo isset($author) ? $author : Arr::path($config, 'blog.author') ?>" />
-    <meta name="description" content="<?php echo isset($description) ? $description : Arr::path($config, 'blog.description') ?>" />
-    <meta name="keywords" content="<?php echo isset($keywords) ? $keywords : Arr::path($config, 'blog.keywords') ?>" />
+    <meta name="author" content="<?php /* echo isset($author) ? $author : Arr::path($config, 'blog.author') */?>" />
+    <meta name="description" content="<?php /* echo isset($description) ? $description : Arr::path($config, 'blog.description') */?>" />
+    <meta name="keywords" content="<?php /* echo isset($keywords) ? $keywords : Arr::path($config, 'blog.keywords') */?>" />
 
     <!-- Twitter Bootstrap -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

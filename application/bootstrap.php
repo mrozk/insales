@@ -22,7 +22,7 @@ else
  * @link http://kohanaframework.org/guide/using.configuration
  * @link http://www.php.net/manual/timezones
  */
-date_default_timezone_set('Asia/Krasnoyarsk');
+date_default_timezone_set('Europe/Moscow');
 
 /**
  * Set the default locale.

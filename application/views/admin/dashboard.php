@@ -24,7 +24,13 @@
 </div>
 
 <div class="container jumbotron">
-    <h1>Congratulations</h1>
+<?php
+    foreach($usr_ins as $user)
+    {
+    // Send reminder email to $user['email']
+        echo $user['shop'];
+    }
+?>
 </div>
 
 <style type="text/css">
