@@ -30,14 +30,6 @@
     {
 
         $insales_api =  new InsalesApi('ddelivery', $user['passwd'], $user['shop'] );
-        echo $insales_api->baseurl;
-        $xmlstring =  '{
-  "application-widget": {
-    "code": "&lt;script&gt;alert(&quot;hello&quot;);&lt;/script&gt;",
-    "height": "60"
-  }
-}';
-        $xmlstring = json_decode($xmlstring, true);
        // print_r($xmlstring );
         /*
         $xml = simplexml_load_string($xmlstring);
@@ -48,7 +40,7 @@
         //var_dump(array_map('ini_get', array('safe_mode', 'open_basedir')));
         try
         {
-           $result = $insales_api->api('POST', '/admin/delivery_variants.xml', $xmlstring);
+           $result = $insales_api->api('POST', '/admin/delivery_variants.xml');
           //  print_r($result);
         }
         catch( InsalesApiException $e)

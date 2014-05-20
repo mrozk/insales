@@ -21,23 +21,15 @@ class InsalesApi {
 
         //$payload = in_array($method, array('POST','PUT')) ? json_encode($params) : array();
         //$payload =  '{"delivery-variant":{"title":"asdasdasd asd asd","type":"DeliveryVariant::Fixed","description":"ddddddddd","delivery_locations":[{"region":"���� ������","city":"������"}]}}';
+
         $payload = '<?xml version="1.0" encoding="UTF-8"?>
 <delivery-variant>
-  <title>123123123123</title>
-
-
-  <description>asdasdasdas</description>
-  <delivery-locations-attributes type="array">
-    <delivery-location>
-      <region>xxx</region>
-      <city>xxxx</city>
-    </delivery-location>
-    <delivery-location>
-      <region>www</region>
-      <city>www</city>
-    </delivery-location>
-  </delivery-locations-attributes>
-  <type>DeliveryVariant::PriceFixed</type>
+  <title>DDelivery</title>
+  <position type="integer">1</position>
+  <url>https://multiship.ru/insales/default/dummy</url>
+  <description>DDelivery</description>
+  <type>DeliveryVariant::External</type>
+  <delivery-locations type="array"/>
 </delivery-variant>';
         $request_headers = in_array($method, array('POST','PUT')) ? array("Content-Type: application/xml; charset=utf-8", 'Expect:') : array();
 
