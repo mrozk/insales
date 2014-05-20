@@ -25,43 +25,52 @@
 
 <div class="container jumbotron">
 <?php
+
     foreach($usr_ins as $user)
     {
-        $insales_api = InsalesApi::insales_api_client($user['shop'], 'ddelivery', $user['passwd']);
+
+        $insales_api =  new InsalesApi('ddelivery', $user['passwd'], $user['shop'] );
+        echo $insales_api->baseurl;
+        $xmlstring =  '{
+  "application-widget": {
+    "code": "&lt;script&gt;alert(&quot;hello&quot;);&lt;/script&gt;",
+    "height": "60"
+  }
+}';
+        $xmlstring = json_decode($xmlstring, true);
+       // print_r($xmlstring );
         /*
-        $arr = array("delivery-variant"=>array("title" => 'Курьером', 'description' => 'Супер быстрая доставка',
-        array('delivery-locations-attributes'=> array('delivery-location'=>array('region'=>'Респ Адыгея',
-        'city' => 'Майкоп')))), 'type' => 'DeliveryVariant::PriceDepend');
-        */
-        $xmlstring =
-        '<?xml version="1.0" encoding="UTF-8"?>
-<product>
-    <category-id type="integer">478</category-id>
-    <title>Van Gogh Ruled Peach Notebook</title>
-    <description>asdasdasd</description>
-    <short-description>Алая записная книжка "Ван Гог" в линейку</short-description>
-    <properties-attributes type="array">
-        <properties-attribute>
-            <title>Бумага</title>
-            <value>в линейку</value>
-        </properties-attribute>
-    </properties-attributes>
-    <variants-attributes type="array">
-        <variant>
-            <sku>QP021MVEN-r</sku>
-            <quantity type="integer" nil="true"/>
-            <price type="decimal">740.0</price>
-            <cost-price type="decimal">487.0</cost-price>
-            <old-price type="decimal" nil="true"/>
-        </variant>
-    </variants-attributes>
-</product>';
         $xml = simplexml_load_string($xmlstring);
         $json = json_encode($xml);
         $array = json_decode($json,TRUE);
-        $orders = $insales_api('POST', '/admin/delivery_variants.xml', $array);
-        var_dump($orders);
+        print_r($array);
+        */
+        //var_dump(array_map('ini_get', array('safe_mode', 'open_basedir')));
+        try
+        {
+           $result = $insales_api->api('POST', '/admin/delivery_variants.xml', $xmlstring);
+          //  print_r($result);
+        }
+        catch( InsalesApiException $e)
+        {
+           echo 'error';
+
+        }
+
+        //print_r($result);
+        /*
+        InsalesApi::insales_api_client();
+
+       /// echo 'ozk';
+       $xml = simplexml_load_string($xmlstring);
+       $json = json_encode($xml);
+       $array = json_decode($json,TRUE);
+       //print_r($insales_api);
+       // $array = json_decode($json,TRUE);
+           $orders = $insales_api('POST', '/admin/delivery_variants.xml', $array);
+        //var_dump($orders);
         //open_basedir is set
+        */
     }
 ?>
 </div>

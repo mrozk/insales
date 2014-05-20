@@ -8,27 +8,54 @@
 
 
 class InsalesApi {
-    public static function insales_api_client($my_insales_domain, $api_key, $password)
-    {
-        $baseurl = "http://$api_key:$password@$my_insales_domain/";
 
-        return function ($method, $path, $params=array(), &$response_headers=array()) use ($baseurl)
-        {
-            $url = $baseurl.ltrim($path, '/');
-            $payload = in_array($method, array('POST','PUT')) ? json_encode($params) : array();
-            $request_headers = in_array($method, array('POST','PUT')) ? array("Content-Type: application/json; charset=utf-8", 'Expect:') : array();
-            $response = self::curl_http_api_request_($method, $url, $payload, $request_headers, $response_headers);
-            $response = json_decode($response, true);
-            if (isset($response['errors']) or ($response_headers['http_status_code'] >= 400))
-                throw new InsalesApiException(compact('method', 'path', 'params', 'response_headers', 'response', 'my_insales_domain'));
-            return $response;
-        };
+    public $baseurl = '';
+
+    public function __construct( $api_key, $password, $my_insales_domain )
+    {
+        $this->baseurl = "http://$api_key:$password@$my_insales_domain/";
+    }
+    public function api($method, $path, $params=array(), &$response_headers=array())
+    {
+        $url = $this->baseurl.ltrim($path, '/');
+
+        //$payload = in_array($method, array('POST','PUT')) ? json_encode($params) : array();
+        //$payload =  '{"delivery-variant":{"title":"asdasdasd asd asd","type":"DeliveryVariant::Fixed","description":"ddddddddd","delivery_locations":[{"region":"���� ������","city":"������"}]}}';
+        $payload = '<?xml version="1.0" encoding="UTF-8"?>
+<delivery-variant>
+  <title>123123123123</title>
+
+
+  <description>asdasdasdas</description>
+  <delivery-locations-attributes type="array">
+    <delivery-location>
+      <region>xxx</region>
+      <city>xxxx</city>
+    </delivery-location>
+    <delivery-location>
+      <region>www</region>
+      <city>www</city>
+    </delivery-location>
+  </delivery-locations-attributes>
+  <type>DeliveryVariant::PriceFixed</type>
+</delivery-variant>';
+        $request_headers = in_array($method, array('POST','PUT')) ? array("Content-Type: application/xml; charset=utf-8", 'Expect:') : array();
+
+        $response = $this->curl_http_api_request_($method, $url, $payload, $request_headers, $response_headers);
+        print_r($response);
+        ///$response = json_decode($response, true);
+        /*
+        if (isset($response['errors']) or ($response_headers['http_status_code'] >= 400))
+            throw new InsalesApiException(compact('method', 'path', 'params', 'response_headers', 'response', 'my_insales_domain'));
+        */
+        return $response;
     }
 
-    public static function curl_http_api_request_($method, $url, $payload='', $request_headers=array(), &$response_headers=array())
+
+    public function curl_http_api_request_($method, $url, $payload='', $request_headers=array(), &$response_headers=array())
     {
         $ch = curl_init($url);
-        self::curl_setopts_($ch, $method, $payload, $request_headers);
+        $this->curl_setopts_($ch, $method, $payload, $request_headers);
         $response = curl_exec($ch);
         $errno = curl_errno($ch);
         $error = curl_error($ch);
@@ -37,7 +64,7 @@ class InsalesApi {
         if ($errno) throw new InsalesCurlException($error, $errno);
 
         list($message_headers, $message_body) = preg_split("/\r\n\r\n|\n\n|\r\r/", $response, 2);
-        $response_headers = self::curl_parse_headers_($message_headers);
+        $response_headers = $this->curl_parse_headers_($message_headers);
 
         return $message_body;
     }
@@ -46,7 +73,7 @@ class InsalesApi {
     {
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        //curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
         curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
@@ -64,13 +91,14 @@ class InsalesApi {
             if (!empty($request_headers)) curl_setopt($ch, CURLOPT_HTTPHEADER, $request_headers);
             if (!empty($payload))
             {
-                if (is_array($payload)) $payload = http_build_query($payload);
-                curl_setopt ($ch, CURLOPT_POSTFIELDS, $payload);
+                echo $payload;
+                //if (is_array($payload)) $payload = http_build_query($payload);
+                    curl_setopt ($ch, CURLOPT_POSTFIELDS, $payload);
             }
         }
     }
 
-    public static function curl_parse_headers_($message_headers)
+    public function curl_parse_headers_($message_headers)
     {
         $header_lines = preg_split("/\r\n|\n|\r/", $message_headers);
         $headers = array();
