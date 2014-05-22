@@ -40,8 +40,7 @@
         //var_dump(array_map('ini_get', array('safe_mode', 'open_basedir')));
         try
         {
-           $result = $insales_api->api('POST', '/admin/delivery_variants.xml');
-          //  print_r($result);
+           $result = $insales_api->api('DELETE', '/admin/js_tags/7223.xml');
         }
         catch( InsalesApiException $e)
         {

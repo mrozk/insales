@@ -153,7 +153,7 @@ Route::set('dir', '<directory>(/<controller>(/<action>(/<id>)))',
             'action'     => 'index'
         ));
 Route::set('default', '(<controller>(/<action>(/<id>)))',
-           array('controller'=>'(welcome|hello|install|enter)'))
+           array('controller'=>'(control|cabinet|welcome|hello|install|enter)'))
 	->defaults(array(
 		'controller' => 'welcome',
 		'action'     => 'index'
