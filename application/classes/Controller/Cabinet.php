@@ -2,8 +2,6 @@
 
 class Controller_Cabinet extends  Controller_Base{
 
-
-
     public function action_index()
     {
         $insales_id = (int)$this->request->query('insales_id');
@@ -14,8 +12,7 @@ class Controller_Cabinet extends  Controller_Base{
 
         if ( !empty( $insalesuser ) )
         {
-            echo 'User logined';
-            //$session->delete('insalesuser');
+            $this->template->set('content', View::factory('panel'));
         }
         else
         {
@@ -34,16 +31,13 @@ class Controller_Cabinet extends  Controller_Base{
     {
 
         $insales_token = $this->request->query('token');
-        echo $insales_token . '<br />';
 
         $session = Session::instance();
         $token = $session->get('ddelivery_token');
         $insales_id = $session->get('token_insales_id');
 
-        echo $token . '<br />';
 
         $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insales_id));
-        echo md5( $token . $insales_user->passwd );
         if( $insales_user->loaded() )
         {
             if( $insales_token == md5( $token . $insales_user->passwd ) )
