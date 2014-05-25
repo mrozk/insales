@@ -5,36 +5,8 @@
         clear: both;
     }
 </style>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-    <div class="container">
 
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="javascript:void(0);">Панель настроек Insales - DDelivery</a>
-        </div>
-        <div class="navbar-collapse collapse">
-            <div class="navbar-form navbar-right">
-                <button type="submit" class="btn btn-success">Сохранить</button>
-            </div>
-            <!--
-            <form class="navbar-form navbar-right" role="form">
-                <div class="form-group">
-                    <input type="text" placeholder="Email" class="form-control">
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="Password" class="form-control">
-                </div>
-                <button type="submit" class="btn btn-success">Sign in</button>
-            </form>
-            -->
-        </div><!--/.navbar-collapse -->
-    </div>
-</div>
+
 
 <!-- Main jumbotron for a primary marketing message or call to action -->
 <!--
@@ -46,109 +18,194 @@
     </div>
 </div>
 -->
-<div class="container" style="margin-top: 60px;">
-    <!-- Example row of columns -->
-    <div class="row">
-        <div class="col-md-10">
+    <?php
+
+        //print_r($usersettings->usersetting);
+
+    ?>
             <h1>Настройки</h1>
-            <form role="form">
+            <form role="form" id="insales-form" action="cabinet/save/" method="post">
                 <h3>Основые</h3>
                 <div class="form-group" >
                     <label for="inputEmail3" class="col-sm-6 control-label">API ключ из личного кабинета</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="API ключ из личного кабинета">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'API ключ из личного кабинета',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('api', $usersettings->usersetting->api, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="rezhim" class="col-sm-6 control-label">Режим работы</label>
                     <div class="col-sm-10">
-                        <select id="rezhim" class="form-control">
-                            <option value="">Тестирование (stage.ddelivery.ru)</option>
-                            <option value="">Продакшн (cabinet.ddelivery.ru)</option>
-                        </select>
+                        <?php
+                            $attrs = array(
+                                'class' => 'form-control'
+                            );
+                            $options = array(
+                                '1' => 'Тестирование (stage.ddelivery.ru)',
+                                '2' => 'Продакшн (cabinet.ddelivery.ru)'
+                            );
+                            echo Form::select('rezhim', $options, $usersettings->usersetting->rezhim, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="percent" class="col-sm-6 control-label">Какой % от стоимости товара страхуется</label>
+                    <label for="declared" class="col-sm-6 control-label">Какой % от стоимости товара страхуется</label>
                     <div class="col-sm-10">
-                        <input type="text" class="form-control" id="percent" placeholder="Какой % от стоимости товара страхуется">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Какой % от стоимости товара страхуется',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('declared', $usersettings->usersetting->declared, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group">
                     <h3>Соответствие полей</h3>
                 </div>
                 <div class="form-group">
-                    <label for="inputEmail3" class="col-sm-6 control-label">Ширина</label>
+                    <label for="width" class="col-sm-6 control-label">Ширина</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Ширина">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Ширина',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('width', $usersettings->usersetting->width, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="inputEmail3" class="col-sm-6 control-label">Длина</label>
+                    <label for="length" class="col-sm-6 control-label">Длина</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Длина">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Длина',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('length', $usersettings->usersetting->length, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="inputEmail3" class="col-sm-6 control-label">Высота</label>
+                    <label for="height" class="col-sm-6 control-label">Высота</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Высота">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Высота',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('height', $usersettings->usersetting->height, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="inputEmail3" class="col-sm-6 control-label">Вес</label>
+                    <label for="weight" class="col-sm-6 control-label">Вес</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Вес">
+                        <?php
+                             $attrs = array(
+                                 'placeholder' => 'Вес',
+                                 'class' => 'form-control'
+                             );
+                            echo Form::input('weight', $usersettings->usersetting->weight, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="rezhim" class="col-sm-6 control-label">Статус для отправки</label>
+                    <label for="status" class="col-sm-6 control-label">Статус для отправки</label>
                     <div class="col-sm-10">
-                        <select id="rezhim" class="form-control">
-                            <option value="">Статус</option>
-                            <option value="">Статус 2</option>
-                        </select>
+                        <?php
+                            $attrs = array(
+                                'class' => 'form-control'
+                            );
+                            $options = array(
+                                '1' => 'Статус',
+                                '2' => 'Статус 2'
+                            );
+                            echo Form::select('status', $options, $usersettings->usersetting->status, $attrs);
+                        ?>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="inputEmail3" class="col-sm-6 control-label">Фамилия</label>
+                    <label for="secondname" class="col-sm-6 control-label">Фамилия</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Вес">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Фамилия',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('secondname', $usersettings->usersetting->secondname, $attrs);
+                        ?>
                     </div>
                 </div>
 
                 <div class="form-group" >
-                    <label for="inputEmail3" class="col-sm-6 control-label">Имя</label>
+                    <label for="firstname" class="col-sm-6 control-label">Имя</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Вес">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Имя',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('firstname', $usersettings->usersetting->firstname, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group" >
                     <h3>Габариты по умолчанию</h3>
                 </div>
                 <div class="form-group" >
-                    <label for="inputEmail3" class="col-sm-6 control-label">Ширина, см</label>
+                    <label for="plan_width" class="col-sm-6 control-label">Ширина, см</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Ширина">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Ширина, см',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('plan_width', $usersettings->usersetting->plan_width, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="inputEmail3" class="col-sm-6 control-label">Длина, см</label>
+                    <label for="plan_length" class="col-sm-6 control-label">Длина, см</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Длина">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Длина, см',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('plan_lenght', $usersettings->usersetting->plan_lenght, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="inputEmail3" class="col-sm-6 control-label">Высота, см</label>
+                    <label for="plan_height" class="col-sm-6 control-label">Высота, см</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Высота">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Высота, см',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('plan_height', $usersettings->usersetting->plan_height, $attrs);
+                        ?>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="inputEmail3" class="col-sm-6 control-label">Вес</label>
+                    <label for="plan_weight" class="col-sm-6 control-label">Вес</label>
                     <div class="col-sm-10">
-                        <input type="email" class="form-control" id="inputEmail3" placeholder="Вес">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Вес, кг',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('plan_weight', $usersettings->usersetting->plan_weight, $attrs);
+                        ?>
                     </div>
                 </div>
 
@@ -156,12 +213,20 @@
                     <h3>Настройка способов доставки</h3>
                 </div>
                 <div class="form-group" >
-                    <label for="rezhim" class="col-sm-6 control-label">Доступные способы</label>
+                    <label for="avalible_way" class="col-sm-6 control-label">Доступные способы</label>
                     <div class="col-sm-10">
-                        <select id="rezhim" class="form-control">
-                            <option value="">Статус</option>
-                            <option value="">Статус 2</option>
-                        </select>
+                        <?php
+                            $attrs = array(
+                                'class' => 'form-control'
+                            );
+                            $options = array(
+                                '1' => 'ПВЗ и Курьеры',
+                                '2' => 'ПВЗ',
+                                '3' => 'Курьеры'
+                            );
+                            echo Form::select('type', $options, $usersettings->usersetting->type, $attrs);
+                        ?>
+
                     </div>
                 </div>
                 <div class="form-group">
@@ -169,32 +234,48 @@
                 </div>
                 <div class="form-group" >
                     <label class="checkbox-inline">
-                        <input type="checkbox" id="inlineCheckbox1" value="option1"> DPD
+                        <?php
+
+                            echo Form::checkbox('pvz_companies[]', '1', false );
+                        ?>
+                         DPD
                     </label>
                 </div>
 
                 <div class="form-group">
                     <label class="checkbox-inline">
-                        <input type="checkbox" id="inlineCheckbox1" value="option1"> IML
+                        <?php
+                            echo Form::checkbox('pvz_companies[]', '2', false );
+                        ?>
+                        IML
                     </label>
                 </div>
                 <div class="form-group">
                     <label class="checkbox-inline">
-                        <input type="checkbox" id="inlineCheckbox1" value="option1"> Hermes-dpd
+                        <?php
+                            echo Form::checkbox('pvz_companies[]', '3', false );
+                        ?>
+                        Hermes-dpd
                     </label>
                 </div>
 
 
                 <div class="form-group">
                     <label class="checkbox-inline">
-                        <input type="checkbox" id="inlineCheckbox1" value="option1"> Logibox
+                        <?php
+                            echo Form::checkbox('pvz_companies[]', '4', false );
+                        ?>
+                        Logibox
                     </label>
                 </div>
 
 
                 <div class="form-group">
                     <label class="checkbox-inline">
-                        <input type="checkbox" id="inlineCheckbox1" value="option1"> Pickpoint
+                        <?php
+                            echo Form::checkbox('pvz_companies[]', '5', false );
+                        ?>
+                        Pickpoint
                     </label>
                 </div>
 
@@ -204,21 +285,30 @@
 
                 <div class="form-group" >
                     <label class="checkbox-inline">
-                        <input type="checkbox" id="inlineCheckbox1" value="option1"> DPD
+                        <?php
+                            echo Form::checkbox('cur_companies[]', '1', false );
+                        ?>
+                        DPD
                     </label>
                 </div>
 
 
                 <div class="form-group" >
                     <label class="checkbox-inline">
-                        <input type="checkbox" id="inlineCheckbox1" value="option1"> СДЭК
+                        <?php
+                            echo Form::checkbox('cur_companies[]', '2', false );
+                        ?>
+                        СДЭК
                     </label>
                 </div>
 
 
                 <div class="form-group" >
                     <label class="checkbox-inline">
-                        <input type="checkbox" id="inlineCheckbox1" value="option1"> IML
+                        <?php
+                            echo Form::checkbox('cur_companies[]', '3', false );
+                        ?>
+                        IML
                     </label>
                 </div>
 
@@ -227,99 +317,142 @@
                 </div>
 
                 <div class="navbar-form" >
-                    <div class="form-group">
-                     От
-                    </div>
-                    <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
-                    </div>
-                    <div class="form-group">
-                         До
-                    </div>
-                    <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <select id="rezhim" class="form-control">
-                            <option value="">Статус</option>
-                            <option value="">Статус 2</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
-                    </div>
 
                     <div class="form-group">
-                        Сума
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'От',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('from1', $usersettings->usersetting->from1, $attrs);
+                        ?>
                     </div>
-
                     <div class="form-group">
-                        <input type="password" placeholder="Password" class="form-control">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'До',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('to1', $usersettings->usersetting->to1, $attrs);
+                        ?>
+                    </div>
+                    <div class="form-group">
+                        <?php
+                            $attrs = array(
+                                'class' => 'form-control',
+                                'style' => 'width: 200px;'
+                            );
+                            $options = array(
+                                '1' => 'Клиент оплачивает все',
+                                '2' => 'Магазин оплачивает все',
+                                '3' => 'Магазин оплачивает процент от стоимости доставки',
+                                '4' => 'Магазин оплачивает конкретную сумму от доставки. Если сумма больше, то всю доставку<'
+                            );
+                            echo Form::select('val1', $options, $usersettings->usersetting->val1, $attrs);
+                        ?>
+                    </div>
+                    <div class="form-group">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Сума',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('sum1', $usersettings->usersetting->sum1, $attrs);
+                        ?>
                     </div>
                 </div>
 
                 <div class="navbar-form" >
                     <div class="form-group">
-                        От
+                        <?php
+                        $attrs = array(
+                            'placeholder' => 'От',
+                            'class' => 'form-control'
+                        );
+                        echo Form::input('from2', $usersettings->usersetting->from2, $attrs);
+                        ?>
                     </div>
                     <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
+                        <?php
+                        $attrs = array(
+                            'placeholder' => 'До',
+                            'class' => 'form-control'
+                        );
+                        echo Form::input('to2', $usersettings->usersetting->to2, $attrs);
+                        ?>
                     </div>
                     <div class="form-group">
-                        До
-                    </div>
-                    <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <select id="rezhim" class="form-control">
-                            <option value="">Статус</option>
-                            <option value="">Статус 2</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
+                        <?php
+                        $attrs = array(
+                            'class' => 'form-control',
+                            'style' => 'width: 200px;'
+                        );
+                        $options = array(
+                            '1' => 'Клиент оплачивает все',
+                            '2' => 'Магазин оплачивает все',
+                            '3' => 'Магазин оплачивает процент от стоимости доставки',
+                            '4' => 'Магазин оплачивает конкретную сумму от доставки. Если сумма больше, то всю доставку<'
+                        );
+                        echo Form::select('val2', $options, $usersettings->usersetting->val2, $attrs);
+                        ?>
                     </div>
 
-                    <div class="form-group">
-                        Сума
-                    </div>
 
                     <div class="form-group">
-                        <input type="password" placeholder="Password" class="form-control">
+                        <?php
+                        $attrs = array(
+                            'placeholder' => 'Сума',
+                            'class' => 'form-control'
+                        );
+                        echo Form::input('sum2', $usersettings->usersetting->sum2, $attrs);
+                        ?>
                     </div>
                 </div>
 
-
                 <div class="navbar-form" >
                     <div class="form-group">
-                        От
+                        <?php
+                        $attrs = array(
+                            'placeholder' => 'От',
+                            'class' => 'form-control'
+                        );
+                        echo Form::input('from3', $usersettings->usersetting->from3, $attrs);
+                        ?>
                     </div>
                     <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
+                        <?php
+                        $attrs = array(
+                            'placeholder' => 'До',
+                            'class' => 'form-control'
+                        );
+                        echo Form::input('to3', $usersettings->usersetting->to3, $attrs);
+                        ?>
                     </div>
                     <div class="form-group">
-                        До
-                    </div>
-                    <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <select id="rezhim" class="form-control">
-                            <option value="">Статус</option>
-                            <option value="">Статус 2</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" placeholder="Email" class="form-control">
+                        <?php
+                            $attrs = array(
+                                'class' => 'form-control',
+                                'style' => 'width: 200px;'
+                            );
+                            $options = array(
+                                '1' => 'Клиент оплачивает все',
+                                '2' => 'Магазин оплачивает все',
+                                '3' => 'Магазин оплачивает процент от стоимости доставки',
+                                '4' => 'Магазин оплачивает конкретную сумму от доставки. Если сумма больше, то всю доставку<'
+                            );
+                            echo Form::select('val3', $options, $usersettings->usersetting->val2, $attrs);
+                        ?>
                     </div>
 
-                    <div class="form-group">
-                        Сума
-                    </div>
 
                     <div class="form-group">
-                        <input type="text" placeholder="Password" class="form-control">
+                        <?php
+                        $attrs = array(
+                            'placeholder' => 'Сума',
+                            'class' => 'form-control'
+                        );
+                        echo Form::input('sum3', $usersettings->usersetting->sum2, $attrs);
+                        ?>
                     </div>
                 </div>
 
@@ -329,11 +462,18 @@
                     </div>
 
                     <div class="form-group">
-                        <select name="okrugl" id="okrugl" class="form-control">
-                            <option value="1">Округлять в меньшую сторону</option>
-                            <option value="2">Округлять в большую сторону</option>
-                            <option value="3">Округлять цену в математически</option>
-                        </select>
+                        <?php
+                            $attrs = array(
+                                'class' => 'form-control',
+                                'style' => 'width: 200px;'
+                            );
+                            $options = array(
+                                '1' => 'Округлять в меньшую сторону',
+                                '2' => 'Округлять в большую сторону',
+                                '3' => 'Округлять цену в математически',
+                            );
+                            echo Form::select('okrugl', $options, $usersettings->usersetting->okrugl, $attrs);
+                        ?>
                     </div>
 
                     <div class="form-group">
@@ -341,13 +481,21 @@
                     </div>
 
                     <div class="form-group">
-                        <input type="text" placeholder="shag" name="shag" classa="form-control">
+                        <?php
+                            $attrs = array(
+                                'placeholder' => 'Шаг',
+                                'class' => 'form-control'
+                            );
+                            echo Form::input('shag', $usersettings->usersetting->shag, $attrs);
+                        ?>
                     </div>
 
                     <div class="form-group" >
                         <label class="checkbox-inline">
-                            <input type="checkbox" id="zabor" name="zabor" value="1"> Выводить стоимость забора в
-                                                                                         цене доставки
+                            <?php
+                                echo Form::checkbox('zabor', '1', false );
+                            ?>
+                            Выводить стоимость забора в цене доставки
                         </label>
                     </div>
 
@@ -361,30 +509,3 @@
             <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
             <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
             -->
-        </div>
-        <!--
-        <div class="col-md-4">
-
-            <h2>Heading</h2>
-            <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-
-        </div>
-        -->
-        <!--
-        <div class="col-md-4">
-
-            <h2>Heading</h2>
-            <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-            <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-
-        </div>
-        -->
-    </div>
-
-    <hr>
-
-    <footer>
-        <p>&copy; Company 2014</p>
-    </footer>
-</div> <!-- /container -->

@@ -2,6 +2,33 @@
 
 class Controller_Cabinet extends  Controller_Base{
 
+    public function saveSettings()
+    {
+
+    }
+    public function action_save()
+    {
+        $session = Session::instance();
+        $insalesuser = (int)$session->get('insalesuser');
+        if ( !empty( $insalesuser ) )
+        {
+            $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
+            if($insales_user->loaded())
+            {
+                $this->request->post('insalesuser_id', $insales_user->id);
+                $insales_user->usersetting->values( $this->request->post() );
+                $insales_user->usersetting->save();
+                Notice::add( Notice::SUCCESS,'Успешно сохранено' );
+                $this->redirect( URL::base( $this->request ) . 'cabinet/' );
+            }
+
+        }
+        else
+        {
+
+        }
+    }
+
     public function action_index()
     {
         $insales_id = (int)$this->request->query('insales_id');
@@ -12,7 +39,8 @@ class Controller_Cabinet extends  Controller_Base{
 
         if ( !empty( $insalesuser ) )
         {
-            $this->template->set('content', View::factory('panel'));
+            $usersettings = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
+            $this->template->set('content', View::factory('panel')->set('usersettings', $usersettings ));
         }
         else
         {

@@ -35,8 +35,58 @@
 
 <body>
 <!-- Template Content  -->
-<?php echo isset($content) ? $content : '' ?>
 
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="javascript:void(0);">Панель настроек Insales - DDelivery</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <div class="navbar-form navbar-right">
+                <button type="submit" onclick="jQuery('#insales-form').submit();"  class="btn btn-success">Сохранить</button>
+            </div>
+
+        </div><!--/.navbar-collapse -->
+    </div>
+</div>
+
+<div class="container" style="margin-top: 60px;">
+    <!-- Example row of columns -->
+    <div class="row">
+        <div class="col-md-10">
+            <?php if( !empty( $system_msg['success'] ) )
+                  {
+                ?>
+            <div class="alert alert-success">
+                <strong><?php echo $system_msg['success']; ?></strong>
+            </div>
+            <?php
+                  }
+            ?>
+            <?php if( !empty( $system_msg['error'] ) )
+            {
+                ?>
+                <div class="alert alert-danger">
+                    <strong><?php echo $system_msg['error']; ?></strong>
+                </div>
+            <?php
+            }
+            ?>
+        <?php echo isset($content) ? $content : '' ?>
+        </div>
+    </div>
+    <hr>
+    <footer>
+        <p>&copy; Company 2014</p>
+    </footer>
+</div> <!-- /container -->
 <!-- JS Code -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>

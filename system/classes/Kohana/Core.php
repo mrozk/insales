@@ -594,8 +594,8 @@ class Kohana_Core {
 
 		foreach (Kohana::$_modules as $path)
 		{
-			$init = $path.'init'.EXT;
 
+			$init = $path.'init'.EXT;
 			if (is_file($init))
 			{
 				// Include the module initialization file once

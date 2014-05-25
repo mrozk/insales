@@ -131,6 +131,7 @@ Kohana::modules(array(
 	 'orm'        => MODPATH.'orm',        // Object Relationship Mapping
 	// 'unittest'   => MODPATH.'unittest',   // Unit testing
 	 'userguide'  => MODPATH.'userguide',  // User guide and API documentation
+     'notice'   => MODPATH . 'messager'
 	));
 
 /**
@@ -153,7 +154,7 @@ Route::set('dir', '<directory>(/<controller>(/<action>(/<id>)))',
             'action'     => 'index'
         ));
 Route::set('default', '(<controller>(/<action>(/<id>)))',
-           array('controller'=>'(control|cabinet|welcome|hello|install|enter)'))
+           array('controller'=>'(control|cabinet|welcome|hello|install|enter|sdk)'))
 	->defaults(array(
 		'controller' => 'welcome',
 		'action'     => 'index'
