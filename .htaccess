@@ -1,6 +1,8 @@
 # Turn on URL rewriting
 RewriteEngine On
 
+php_flag short_open_tag on
+
 # Installation directory
 RewriteBase /
 

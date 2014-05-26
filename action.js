@@ -18,7 +18,7 @@ function DDeliveryStart(){
             //alert('Окно закрыто');
         },
         change: function(data) {
-
+            CheckoutDelivery.find(220167).toExternal().setPrice(data.clientPrice);
             alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
         }
     };
@@ -27,7 +27,6 @@ function DDeliveryStart(){
 }
 $(function(){
     $(document).ready(function(){
-
         $('#order_delivery_variant_id_220167').parent().next().append("<a id=\"startDD\" " +
                 " href=\"javascript:void(0);\">Выбрать способ доставки</a>" +
                 "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");

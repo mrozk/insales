@@ -1523,6 +1523,7 @@ class DDeliveryUI
     {
         $cityDB = new City();
         $cityList = $cityDB->getTopCityList();
+
         // Складываем массивы получаем текущий город наверху, потом его и выберем
         if(isset($cityList[$cityId])){
             $cityData = $cityList[$cityId];
@@ -1682,8 +1683,8 @@ class DDeliveryUI
         if(!$dataOnly) {
             // Рендер html
             $cityList = $this->getCityByDisplay($cityId);
-
             ob_start();
+
             include(__DIR__.'/../../templates/typeForm.php');
             $content = ob_get_contents();
             ob_end_clean();

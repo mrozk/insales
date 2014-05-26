@@ -12,9 +12,9 @@
             $cityData = reset($cityList);
             $cityId = $cityData['_id'];
             ?>
-            <input type="hidden" name="ddelivery_city" value="<?=$cityData['_id']?>"/>
+            <input type="hidden" name="ddelivery_city" value="<? echo $cityData['_id']?>"/>
             <div class="delivery-place__title">
-                <input type="text" title="<?=$cityData['display_name']?>"/>
+                <input type="text" title="<? echo $cityData['display_name']?>"/>
                 <span><i>&nbsp;</i></span>
             </div>
             <div class="delivery-place__drop">
@@ -39,9 +39,9 @@
                 <?
                 $currentData = $data['courier'];
                 ?>
-                <tr class="courier <?=$currentData['disabled'] ? 'disabled' : ''?>">
+                <tr class="courier <? echo $currentData['disabled'] ? 'disabled' : ''?>">
                     <td class="col1">
-                        <input type="radio" <?=$currentData['disabled'] ? 'disabled' : ''?> name="ddeliveryType" checked value="<?=\DDelivery\Sdk\DDeliverySDK::TYPE_COURIER?>"/>
+                        <input type="radio" <? echo $currentData['disabled'] ? 'disabled' : ''?> name="ddeliveryType" checked value="<? echo  \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER?>"/>
                     </td>
                     <td class="col2">
                         <i class="icon-car">&nbsp;</i>
@@ -54,19 +54,19 @@
                         </p>
                     </td>
                     <td class="col4" style="position: relative">
-                        <span>от <strong><span class="min_price"><?=$currentData['minPrice']?></span> <i class="icon-rub">&nbsp;</i></strong></span>
-                        <img src="<?=$staticURL?>img/ajax_loader_min.gif" style="position: absolute; left:10px" class="h">
+                        <span>от <strong><span class="min_price"><? echo $currentData['minPrice']?></span> <i class="icon-rub">&nbsp;</i></strong></span>
+                        <img src="<? echo $staticURL?>img/ajax_loader_min.gif" style="position: absolute; left:10px" class="h">
                     </td>
                     <td class="col5">
-                        <span>от <strong><span class="min_time"><?=$currentData['minTime']?></span></strong> <span class="time_str"><?=$currentData['timeStr']?></span></span>
+                        <span>от <strong><span class="min_time"><? echo $currentData['minTime']?></span></strong> <span class="time_str"><? echo $currentData['timeStr']?></span></span>
                     </td>
                 </tr>
                 <?
                 $currentData = $data['self'];
                 ?>
-                <tr class="self <?=$currentData['disabled'] ? 'disabled' : ''?>">
+                <tr class="self <? echo  $currentData['disabled'] ? 'disabled' : ''?>">
                     <td class="col1">
-                        <input type="radio" <?=$currentData['disabled'] ? 'disabled' : ''?> name="ddeliveryType" value="<?=\DDelivery\Sdk\DDeliverySDK::TYPE_SELF?>"/>
+                        <input type="radio" <? echo  $currentData['disabled'] ? 'disabled' : ''?> name="ddeliveryType" value="<? echo  \DDelivery\Sdk\DDeliverySDK::TYPE_SELF?>"/>
                     </td>
                     <td class="col2">
                         <i class="icon-pack">&nbsp;</i>
@@ -79,11 +79,11 @@
                         </p>
                     </td>
                     <td class="col4" style="position: relative">
-                        <span>от <strong><span class="min_price"><?=$currentData['minPrice']?></span> <i class="icon-rub">&nbsp;</i></strong></span>
-                        <img src="<?=$staticURL?>img/ajax_loader_min.gif" style="position: absolute; left:10px" class="h">
+                        <span>от <strong><span class="min_price"><? echo  $currentData['minPrice']?></span> <i class="icon-rub">&nbsp;</i></strong></span>
+                        <img src="<? echo  $staticURL?>img/ajax_loader_min.gif" style="position: absolute; left:10px" class="h">
                     </td>
                     <td class="col5">
-                        <span>от <strong><span class="min_time"><?=$currentData['minTime']?></span></strong> <span class="time_str"><?=$currentData['timeStr']?></span></span>
+                        <span>от <strong><span class="min_time"><? echo  $currentData['minTime']?></span></strong> <span class="time_str"><? echo  $currentData['timeStr']?></span></span>
                     </td>
                 </tr>
                 <?/*
