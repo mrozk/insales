@@ -4,12 +4,12 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-        <script type="text/javascript" src="assets/jquery.the-modal.js"></script>
-        <link rel="stylesheet" type="text/css" href="assets/the-modal.css" media="all">
-        <link rel="stylesheet" type="text/css" href="assets/demo-modals.css" media="all">
+        <script type="text/javascript" src="../../../../html/assets/jquery.the-modal.js"></script>
+        <link rel="stylesheet" type="text/css" href="../../../../html/assets/the-modal.css" media="all">
+        <link rel="stylesheet" type="text/css" href="../../../../html/assets/demo-modals.css" media="all">
     </head>
     <body>
-        <script src="../html/js/ddelivery.js"></script>
+        <script src="../../../../html/js/ddelivery.js"></script>
 
         <a href="javascript:void(0)" class="trigger">Выбрать способ доставки</a>
 

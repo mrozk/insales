@@ -23,7 +23,7 @@ function DDeliveryStart(){
         }
     };
 
-    DDelivery.delivery('ddelivery', 'http://phpshop.ddelivery.ru/phpshop/modules/ddelivery/class/example/ajax.php', params, callback);
+    DDelivery.delivery('ddelivery', 'http://insales.ddelivery.ru/sdk/', params, callback);
 }
 $(function(){
     $(document).ready(function(){
