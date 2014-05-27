@@ -11,6 +11,13 @@ use DDelivery\Order\DDStatusProvider;
 
 class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 {
+
+    public $request;
+
+    public function __construct( $request )
+    {
+        $this->request = $request;
+    }
     /**
      * Синхронизация локальных статусов
      * @var array
@@ -98,7 +105,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     public function getPhpScriptURL()
     {
         // Тоесть до этого файла
-        return 'ajax.php';
+        return URL::base( $this->request ) . 'sdk/';
     }
 
     /**

@@ -4,9 +4,37 @@ function closePopup()
         $.modal().close();
     })
 }
+function sendCart()
+{
+    url = 'http://mrozk.myinsales.ru/cart_items.json';
+    $.ajax({
+        dataType: "json",
+        url: url,
+        async: false,
+        success: function(data)
+        {
+            //console.log(data);
+            var str =JSON.stringify(data);
+            //alert(typeof JSON.stringify(data) );
 
+            $.ajax({
+                data: { str : 'sdf' },
+                type: 'POST',
+                dataType: 'jsonp',
+                async: false,
+                jsonpCallback: 'jsonCallback',
+                contentType: "application/json",
+                url: "http://insales.ddelivery.ru/sdk/takecart/",
+                success: function(zata)
+                {
+                    console.log(zata);
+                }
+            });
+        }
+    });
+}
 function DDeliveryStart(){
-
+    sendCart();
     jQuery('#test-modal').modal().open();
 
     var params = {
@@ -19,6 +47,7 @@ function DDeliveryStart(){
         },
         change: function(data) {
             CheckoutDelivery.find(220167).toExternal().setPrice(data.clientPrice);
+            closePopup();
             alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
         }
     };
