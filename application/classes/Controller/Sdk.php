@@ -27,10 +27,17 @@ class Controller_Sdk extends Controller
 
     public function action_index()
     {
+        try
+        {
+            $IntegratorShop = new IntegratorShop( $this->request );
+            $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+            $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+        }
+        catch( \DDelivery\DDeliveryException $e )
+        {
+            return;
+        }
 
-        $IntegratorShop = new IntegratorShop( $this->request );
-        $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-        $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
         /*
         $order->city = 151185;
         $session = Session::instance();

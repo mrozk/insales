@@ -46,8 +46,45 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 
     private function _parseCart( $cart )
     {
-        // $pieces = explode(',', $cart);
-        echo $cart;
+        $result_products = array();
+        $products = array();
+        $product_count = array();
+        // Раскрываем строку с продуктами и общей стоимостью
+        $pieces = explode('-', $cart);
+        $pieces[0] = substr($pieces[0], 0, strlen($pieces[0]) - 1);
+        // Раскрываем строку с продуктами и количеством
+        $parts = explode(',', trim( $pieces[0] ));
+        //print_r($parts);
+        if( count($parts) )
+        {
+            /// print_r($parts);
+            foreach($parts as $item)
+            {
+                $elems = explode('_', $item);
+                $product_count[] = $elems[1];
+                $products[] = $elems[0];
+            }
+
+            $prods = implode(',', $products);
+            $prod_detail = file_get_contents('http://mrozk.myinsales.ru/products_by_id/'.
+                                             $prods .'.json');
+            $prods = json_decode($prod_detail);
+
+            if( count( $prods->products) )
+            {
+                for( $i = 0; $i < count( $prods->products); $i++ )
+                {
+                    $item = array();
+                    $item['id'] = $prods->products[$i]->id;
+                    $item['title'] = $prods->products[$i]->title;
+                    $item['price'] = $prods->products[$i]->variants[0]->price;
+                    $item['quantity'] = $product_count[$i];
+                    $result_products[] = $item;
+                }
+            }
+
+        }
+        return $result_products;
     }
     /**
      * Возвращает товары находящиеся в корзине пользователя, будет вызван один раз, затем закеширован
@@ -61,34 +98,35 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 
         if( empty( $pr ) && !empty( $cart ) )
         {
-            echo $cart;
+            $cart_content = unserialize( $cart );
         }
         else if( ! empty( $pr ) )
         {
-            $this->_parseCart( $cart );
-            $session->set('cart', $this->request->query('pr'));
+            $cart_content = $this->_parseCart( $pr );
+            $session->set('cart', serialize( $cart_content ) );
         }
         else
         {
             return array();
         }
-        /*
-        $session = Session::instance();
-        $cart = $session->get('cart');
-        if( empty( $cart ) )
-        {
-            $pr = $this->request->query('pr');
-            if ( empty( $pr ) )
-            {
-                return array();
-            }
-            $session->set('cart', $this->request->query('pr'));
-        }
-        */
-        $this->_parseCart( $cart );
-
         $products = array();
-
+        if( count($cart_content) )
+        {
+            foreach( $cart_content as $item )
+            {
+                $products[] = new DDeliveryProduct(
+                    $item['id'],	//	int $id id товара в системе и-нет магазина
+                    20,	//	float $width длинна
+                    13,	//	float $height высота
+                    25,	//	float $length ширина
+                    0.5,	//	float $weight вес кг
+                    $item['price'],	//	float $price стоимостьв рублях
+                    $item['quantity'],	//	int $quantity количество товара
+                    $item['title']	//	string $name Название вещи
+                );
+            }
+        }
+        /*
         $products[] = new DDeliveryProduct(
             1,	//	int $id id товара в системе и-нет магазина
             20,	//	float $width длинна
@@ -100,6 +138,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
             'Веселый клоун'	//	string $name Название вещи
         );
         $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'Грустный клоун');
+        */
+        // echo count($products);
         return $products;
     }
 

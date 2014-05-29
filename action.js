@@ -4,6 +4,14 @@ function closePopup()
         $.modal().close();
     })
 }
+function getHost()
+{
+    pathArray = window.location.href.split( '/' );
+    protocol = pathArray[0];
+    host = pathArray[2];
+    url22 = ( protocol + '://' + host + '/' );
+    return url22;
+}
 function sendCart()
 {
     var product_list = '';
@@ -71,11 +79,12 @@ function DDeliveryStart(){
         }
     };
     product_str = sendCart();
-    alert(product_str);
+
     DDelivery.delivery('ddelivery', 'http://insales.ddelivery.ru/sdk/?iframe=1&pr=' + product_str, params, callback);
 }
 $(function(){
     $(document).ready(function(){
+        console.log(window);
         $('#order_delivery_variant_id_220167').parent().next().append("<a id=\"startDD\" " +
                 " href=\"javascript:void(0);\">Выбрать способ доставки</a>" +
                 "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");
