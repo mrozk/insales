@@ -28,14 +28,15 @@ class Controller_Sdk extends Controller
     public function action_index()
     {
 
-        echo $this->request->post('cart');
         $IntegratorShop = new IntegratorShop( $this->request );
         $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-        $order = $ddeliveryUI->getOrder();
+        $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+        /*
         $order->city = 151185;
         $session = Session::instance();
         $cart = $session->get('cart');
         print_r( $cart );
+        */
         //print_r( $ddeliveryUI->getCourierPointsForCity($order) );
         //print_r($ddeliveryUI->getSelfPoints( $order ));
 

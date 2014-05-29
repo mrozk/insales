@@ -6,17 +6,33 @@ function closePopup()
 }
 function sendCart()
 {
-    url = 'http://mrozk.myinsales.ru/cart_items.json';
+    var product_list = '';
+    /*
+    pathArray = window.location.href.split( '/' );
+    protocol = pathArray[0];
+    host = pathArray[2];
+    url22 = ( protocol + '://' + host + '/cart_items.json' );
+    */
     $.ajax({
         dataType: "json",
-        url: url,
+        url: 'cart_items.json',
         async: false,
         success: function(data)
         {
-            //console.log(data);
-            var str =JSON.stringify(data);
-            //alert(typeof JSON.stringify(data) );
+            if( data.order_lines.length > 0 )
+            {
+                //alert(data.order_lines.length);
+                for(var i = 0; i < data.order_lines.length; i++)
+                {
+                    //console.log( data.order_lines[i] );
+                    product_list +=  ( data.order_lines[i].product_id + '_' + data.order_lines[i].quantity + ',' );
 
+                }
+                product_list += '-' + ORDER.total_price;
+            }
+
+           //http://mrozk.myinsales.ru/alert(typeof JSON.stringify(data) );
+            /*
             $.ajax({
                 data: { str : 'sdf' },
                 type: 'POST',
@@ -27,14 +43,17 @@ function sendCart()
                 url: "http://insales.ddelivery.ru/sdk/takecart/",
                 success: function(zata)
                 {
+
                     console.log(zata);
                 }
             });
+            */
         }
     });
+    return product_list;
 }
 function DDeliveryStart(){
-    sendCart();
+
     jQuery('#test-modal').modal().open();
 
     var params = {
@@ -51,8 +70,9 @@ function DDeliveryStart(){
             alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
         }
     };
-
-    DDelivery.delivery('ddelivery', 'http://insales.ddelivery.ru/sdk/', params, callback);
+    product_str = sendCart();
+    alert(product_str);
+    DDelivery.delivery('ddelivery', 'http://insales.ddelivery.ru/sdk/?iframe=1&pr=' + product_str, params, callback);
 }
 $(function(){
     $(document).ready(function(){
