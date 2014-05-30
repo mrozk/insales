@@ -31,3 +31,21 @@
 	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr = #7F000000, endColorstr = #7F000000);
 	zoom: 1;
 }
+
+/* modal box style, can be anything you want */
+.modal {
+    background: #eee;
+    width: 1000px;
+    margin: 10px auto;
+
+    border: 3px solid #666;
+    padding: 0px;
+}
+
+.modal .close {
+    float: right;
+    text-decoration: none;
+    font-size: 40px;
+    cursor: pointer;
+}
+

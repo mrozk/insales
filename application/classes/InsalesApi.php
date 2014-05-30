@@ -15,26 +15,13 @@ class InsalesApi {
     {
         $this->baseurl = "http://$api_key:$password@$my_insales_domain/";
     }
-    public function api($method, $path, $params=array(), &$response_headers=array())
+    public function api($method, $path, $payload = '', &$response_headers=array())
     {
         $url = $this->baseurl.ltrim($path, '/');
 
-        //$payload = in_array($method, array('POST','PUT')) ? json_encode($params) : array();
-        //$payload =  '{"delivery-variant":{"title":"asdasdasd asd asd","type":"DeliveryVariant::Fixed","description":"ddddddddd","delivery_locations":[{"region":"���� ������","city":"������"}]}}';
-
-        $payload = '<?xml version="1.0" encoding="UTF-8"?>
-<delivery-variant>
-  <title>DDelivery</title>
-  <position type="integer">1</position>
-  <url>https://multiship.ru/insales/default/dummy</url>
-  <description>DDelivery</description>
-  <type>DeliveryVariant::External</type>
-  <delivery-locations type="array"/>
-</delivery-variant>';
         $request_headers = in_array($method, array('POST','PUT')) ? array("Content-Type: application/xml; charset=utf-8", 'Expect:') : array();
 
         $response = $this->curl_http_api_request_($method, $url, $payload, $request_headers, $response_headers);
-        print_r($response);
         ///$response = json_decode($response, true);
         /*
         if (isset($response['errors']) or ($response_headers['http_status_code'] >= 400))
@@ -83,7 +70,7 @@ class InsalesApi {
             if (!empty($request_headers)) curl_setopt($ch, CURLOPT_HTTPHEADER, $request_headers);
             if (!empty($payload))
             {
-                echo $payload;
+                //echo $payload;
                 //if (is_array($payload)) $payload = http_build_query($payload);
                     curl_setopt ($ch, CURLOPT_POSTFIELDS, $payload);
             }

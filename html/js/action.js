@@ -29,33 +29,13 @@ function sendCart()
         {
             if( data.order_lines.length > 0 )
             {
-                //alert(data.order_lines.length);
                 for(var i = 0; i < data.order_lines.length; i++)
                 {
-                    //console.log( data.order_lines[i] );
                     product_list +=  ( data.order_lines[i].product_id + '_' + data.order_lines[i].quantity + ',' );
 
                 }
                 product_list += '-' + ORDER.total_price;
             }
-
-           //http://mrozk.myinsales.ru/alert(typeof JSON.stringify(data) );
-            /*
-            $.ajax({
-                data: { str : 'sdf' },
-                type: 'POST',
-                dataType: 'jsonp',
-                async: false,
-                jsonpCallback: 'jsonCallback',
-                contentType: "application/json",
-                url: "http://insales.ddelivery.ru/sdk/takecart/",
-                success: function(zata)
-                {
-
-                    console.log(zata);
-                }
-            });
-            */
         }
     });
     return product_list;
@@ -80,12 +60,13 @@ function DDeliveryStart(){
     };
     product_str = sendCart();
 
-    DDelivery.delivery('ddelivery', 'http://insales.ddelivery.ru/sdk/?iframe=1&pr=' + product_str, params, callback);
+
+    DDelivery.delivery('ddelivery', ddelivery_insales.url + 'sdk/?iframe=1&pr=' + product_str + '&insales._id=' + ddelivery_insales._id, params, callback);
 }
 $(function(){
     $(document).ready(function(){
-        console.log(window);
-        $('#order_delivery_variant_id_220167').parent().next().append("<a id=\"startDD\" " +
+
+        $('#order_delivery_variant_id_221773').parent().next().append("<a id=\"startDD\" " +
                 " href=\"javascript:void(0);\">Выбрать способ доставки</a>" +
                 "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");
 

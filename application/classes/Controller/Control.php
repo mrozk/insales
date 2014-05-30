@@ -25,6 +25,7 @@ class Controller_Control extends Controller {
                 $insales_user->insales_id = $insales_id;
                 $insales_user->passwd = $password;
                 $insales_user->save();
+                // $this->addNewShipping( $insales_user->shop, $insales_user->passwd );
             }
             else
             {
@@ -46,6 +47,7 @@ class Controller_Control extends Controller {
         if( $insales_user->loaded() )
         {
             $insales_user->delete();
+            $insales_user->usersetting->delete();
         }
     }
 } 
