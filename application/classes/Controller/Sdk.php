@@ -31,7 +31,9 @@ class Controller_Sdk extends Controller
         {
             $IntegratorShop = new IntegratorShop( $this->request );
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-            $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+            $order = $ddeliveryUI->getOrder();
+            echo $ddeliveryUI->saveFullOrder( $order );
+            //$ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
         }
         catch( \DDelivery\DDeliveryException $e )
         {
