@@ -4,6 +4,10 @@
         margin-top: 10px;
         clear: both;
     }
+    .form-group
+    {
+        padding-top: 20px;
+    }
 </style>
 
 
@@ -21,7 +25,13 @@
     <?php
 
         //print_r($usersettings->usersetting);
-
+    $pvz_companies = explode( ',', $usersettings->usersetting->pvz_companies );
+    $cur_companies = explode( ',', $usersettings->usersetting->cur_companies );
+    /*
+    print_r($pvz_companies);
+    print_r($cur_companies);
+    */
+    //echo is_array($pvz_companies);
     ?>
             <h1>Настройки</h1>
             <form role="form" id="insales-form" action="cabinet/save/" method="post">
@@ -69,14 +79,29 @@
                     <h3>Соответствие полей</h3>
                 </div>
                 <div class="form-group">
-                    <label for="width" class="col-sm-6 control-label">Ширина</label>
+                    <label for="width" class="col-sm-6 control-label">Оплата на месте</label>
                     <div class="col-sm-10">
                         <?php
                             $attrs = array(
-                                'placeholder' => 'Ширина',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('width', $usersettings->usersetting->width, $attrs);
+                        ///print_r($payment);
+                        echo Form::select('payment', $payment, $usersettings->usersetting->payment, $attrs);
+                        ?>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="width" class="col-sm-6 control-label">Ширина</label>
+                    <div class="col-sm-10">
+                        <?php
+
+                            $attrs = array(
+                                'class' => 'form-control'
+                            );
+
+                            echo Form::select('width', $fields, $usersettings->usersetting->width, $attrs);
+
                         ?>
                     </div>
                 </div>
@@ -84,11 +109,12 @@
                     <label for="length" class="col-sm-6 control-label">Длина</label>
                     <div class="col-sm-10">
                         <?php
+
                             $attrs = array(
-                                'placeholder' => 'Длина',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('length', $usersettings->usersetting->length, $attrs);
+
+                            echo Form::select('length', $fields, $usersettings->usersetting->length, $attrs);
                         ?>
                     </div>
                 </div>
@@ -96,11 +122,14 @@
                     <label for="height" class="col-sm-6 control-label">Высота</label>
                     <div class="col-sm-10">
                         <?php
+
+
                             $attrs = array(
-                                'placeholder' => 'Высота',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('height', $usersettings->usersetting->height, $attrs);
+
+                            echo Form::select('height', $fields, $usersettings->usersetting->height, $attrs);
+
                         ?>
                     </div>
                 </div>
@@ -108,11 +137,12 @@
                     <label for="weight" class="col-sm-6 control-label">Вес</label>
                     <div class="col-sm-10">
                         <?php
-                             $attrs = array(
-                                 'placeholder' => 'Вес',
-                                 'class' => 'form-control'
-                             );
-                            echo Form::input('weight', $usersettings->usersetting->weight, $attrs);
+                           $attrs = array(
+                                'class' => 'form-control'
+                            );
+
+                            echo Form::select('weight', $fields, $usersettings->usersetting->weight, $attrs);
+
                         ?>
                     </div>
                 </div>
@@ -120,6 +150,7 @@
                     <label for="status" class="col-sm-6 control-label">Статус для отправки</label>
                     <div class="col-sm-10">
                         <?php
+                        /*
                             $attrs = array(
                                 'class' => 'form-control'
                             );
@@ -128,6 +159,13 @@
                                 '2' => 'Статус 2'
                             );
                             echo Form::select('status', $options, $usersettings->usersetting->status, $attrs);
+                        */
+                        $attrs = array(
+                            'placeholder' => 'ID статуса для отправки',
+                            'class' => 'form-control'
+                        );
+                        echo Form::input('status', $usersettings->usersetting->status, $attrs);
+
                         ?>
                     </div>
                 </div>
@@ -236,7 +274,7 @@
                     <label class="checkbox-inline">
                         <?php
 
-                            echo Form::checkbox('pvz_companies[]', '1', false );
+                            echo Form::checkbox('pvz_companies[]', '1', in_array('1', $pvz_companies) );
                         ?>
                          DPD
                     </label>
@@ -245,7 +283,7 @@
                 <div class="form-group">
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('pvz_companies[]', '2', false );
+                            echo Form::checkbox('pvz_companies[]', '2', in_array('2', $pvz_companies) );
                         ?>
                         IML
                     </label>
@@ -253,7 +291,7 @@
                 <div class="form-group">
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('pvz_companies[]', '3', false );
+                            echo Form::checkbox('pvz_companies[]', '3', in_array('3', $pvz_companies) );
                         ?>
                         Hermes-dpd
                     </label>
@@ -263,7 +301,7 @@
                 <div class="form-group">
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('pvz_companies[]', '4', false );
+                            echo Form::checkbox('pvz_companies[]', '4', in_array('4', $pvz_companies) );
                         ?>
                         Logibox
                     </label>
@@ -273,7 +311,7 @@
                 <div class="form-group">
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('pvz_companies[]', '5', false );
+                            echo Form::checkbox('pvz_companies[]', '5', in_array('5', $pvz_companies) );
                         ?>
                         Pickpoint
                     </label>
@@ -286,7 +324,7 @@
                 <div class="form-group" >
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('cur_companies[]', '1', false );
+                            echo Form::checkbox('cur_companies[]', '1', in_array('1', $cur_companies) );
                         ?>
                         DPD
                     </label>
@@ -296,7 +334,7 @@
                 <div class="form-group" >
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('cur_companies[]', '2', false );
+                            echo Form::checkbox('cur_companies[]', '2', in_array('2', $cur_companies) );
                         ?>
                         СДЭК
                     </label>
@@ -306,7 +344,7 @@
                 <div class="form-group" >
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('cur_companies[]', '3', false );
+                            echo Form::checkbox('cur_companies[]', '3', in_array('3', $cur_companies) );
                         ?>
                         IML
                     </label>
@@ -493,7 +531,7 @@
                     <div class="form-group" >
                         <label class="checkbox-inline">
                             <?php
-                                echo Form::checkbox('zabor', '1', false );
+                                echo Form::checkbox('zabor', '1', ( $usersettings->usersetting->zabor )? true : false );
                             ?>
                             Выводить стоимость забора в цене доставки
                         </label>

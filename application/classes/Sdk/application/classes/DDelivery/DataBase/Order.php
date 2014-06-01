@@ -317,15 +317,16 @@ class Order {
 	    $stmt->bindParam( ':second_name', $secondName );
 	    $stmt->bindParam( ':point', $pointDB );
 	    $stmt->execute();
+        $lastInsertId = $this->pdo->lastInsertId();
 	    $this->pdo->commit();
-        print_r( $stmt->errorInfo() );
+
 	    if( $wasUpdate )
 	    {
 	    	return $localId;
 	    }
 	    else
 	    {
-	    	return $this->pdo->lastInsertId();
+	    	return $lastInsertId;
 	    }
 	    
 	    

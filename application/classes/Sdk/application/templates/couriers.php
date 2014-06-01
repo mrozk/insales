@@ -54,7 +54,9 @@
                         <input type="radio" name="delivery_company" value="<?=$courierCompany->pointID?>" <?if($key==0):?>checked="checked"<?endif;?>/>
                     </td>
                     <td class="col2">
+                        <?php /*
                         <img src="<?=$staticURL?>img/logo/<?=$companies[$courierCompany->delivery_company]['ico']?>.png" alt="title"/>
+                    <?php */ ?>
                     </td>
                     <td class="col3">
                         <p>

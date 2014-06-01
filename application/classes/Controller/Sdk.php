@@ -25,18 +25,40 @@ class Controller_Sdk extends Controller
         ';
     }
 
+    public function get_request_state( $name )
+    {
+        $session = Session::instance();
+        $query = $this->request->query($name);
+        if( !empty( $query ) )
+        {
+            $session->set( $name, $query );
+            return $query;
+        }
+        else
+        {
+            return $session->get( $name );
+        }
+    }
+
     public function action_index()
     {
         try
         {
-            $IntegratorShop = new IntegratorShop( $this->request );
+            $uid = (int)$this->get_request_state('insales_id');
+            if( !$uid )
+            {
+                //echo 'gugugus';
+                return;
+            }
+            $IntegratorShop = new IntegratorShop( $this->request, $uid );
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-            $order = $ddeliveryUI->getOrder();
-            echo $ddeliveryUI->saveFullOrder( $order );
-            //$ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+            //$order = $ddeliveryUI->getOrder();
+            //echo $ddeliveryUI->saveFullOrder( $order );
+            $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
         }
         catch( \DDelivery\DDeliveryException $e )
         {
+            echo $e->getMessage();
             return;
         }
 

@@ -52,24 +52,26 @@ function DDeliveryStart(){
             closePopup();
             //alert('Окно закрыто');
         },
-        change: function(data) {
-            CheckoutDelivery.find(220167).toExternal().setPrice(data.clientPrice);
+        change: function(data)
+        {
+            var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
+            //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
+            CheckoutDelivery.find( variant_id ).toExternal().setPrice(data.clientPrice);
             closePopup();
-            alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
         }
     };
     product_str = sendCart();
 
-
-    DDelivery.delivery('ddelivery', ddelivery_insales.url + 'sdk/?iframe=1&pr=' + product_str + '&insales._id=' + ddelivery_insales._id, params, callback);
+    //alert(ddelivery_insales._id);
+    DDelivery.delivery('ddelivery', ddelivery_insales.url + 'sdk/?iframe=1&pr=' + product_str + '&insales_id=' + ddelivery_insales._id, params, callback);
 }
 $(function(){
     $(document).ready(function(){
-
-        $('#order_delivery_variant_id_221773').parent().next().append("<a id=\"startDD\" " +
+        var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
+        //alert(variant_id);
+        $('#order_delivery_variant_id_' + variant_id).parent().next().append("<a id=\"startDD\" " +
                 " href=\"javascript:void(0);\">Выбрать способ доставки</a>" +
                 "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");
-
 
         $('#startDD').on('click', function(){
             DDeliveryStart();
