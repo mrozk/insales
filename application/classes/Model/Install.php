@@ -4,9 +4,11 @@ class Model_Install extends Model {
 
     public function add_user( $token, $shop, $insales_id, $password )
     {
+        if (!isset($HTTP_RAW_POST_DATA))
+            $HTTP_RAW_POST_DATA = file_get_contents("php://input");
 
-        $query = DB::insert('users', array( 'token', 'shop', 'insales_id', 'passwd' ))
-                 ->values(array($token, $shop, $insales_id, $password))->execute();
+        return $HTTP_RAW_POST_DATA;
+
     }
 
     public static function insert($table = NULL, array $columns = NULL)

@@ -110,8 +110,11 @@ class Controller_Sdk extends Controller
            $pulet = '<webhook>
                         <address>http://insales.ddelivery.ru/orders/update/</address>
                         <topic>orders/update</topic>
+                        <format type="integer">1</format>
                      </webhook>';
-           print_r( $insales_api->api('GET', '/admin/webhooks.xml', $pulet) );
+          //print_r( $insales_api->api('DELETE', '/admin/webhooks/48623.xml', $pulet) );
+           //print_r( $insales_api->api('GET', '/admin/webhooks.xml', $pulet) );
+            print_r( $insales_api->api('POST', '/admin/webhooks.xml', $pulet) );
         }
         //echo $uid;
     }
