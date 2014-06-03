@@ -298,13 +298,13 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function filterCompanyPointCourier()
     {
-        /*
+
         if(!empty($this->settings->cur_companies ) )
         {
             return explode(',', $this->settings->cur_companies);
         }
-        */
-        return array();
+
+        // return array();
         // TODO: Implement filterCompanyPointCourier() method.
     }
 
@@ -316,13 +316,15 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     public function filterCompanyPointSelf()
     {
         //return array(4, 32);
-        /*
+
         if(!empty($this->settings->pvz_companies ) )
         {
             return explode(',', $this->settings->pvz_companies);
         }
-        */
+
+        /*
         return array();
+        */
         // TODO: Implement filterCompanyPointSelf() method.
     }
 
@@ -360,11 +362,14 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function isPayPickup()
     {
+        return true;
+
         $zabor = (int)$this->settings->zabor;
         if( $zabor )
             return true;
         else
             return false;
+
     }
 
     /**
@@ -374,7 +379,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getIntervalsByPoint()
     {
-        return array();
+        //return array();
         $interval1 = array();
         $interval2 = array();
         $interval3 = array();
@@ -413,6 +418,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function aroundPriceType()
     {
+
         switch ($this->settings->okrugl)
         {
             case '1': return self::AROUND_FLOOR;
@@ -420,7 +426,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
             case '3': return self::AROUND_ROUND;
             default : return self::AROUND_ROUND;
         }
-        //return self::AROUND_ROUND; // self::AROUND_FLOOR, self::AROUND_CEIL
+
+        // return self::AROUND_ROUND; // self::AROUND_FLOOR, self::AROUND_CEIL
     }
 
     /**
@@ -429,6 +436,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function aroundPriceStep()
     {
+        //return 0.5;
+
         if( !empty ( $this->settings->shag ) )
         {
             return $this->settings->shag; // До 50 копеек
@@ -437,6 +446,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         {
             return 0.5;
         }
+
         // TODO: Implement aroundPriceStep() method.
     }
 
@@ -497,6 +507,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getSupportedType()
     {
+
         if( $this->settings->type == '1' )
         {
             return array(
@@ -518,11 +529,12 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         }
 
         /*
-        return array(
-            \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER,
-            \DDelivery\Sdk\DDeliverySDK::TYPE_SELF
-        );
+            return array(
+                \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER,
+                \DDelivery\Sdk\DDeliverySDK::TYPE_SELF
+            );
         */
+
     }
 
 

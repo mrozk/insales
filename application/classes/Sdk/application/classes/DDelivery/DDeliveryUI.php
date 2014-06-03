@@ -102,6 +102,7 @@ class DDeliveryUI
     public function cleanCache()
     {
         $this->cache->clean();
+
     }
 
     /**
@@ -593,6 +594,7 @@ class DDeliveryUI
             $response = $this->sdk->calculatorCourier( $params[0], $params[1], $params[2], $params[3], $params[4], $params[5] );
             $this->cache->setCache($sig, $response, 90);
         }
+
 
         if( $response->success )
     	{

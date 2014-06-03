@@ -13,7 +13,7 @@ class Controller_Test_Products extends Controller_Template {
     public function action_index()
     {
         $books = Model::factory('Test_Products')->all_products();
-        print_r($books);
+
         $this->template->content = View::factory('products', array(
                 'books'=>$books,));
     }

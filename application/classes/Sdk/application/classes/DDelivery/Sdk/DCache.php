@@ -42,6 +42,7 @@ class DCache
      */
     public function __construct( $context, $expired, $enabled = true )
     {
+
         $this->context = $context;
         $this->expired = $expired;
         $this->enabled = $context;
@@ -135,6 +136,11 @@ class DCache
         return $cache->removeExpired();
     }
 
+    public function getAll()
+    {
+        $cache = new Cache();
+        return $cache->getAll();
+    }
 
 
 

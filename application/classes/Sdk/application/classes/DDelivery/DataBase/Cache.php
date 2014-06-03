@@ -238,6 +238,7 @@ class Cache {
             $result = false;
         }
         $this->pdo->commit();
+        //print_r($this->pdo->errorInfo());
         return $result;
     }
 

@@ -8,22 +8,7 @@ include_once( APPPATH . 'classes/Sdk/example/IntegratorShop.php');
 class Controller_Sdk extends Controller
 {
 
-    public function action_takecart()
-    {
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: POST');
-        header('Access-Control-Max-Age: 1000');
 
-        $cart = $this->request->post('str');
-        $session = Session::instance();
-        $session->set( 'cart', $cart );
-        echo 'jsonCallback(
-            {
-                "sites": "'  .  $cart . '"
-            }
-        );
-        ';
-    }
 
     public function get_request_state( $name )
     {
@@ -40,6 +25,96 @@ class Controller_Sdk extends Controller
         }
     }
 
+    public function action_addwidget()
+    {
+        $uid = (int)$this->get_request_state('insales_id');
+        $insales_user = ORM::factory('InsalesUser', array('insales_id' => 136789));
+        if ( $insales_user->loaded() )
+        {
+            $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+            $pulet = "<application-widget>
+<code>
+  &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+  &lt;head&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;/&gt;
+    &lt;style&gt;
+      table#statuses {
+        border-collapse: collapse;
+        border-right: 1px solid black;
+        border-left: 1px solid black;
+      }
+      table#statuses td, table#statuses th {
+        border: 1px solid black;
+      }
+    &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;p&gt;Номер заказа: &lt;b&gt;&lt;span id='order_number'&gt;&lt;span&gt;&lt;/b&gt;&lt;/p&gt;
+    &lt;table id='statuses' style='border: 1px solid black;'&gt;
+      &lt;tr&gt;
+        &lt;th&gt;Дата&lt;/th&gt;
+        &lt;th&gt;Статус&lt;/th&gt;
+      &lt;/tr&gt;
+    &lt;/table&gt;
+
+    &lt;script&gt;
+      var data = {};
+      // функция которая вызывается во внешнем js файле и устанавливает значение переменной data
+      function set_data(input_object) {
+        data = input_object;
+      }
+      var table = document.getElementById('statuses');
+
+      // устанавливаем номер заказа, используя id из переменной window.order_info
+      var order_number_field = document.getElementById('order_number');
+      order_number_field.innerHTML = window.order_info.id;
+
+      // подключаем скрипт который передаёт нам данные через JSONP
+      var script = document.createElement('script');
+      script.src = 'http://www.insales.ru/assets/js/widget_example_jsonp_data.js';
+      document.documentElement.appendChild(script);
+
+      // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
+      script.onload = function() {
+          for (var key in data) {
+              var new_tr = document.createElement('tr');
+              new_tr.innerHTML= '&lt;td&gt;'+ key +'&lt;/td&gt;&lt;td&gt;'+ data[key] +'&lt;/td&gt;';
+          table.appendChild(new_tr);
+        }
+      }
+    &lt;/script&gt;
+  &lt;/body&gt;
+  &lt;/html&gt;
+</code>
+<height>60</height>
+</application-widget>";
+            print_r( $insales_api->api('POST', '/admin/application_widgets.xml', $pulet) );
+        }
+    }
+
+    public function action_addupdate()
+    {
+        /*
+        $uid = (int)$this->get_request_state('insales_id');
+
+        $IntegratorShop = new IntegratorShop( $this->request, $uid );
+        $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+        $ddeliveryUI->cleanCache();
+        */
+
+        $uid = (int)$this->get_request_state('insales_id');
+        $insales_user = ORM::factory('InsalesUser', array('insales_id' => 136789));
+        if ( $insales_user->loaded() )
+        {
+           $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+           $pulet = '<webhook>
+                        <address>http://insales.ddelivery.ru/orders/update/</address>
+                        <topic>orders/update</topic>
+                     </webhook>';
+           print_r( $insales_api->api('GET', '/admin/webhooks.xml', $pulet) );
+        }
+        //echo $uid;
+    }
     public function action_index()
     {
         try
@@ -47,7 +122,6 @@ class Controller_Sdk extends Controller
             $uid = (int)$this->get_request_state('insales_id');
             if( !$uid )
             {
-                //echo 'gugugus';
                 return;
             }
             $IntegratorShop = new IntegratorShop( $this->request, $uid );

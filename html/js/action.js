@@ -55,7 +55,7 @@ function DDeliveryStart(){
         change: function(data)
         {
             var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-            //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
+            alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
             CheckoutDelivery.find( variant_id ).toExternal().setPrice(data.clientPrice);
             closePopup();
         }
