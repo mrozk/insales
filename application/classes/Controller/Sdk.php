@@ -91,7 +91,23 @@ class Controller_Sdk extends Controller
             print_r( $insales_api->api('POST', '/admin/application_widgets.xml', $pulet) );
         }
     }
-
+    public function action_addcreate()
+    {
+        $uid = (int)$this->get_request_state('insales_id');
+        $insales_user = ORM::factory('InsalesUser', array('insales_id' => 136789));
+        if ( $insales_user->loaded() )
+        {
+            $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+            $pulet = '<webhook>
+                        <address>http://insales.ddelivery.ru/orders/create/?mag_id=136789</address>
+                        <topic>orders/create</topic>
+                        <format type="integer">1</format>
+                     </webhook>';
+            //print_r( $insales_api->api('DELETE', '/admin/webhooks/48624.xml', $pulet) );
+            //print_r( $insales_api->api('GET', '/admin/webhooks.xml', $pulet) );
+            //print_r( $insales_api->api('POST', '/admin/webhooks.xml', $pulet) );
+        }
+    }
     public function action_addupdate()
     {
         /*
@@ -108,13 +124,13 @@ class Controller_Sdk extends Controller
         {
            $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
            $pulet = '<webhook>
-                        <address>http://insales.ddelivery.ru/orders/update/</address>
-                        <topic>orders/update</topic>
+                        <address>http://insales.ddelivery.ru/orders/create/?mag_id=136789</address>
+                        <topic>orders/create</topic>
                         <format type="integer">1</format>
                      </webhook>';
-          //print_r( $insales_api->api('DELETE', '/admin/webhooks/48623.xml', $pulet) );
-           //print_r( $insales_api->api('GET', '/admin/webhooks.xml', $pulet) );
-            print_r( $insales_api->api('POST', '/admin/webhooks.xml', $pulet) );
+            //print_r( $insales_api->api('DELETE', '/admin/webhooks/48624.xml', $pulet) );
+            //print_r( $insales_api->api('GET', '/admin/webhooks.xml', $pulet) );
+           print_r( $insales_api->api('POST', '/admin/webhooks.xml', $pulet) );
         }
         //echo $uid;
     }
@@ -129,9 +145,9 @@ class Controller_Sdk extends Controller
             }
             $IntegratorShop = new IntegratorShop( $this->request, $uid );
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-            //$order = $ddeliveryUI->getOrder();
-            //echo $ddeliveryUI->saveFullOrder( $order );
+
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+            //echo '</pre>';
         }
         catch( \DDelivery\DDeliveryException $e )
         {

@@ -209,7 +209,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         );
         $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'Грустный клоун');
         */
-        // echo count($products);
+        //print_r($products);
         return $products;
     }
 
