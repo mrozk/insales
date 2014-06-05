@@ -1534,6 +1534,7 @@ class DDeliveryUI
         }else{
             array_unshift($cityList, $cityDB->getCityById($cityId));
         }
+
         foreach($cityList as &$cityData){
             // Костыль, на сервере города начинаются с маленькой буквы
             $cityData['name'] = Utils::firstWordLiterUppercase($cityData['name']);
@@ -1708,6 +1709,7 @@ class DDeliveryUI
         $this->saveFullOrder($this->getOrder());
         $cityId = $this->order->city;
         $cityList = $this->getCityByDisplay($cityId);
+
         $companies = $this->getCompanySubInfo();
         $courierCompanyList = $this->getCourierPointsForCity($this->order);
 

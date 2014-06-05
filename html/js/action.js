@@ -67,6 +67,7 @@ function DDeliveryStart(){
 }
 $(function(){
     $(document).ready(function(){
+        console.log(ORDER);
         var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
         //alert(variant_id);
         $('#order_delivery_variant_id_' + variant_id).parent().next().append("<a id=\"startDD\" " +

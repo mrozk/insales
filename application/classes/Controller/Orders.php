@@ -16,6 +16,17 @@ class Controller_Orders extends Controller
         return $HTTP_RAW_POST_DATA;
 
     }
+
+    public function action_create()
+    {
+        if (!isset($HTTP_RAW_POST_DATA))
+            $HTTP_RAW_POST_DATA = file_get_contents("php://input");
+        $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
+            ->values(array($HTTP_RAW_POST_DATA, "asdsd"))->execute();
+        return $HTTP_RAW_POST_DATA;
+
+    }
+
     public function action_get()
     {
         $query = DB::select()->from('ordddd')->as_object()->execute();
@@ -29,9 +40,11 @@ class Controller_Orders extends Controller
 
         foreach( $return as $item )
         {
-           echo '<pre>';
-           print_r(json_decode( $item->orderer ));
-           echo '</pre>';
+
+            echo '<hr />';
+            echo '<pre>';
+            print_r(json_decode( $item->creater ));
+            echo '</pre>';
         }
 
     }
