@@ -102,7 +102,6 @@ class DDeliveryUI
     public function cleanCache()
     {
         $this->cache->clean();
-
     }
 
     /**
@@ -148,7 +147,7 @@ class DDeliveryUI
      * @param $cmsID
      * @param $cmsStatus
      *
-     * @return int
+     * @return int|false
      */
     public function onCmsChangeStatus( $cmsID, $cmsStatus )
     {
@@ -168,7 +167,7 @@ class DDeliveryUI
                 }
             }
         }
-
+        return false;
     }
     /**
      *
@@ -595,7 +594,6 @@ class DDeliveryUI
             $this->cache->setCache($sig, $response, 90);
         }
 
-
         if( $response->success )
     	{
     		return $response->response;
@@ -677,6 +675,8 @@ class DDeliveryUI
         {
             throw new DDeliveryException('Точка не найдена');
         }
+
+        $this->shop->filterPointsCourier(array($courierPoint), $this->getOrder());
         return $courierPoint;
     }
 
@@ -734,7 +734,6 @@ class DDeliveryUI
         if( $this->shop->preGoToFindPoints( $order ))
         {
             $points = $this->cache->render( 'getSelfPointsDetail', array( $order->city ) ); /** cache **/
-
             //$points = $this->getSelfPointsDetail( $order->city ); /** cache **/
 
             $companyInfo = $this->getSelfDeliveryInfoForCity( $order );
@@ -1352,14 +1351,28 @@ class DDeliveryUI
                     return;
                 case 'mapGetPoint':
                     if(!empty($request['id'])) {
-                        $pointSelf = $this->getSelfPointByID((int)$request['id'], $this->order);
+                        if(isset($request['custom']) && $request['custom']) {
+                            $points = $this->shop->filterPointsSelf(array(), $this->getOrder());
+                            $pointSelf = false;
+                            foreach($points as $point) {
+                                if($point->_id == $request['id']) {
+                                    $pointSelf = $point;
+                                    break;
+                                }
+                            }
+                        }else{
+                            $pointSelf = $this->getSelfPointByID((int)$request['id'], $this->order);
+                        }
                         if(empty($pointSelf)) {
                             echo json_encode(array('point'=>array()));
-                        }
-                        $selfCompanyList = $this->shop->filterSelfInfo(array($pointSelf->getDeliveryInfo()));
-                        if(empty($selfCompanyList)){
-                            echo json_encode(array('point'=>array()));
                             return;
+                        }
+                        if(empty($pointSelf->is_custom)) {
+                            $selfCompanyList = $this->shop->filterSelfInfo(array($pointSelf->getDeliveryInfo()));
+                            if(empty($selfCompanyList)){
+                                echo json_encode(array('point'=>array()));
+                                return;
+                            }
                         }
 
                         echo json_encode(array(
@@ -1395,7 +1408,19 @@ class DDeliveryUI
         }
         if(!empty($request['point']) && isset($request['type'])) {
             if ( $request['type'] == DDeliverySDK::TYPE_SELF ) {
-                $this->order->setPoint($this->getSelfPointByID($request['point'], $this->order));
+                if(isset($request['custom']) && $request['custom']) {
+                    $points = $this->shop->filterPointsSelf(array(), $this->getOrder());
+                    $pointSelf = false;
+                    foreach($points as $point) {
+                        if($point->_id == $request['point']) {
+                            $pointSelf = $point;
+                            break;
+                        }
+                    }
+                }else{
+                    $pointSelf = $this->getSelfPointByID((int)$request['point'], $this->order);
+                }
+                $this->order->setPoint($pointSelf);
             }elseif($request['type'] == DDeliverySDK::TYPE_COURIER){
                 $this->order->setPoint($this->getCourierPointByCompanyID($request['point'], $this->order));
             }
@@ -1525,7 +1550,6 @@ class DDeliveryUI
     {
         $cityDB = new City();
         $cityList = $cityDB->getTopCityList();
-
         // Складываем массивы получаем текущий город наверху, потом его и выберем
         if(isset($cityList[$cityId])){
             $cityData = $cityList[$cityId];
@@ -1534,7 +1558,6 @@ class DDeliveryUI
         }else{
             array_unshift($cityList, $cityDB->getCityById($cityId));
         }
-
         foreach($cityList as &$cityData){
             // Костыль, на сервере города начинаются с маленькой буквы
             $cityData['name'] = Utils::firstWordLiterUppercase($cityData['name']);
@@ -1547,8 +1570,6 @@ class DDeliveryUI
 
             $cityData['display_name'] = $displayCityName;
         }
-        print_r($cityList);
-       // echo 'okz';
         return $cityList;
     }
 
@@ -1643,27 +1664,25 @@ class DDeliveryUI
         if(in_array(Sdk\DDeliverySDK::TYPE_COURIER, $this->supportedTypes)) {
             $courierCompanyList = $this->getCourierPointsForCity($this->order);
             if(!empty($courierCompanyList)){
-                $courierCompanyList = $this->shop->filterPointsCourier($courierCompanyList, $this->order);
-                if($courierCompanyList){
-                    $minPrice = PHP_INT_MAX;
-                    $minTime = PHP_INT_MAX;
+                $minPrice = PHP_INT_MAX;
+                $minTime = PHP_INT_MAX;
 
-                    foreach($courierCompanyList as $courierCompany){
-                        $deliveryInfo = $courierCompany->getDeliveryInfo();
-                        if($minPrice > $deliveryInfo->clientPrice) {
-                            $minPrice = $deliveryInfo->clientPrice;
-                        }
-                        if($minTime > $deliveryInfo->delivery_time_min) {
-                            $minTime = $deliveryInfo->delivery_time_min;
-                        }
+                foreach($courierCompanyList as $courierCompany){
+                    $deliveryInfo = $courierCompany->getDeliveryInfo();
+                    if($minPrice > $deliveryInfo->clientPrice) {
+                        $minPrice = $deliveryInfo->clientPrice;
                     }
-                    $data['courier'] = array(
-                        'minPrice' => $minPrice,
-                        'minTime' => $minTime,
-                        'timeStr' => Utils::plural($minTime, 'дня', 'дней', 'дней', 'дней', false),
-                        'disabled' => false
-                    );
+                    if($minTime > $deliveryInfo->delivery_time_min) {
+                        $minTime = $deliveryInfo->delivery_time_min;
+                    }
                 }
+                $data['courier'] = array(
+                    'minPrice' => $minPrice,
+                    'minTime' => $minTime,
+                    'timeStr' => Utils::plural($minTime, 'дня', 'дней', 'дней', 'дней', false),
+                    'disabled' => false
+                );
+
             }
         }
         return $data;
@@ -1688,8 +1707,8 @@ class DDeliveryUI
         if(!$dataOnly) {
             // Рендер html
             $cityList = $this->getCityByDisplay($cityId);
-            ob_start();
 
+            ob_start();
             include(__DIR__.'/../../templates/typeForm.php');
             $content = ob_get_contents();
             ob_end_clean();
@@ -1709,7 +1728,6 @@ class DDeliveryUI
         $this->saveFullOrder($this->getOrder());
         $cityId = $this->order->city;
         $cityList = $this->getCityByDisplay($cityId);
-
         $companies = $this->getCompanySubInfo();
         $courierCompanyList = $this->getCourierPointsForCity($this->order);
 
@@ -1717,12 +1735,14 @@ class DDeliveryUI
         // Ресетаем ключи.
         $courierCompanyList = array_values($courierCompanyList);
         $headerData = $this->getDataFromHeader();
+
         ob_start();
         include(__DIR__.'/../../templates/couriers.php');
         $content = ob_get_contents();
         ob_end_clean();
 
-        return json_encode(array('html'=>$content, 'js'=>'courier', 'orderId' => $this->order->localId, 'type'=>DDeliverySDK::TYPE_COURIER));
+        return json_encode(array('html'=>$content, 'js'=>'courier', 'orderId' => $this->order->localId,
+            'type'=>DDeliverySDK::TYPE_COURIER, 'typeData' => $headerData));
     }
 
     /**
@@ -1735,6 +1755,15 @@ class DDeliveryUI
             return '';
         }
 
+        $cityDB = new City();
+        $currentCity = $cityDB->getCityById($this->getOrder()->city);
+
+        //Собирает строчку с названием города для отображения
+        $displayCityName = $currentCity['type'].'. '.$currentCity['name'];
+        if($currentCity['region'] != $currentCity['name']) {
+            $displayCityName .= ', '.$currentCity['region'].' обл.';
+        }
+        $type = $this->getOrder()->type;
         if($this->getOrder()->type == DDeliverySDK::TYPE_COURIER) {
             $requiredFieldMask = $this->shop->getCourierRequiredFields();
         }elseif($this->getOrder()->type == DDeliverySDK::TYPE_SELF) {
@@ -1788,7 +1817,7 @@ class DDeliveryUI
      * Возвращает дополнительную информацию по компаниям доставки
      * @return array
      */
-    public function getCompanySubInfo()
+    static public function getCompanySubInfo()
     {
         // pack забита для тех у кого нет иконки
         return array(

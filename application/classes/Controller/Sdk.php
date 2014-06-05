@@ -24,7 +24,21 @@ class Controller_Sdk extends Controller
             return $session->get( $name );
         }
     }
+    public function action_field()
+    {
+        $insales_user = ORM::factory('InsalesUser', array('insales_id' => 136789));
+        $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+        $pulet = '<field>
+          <type>Field::TextField</type>
+          <for-buyer type="boolean">false</for-buyer>
+          <office-title>my_title</office-title>
+          <obligatory type="boolean">false</obligatory>
+          <title>ddelivery_id</title>
+          <destiny type="integer">3</destiny>
+        </field>';
+        print_r( $insales_api->api('GET', '/admin/fields.xml', $pulet) );
 
+    }
     public function action_addwidget()
     {
         $uid = (int)$this->get_request_state('insales_id');

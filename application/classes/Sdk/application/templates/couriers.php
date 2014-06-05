@@ -49,31 +49,29 @@
         <table>
 
             <?foreach($courierCompanyList as $key => $courierCompany):
-                if( array_key_exists($courierCompany->delivery_company, $companies) )
-                {
-
-            ?>
-            <tr>
-                <td class="col1">
-                    <input type="radio" name="delivery_company" value="<?=$courierCompany->pointID?>" <?if($key==0):?>checked="checked"<?endif;?>/>
-                </td>
-                <td class="col2">
-                    <img src="<?=$staticURL?>img/logo/<?=$companies[$courierCompany->delivery_company]['ico']?>.png" alt="title"/>
-                </td>
-                <td class="col3">
-                    <p>
-                        <strong><?=$courierCompany->delivery_company_name?></strong>
-                    </p>
-                </td>
-                <td class="col4">
-                    <strong><?=$courierCompany->getDeliveryInfo()->clientPrice?> <i class="icon-rub">&nbsp;</i></strong>
-                </td>
-                <td class="col5">
-                    <strong><?=$courierCompany->delivery_time_min?></strong> <?=\DDelivery\Utils::plural($courierCompany->delivery_time_min, 'день', 'дня', 'дней', 'дней', false);?>
-                </td>
-            </tr>
-            <?php } ?>
-        <?endforeach;?>
+                ?>
+                <tr>
+                    <td class="col1">
+                        <input type="radio" name="delivery_company" value="<?=$courierCompany->delivery_company?>" <?if($key==0):?>checked="checked"<?endif;?>/>
+                    </td>
+                    <td class="col2">
+                        <img src="<?=$staticURL?>img/logo/<?php
+                        echo ((isset(  $companies[$courierCompany->delivery_company]['ico'] ) )?$companies[$courierCompany->delivery_company]['ico']:'pack');
+                        ?>.png" alt="title"/>
+                    </td>
+                    <td class="col3">
+                        <p>
+                            <strong><?=$courierCompany->delivery_company_name?></strong>
+                        </p>
+                    </td>
+                    <td class="col4">
+                        <strong><?=$courierCompany->getDeliveryInfo()->clientPrice?> <i class="icon-rub">&nbsp;</i></strong>
+                    </td>
+                    <td class="col5">
+                        <strong><?=$courierCompany->delivery_time_min?></strong> <?=\DDelivery\Utils::plural($courierCompany->delivery_time_min, 'день', 'дня', 'дней', 'дней', false);?>
+                    </td>
+                </tr>
+            <?endforeach;?>
 
         </table>
     </div>

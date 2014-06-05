@@ -150,22 +150,26 @@
                     <label for="status" class="col-sm-6 control-label">Статус для отправки</label>
                     <div class="col-sm-10">
                         <?php
-                        /*
+
                             $attrs = array(
                                 'class' => 'form-control'
                             );
                             $options = array(
-                                '1' => 'Статус',
-                                '2' => 'Статус 2'
+                                'new' => 'new',
+                                'accepted' => 'accepted',
+                                'approved' => 'approved',
+                                'dispatched' => 'dispatched',
+                                'delivered' => 'delivered',
+                                'declined' => 'declined',
                             );
                             echo Form::select('status', $options, $usersettings->usersetting->status, $attrs);
-                        */
+                        /*
                         $attrs = array(
                             'placeholder' => 'ID статуса для отправки',
                             'class' => 'form-control'
                         );
                         echo Form::input('status', $usersettings->usersetting->status, $attrs);
-
+                        */
                         ?>
                     </div>
                 </div>

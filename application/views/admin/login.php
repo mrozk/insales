@@ -8,7 +8,23 @@
  * @copyright  Copyrights (c) 2012 Novichkov Sergey
  */
 ?>
-<div class="container">
+
+<form class="form-signin" role="form">
+    <div class="col-sm-4" style="margin: 0 auto;">
+        <h2 class="form-signin-heading">Вход</h2>
+        <input type="email" class="form-control" placeholder="Логин" required autofocus>
+        <input type="password" class="form-control" placeholder="Пароль" required>
+        <!--
+        <label class="checkbox">
+            <input type="checkbox" value="remember-me"> Remember me
+        </label>
+        -->
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Вход</button>
+    </div>
+</form>
+
+    <?php
+    /*
     <div class="row">
         <div class="span5 offset3 well">
             <form class="form-horizontal" action="" method="post">
@@ -53,8 +69,7 @@
             </form>
         </div>
     </div>
-</div>
-
+<?php */ ?>
 <style type="text/css">
     legend{ margin: 0; }
     .well{ margin-top: 100px; }

@@ -67,9 +67,13 @@ function DDeliveryStart(){
 }
 $(function(){
     $(document).ready(function(){
-        console.log(ORDER);
+
+        //console.log(ORDER);
         var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-        //alert(variant_id);
+
+        CheckoutDelivery.find( variant_id ).setFieldsvalues( [{fieldId: 1677341, value: 'test'}] );
+        alert(variant_id);
+
         $('#order_delivery_variant_id_' + variant_id).parent().next().append("<a id=\"startDD\" " +
                 " href=\"javascript:void(0);\">Выбрать способ доставки</a>" +
                 "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");

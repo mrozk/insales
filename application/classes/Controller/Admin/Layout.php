@@ -40,7 +40,7 @@ abstract class Controller_Admin_Layout extends Controller_Base
         // check access
         if (is_array($this->roles) AND !(empty($this->roles)) AND ! $this->auth->logged_in($this->roles) )
         {
-            $this->redirect($this->login_url);
+            $this->redirect( URL::base( $this->request ) .  $this->login_url);
             //$this->request->redirect($this->login_url);
         }
 

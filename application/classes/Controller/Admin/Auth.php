@@ -9,12 +9,13 @@ class Controller_Admin_Auth extends Controller_Base
     /**
      * User Login Action
      */
+
+
+
     public function action_login()
     {
-        // create template
-        $template = View::factory('admin/login');
-
         // init errors array
         $errors = array();
+        $this->template->set('content', View::factory('admin/login') );
     }
 }
