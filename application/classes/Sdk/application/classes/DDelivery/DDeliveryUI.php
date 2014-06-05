@@ -1546,6 +1546,8 @@ class DDeliveryUI
 
             $cityData['display_name'] = $displayCityName;
         }
+        print_r($cityList);
+       // echo 'okz';
         return $cityList;
     }
 
