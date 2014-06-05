@@ -55,7 +55,8 @@ function DDeliveryStart(){
         change: function(data)
         {
             var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-            alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
+            //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
+            CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: 1677899, value: data.orderId }] );
             CheckoutDelivery.find( variant_id ).toExternal().setPrice(data.clientPrice);
             closePopup();
         }
@@ -68,12 +69,12 @@ function DDeliveryStart(){
 $(function(){
     $(document).ready(function(){
 
-        //console.log(ORDER);
+        console.log(CheckoutDelivery);
         var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-
-        CheckoutDelivery.find( variant_id ).setFieldsvalues( [{fieldId: 1677341, value: 'test'}] );
-        alert(variant_id);
-
+        /*
+            CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: 1677899, value: 'test'}] );
+            alert ( CheckoutDelivery.find( variant_id ).fieldsValues[0].value );
+        */
         $('#order_delivery_variant_id_' + variant_id).parent().next().append("<a id=\"startDD\" " +
                 " href=\"javascript:void(0);\">Выбрать способ доставки</a>" +
                 "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");

@@ -31,13 +31,16 @@ class Controller_Sdk extends Controller
         $pulet = '<field>
           <type>Field::TextField</type>
           <for-buyer type="boolean">false</for-buyer>
-          <office-title>my_title</office-title>
+          <office-title>ddelivery_id</office-title>
           <obligatory type="boolean">false</obligatory>
           <title>ddelivery_id</title>
           <destiny type="integer">3</destiny>
+          <show-in-checkout type="boolean">true</show-in-checkout>
+          <show-in-result type="boolean">false</show-in-result>
         </field>';
-        print_r( $insales_api->api('GET', '/admin/fields.xml', $pulet) );
-
+        print_r( $insales_api->api('GET', '/admin/delivery_variants.xml', $pulet) );
+        //print_r( $insales_api->api('POST', '/admin/fields.xml', $pulet) );
+        //print_r( $insales_api->api('DELETE', '/admin/fields/1677898.xml', $pulet) );
     }
     public function action_addwidget()
     {
@@ -159,7 +162,8 @@ class Controller_Sdk extends Controller
             }
             $IntegratorShop = new IntegratorShop( $this->request, $uid );
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-
+            $order = $ddeliveryUI->getOrder();
+            //print_r($order);
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
             //echo '</pre>';
         }
