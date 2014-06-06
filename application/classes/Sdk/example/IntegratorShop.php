@@ -226,6 +226,13 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         // TODO: Implement setCmsOrderStatus() method.
     }
 
+    public function isStatusToSendOrder( $cmsStatus )
+    {
+        if( $cmsStatus == $this->settings->status )
+        {
+            return true;
+        }
+    }
     /**
      * Возвращает API ключ, вы можете получить его для Вашего приложения в личном кабинете
      * @return string

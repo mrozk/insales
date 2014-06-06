@@ -66,7 +66,7 @@ class Controller_Cabinet extends  Controller_Base{
             $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
             if ( $insales_user->loaded() )
             {
-                //echo $insales_user->id;
+
                 $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
                 //URL::base( $this->request )
                 $payload = '<?xml version="1.0" encoding="UTF-8"?>
@@ -87,10 +87,17 @@ class Controller_Cabinet extends  Controller_Base{
                             </delivery-variant>';
 
                 $insales_api->api('POST', '/admin/delivery_variants.xml', $payload) ;
+
+
                 Notice::add( Notice::SUCCESS,'Способ доставки успешно добавлен, необходимо активировать его в личном кабинете Insales' );
                 $this->redirect( URL::base( $this->request ) . 'cabinet/' );
             }
         }
+    }
+
+    public function addJsToInsales()
+    {
+
     }
 
     public function getPaymentWays( $passwd, $shop )

@@ -1,4 +1,4 @@
-<?php
+<?php defined('SYSPATH') or die('No direct script access.');
 
 use DDelivery\DDeliveryUI;
 
@@ -163,6 +163,7 @@ class Controller_Sdk extends Controller
             $IntegratorShop = new IntegratorShop( $this->request, $uid );
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
             $order = $ddeliveryUI->getOrder();
+            $order->insalesuser_id = $uid;
             //print_r($order);
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
             //echo '</pre>';
