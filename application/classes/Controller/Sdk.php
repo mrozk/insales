@@ -28,6 +28,34 @@ class Controller_Sdk extends Controller
     {
         $insales_user = ORM::factory('InsalesUser', array('insales_id' => 136789));
         $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+        $pulet = '<?xml version="1.0" encoding="UTF-8"?>
+                            <delivery-variant>
+                              <title>DDelivery</title>
+                              <position type="integer">1</position>
+                              <url>' . URL::base( $this->request ) . 'hello/gus/</url>
+                              <description>DDelivery</description>
+                              <type>DeliveryVariant::External</type>
+                              <delivery-locations type="array"/>
+                              <javascript>&lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/ddelivery.js"&gt;&lt;/script&gt;
+                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) .'html/assets/jquery.the-modal.js"&gt;&lt;/script&gt;
+                                    &lt;link rel="stylesheet" href="' . URL::base( $this->request ) . 'html/assets/the-modal.css" type="text/css" media="screen"/&gt;
+                                     &lt;script type="text/javascript"&gt;var ddelivery_insales={"field_id":' . '67' . ',"_id":' . '890' . ', "url": "' . URL::base( $this->request ) . '" };&lt;/script&gt;
+                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/action.js"&gt;&lt;/script&gt;
+                                &lt;div class="id_dd"&gt;&lt;/div&gt;
+                              </javascript>
+                            </delivery-variant>';
+        $data = $insales_api->api('GET', '/admin/webhooks.xml', $pulet) ;
+
+        echo '<pre>';
+        print_r($data);
+        echo '</pre>';
+
+        //$fields = array();
+
+
+        /*
+        $insales_user = ORM::factory('InsalesUser', array('insales_id' => 136789));
+        $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
         $pulet = '<field>
           <type>Field::TextField</type>
           <for-buyer type="boolean">false</for-buyer>
@@ -38,9 +66,11 @@ class Controller_Sdk extends Controller
           <show-in-checkout type="boolean">true</show-in-checkout>
           <show-in-result type="boolean">false</show-in-result>
         </field>';
-        print_r( $insales_api->api('GET', '/admin/delivery_variants.xml', $pulet) );
+        $data = json_decode( $insales_api->api('POST', '/admin/fields.json', $pulet) );
+        print_r($data->id);
         //print_r( $insales_api->api('POST', '/admin/fields.xml', $pulet) );
         //print_r( $insales_api->api('DELETE', '/admin/fields/1677898.xml', $pulet) );
+        */
     }
     public function action_addwidget()
     {
@@ -124,6 +154,42 @@ class Controller_Sdk extends Controller
             //print_r( $insales_api->api('GET', '/admin/webhooks.xml', $pulet) );
             //print_r( $insales_api->api('POST', '/admin/webhooks.xml', $pulet) );
         }
+    }
+    public function action_test()
+    {
+        $ddID = (int)362;
+        $query = DB::query(Database::SELECT, 'SELECT insalesuser_id FROM orders WHERE id = ' . $ddID )->as_object()
+            ->execute();
+        if( $query[0]->insalesuser_id )
+        {
+            echo $query[0]->insalesuser_id;
+        }
+        /*
+        $insales_user = ORM::factory('InsalesUser', array('insales_id' => 136789));
+        if ( $insales_user->loaded() )
+        {
+            $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+            $pulet = '[{
+                "address": "http://insales.ddelivery.ru/orders/create/?mag_id=136789",
+                "topic": "orders/create",
+                "format":1
+            }]';
+            $pulet = '<webhook>
+                        <address>http://insales.ddelivery.ru/orders/create/?mag_id=136789</address>
+                        <topic>orders/create</topic>
+                        <format type="integer">1</format>
+                     </webhook>';
+            print_r( $insales_api->api('DELETE', '/admin/webhooks/48762.json', $pulet) );
+            //print_r( $insales_api->api('DELETE', '/admin/webhooks/48760.json', $pulet) );
+
+            $answer =  $insales_api->api('POST', '/admin/webhooks.xml', $pulet );
+            //$movies = new simplexml_load_file($answer);
+            $simplexmlstr = simplexml_load_string( $answer );
+            print_r($simplexmlstr);
+
+
+        }
+        */
     }
     public function action_addupdate()
     {

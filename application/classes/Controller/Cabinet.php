@@ -57,6 +57,9 @@ class Controller_Cabinet extends  Controller_Base{
 
         }
     }
+
+
+
     public function action_addway()
     {
         $session = Session::instance();
@@ -66,28 +69,36 @@ class Controller_Cabinet extends  Controller_Base{
             $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
             if ( $insales_user->loaded() )
             {
-
                 $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
-                //URL::base( $this->request )
-                $payload = '<?xml version="1.0" encoding="UTF-8"?>
-                            <delivery-variant>
-                              <title>DDelivery</title>
-                              <position type="integer">1</position>
-                              <url>https://insales.ddelivery/hello/gus/</url>
-                              <description>DDelivery</description>
-                              <type>DeliveryVariant::External</type>
-                              <delivery-locations type="array"/>
-                              <javascript>&lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/ddelivery.js"&gt;&lt;/script&gt;
-                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) .'html/assets/jquery.the-modal.js"&gt;&lt;/script&gt;
-                                    &lt;link rel="stylesheet" href="' . URL::base( $this->request ) . 'html/assets/the-modal.css" type="text/css" media="screen"/&gt;
-                                     &lt;script type="text/javascript"&gt;var ddelivery_insales={"_id":' . $insalesuser . ', "url": "' . URL::base( $this->request ) . '" };&lt;/script&gt;
-                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/action.js"&gt;&lt;/script&gt;
-                                &lt;div class="id_dd"&gt;&lt;/div&gt;
-                              </javascript>
-                            </delivery-variant>';
+                $this->preClean( $insales_api );
 
-                $insales_api->api('POST', '/admin/delivery_variants.xml', $payload) ;
+                // Добавляем поля для хранения id заказа ddelivery
+                $payload = $this->getXmlField( 'ddelivery_id' );
+                $data = json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
+                // Добавляем поля для хранения id заказа ddelivery
 
+                // Добавляем поля для хранения id ddelivery_insales
+                $payload = $this->getXmlField( 'ddelivery_insales' );
+                $data2 = json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
+                // Добавляем поля для хранения id ddelivery_insales
+
+                // Добавляем JS
+                $payload = $this->getXmlJsToInsales( $insales_user->id, $data->id, $data2->id);
+                $delivery = json_decode( $insales_api->api('POST', '/admin/delivery_variants.json', $payload) );
+                // Добавляем JS
+
+                // Подписываемся на хук на создание заказа
+                $payload = $this->getXmlCreateHook( $insales_user->id );
+                $insales_api->api('POST', '/admin/webhooks.xml', $payload) ;
+                // Подписываемся на хук на создание заказа
+
+                // Подписываемся на хук на обновление заказа
+                $payload = $this->getXmlUpdateHook( $insales_user->id );
+                $insales_api->api('POST', '/admin/webhooks.xml', $payload) ;
+                // Подписываемся на хук на обновление заказа
+
+                $insales_user->delivery_variant_id = $delivery->id;
+                $insales_user->save();
 
                 Notice::add( Notice::SUCCESS,'Способ доставки успешно добавлен, необходимо активировать его в личном кабинете Insales' );
                 $this->redirect( URL::base( $this->request ) . 'cabinet/' );
@@ -95,9 +106,93 @@ class Controller_Cabinet extends  Controller_Base{
         }
     }
 
-    public function addJsToInsales()
+    public function preClean( $insales_api )
     {
+        $data = json_decode( $insales_api->api('GET', '/admin/webhooks.json') );
+        if( count($data) )
+        {
+            foreach( $data as $item )
+            {
 
+                if( substr_count( $item->address, URL::base( $this->request ) ) )
+                {
+                   $insales_api->api('DELETE', '/admin/webhooks/' . $item->id . '.json');
+                }
+            }
+        }
+
+        $data = json_decode( $insales_api->api('GET', '/admin/fields.json') );
+        if( count($data) )
+        {
+            foreach( $data as $item )
+            {
+                if( ( $item->office_title == 'ddelivery_id' ) || ( $item->office_title == 'ddelivery_insales' ) )
+                    $insales_api->api('DELETE', '/admin/fields/' . $item->id . '.json');
+            }
+        }
+
+        $data = json_decode( $insales_api->api('GET', '/admin/delivery_variants.json') );
+        if( count($data) )
+        {
+            foreach( $data as $item )
+            {
+                if( $item->title == 'DDelivery' )
+                    $insales_api->api('DELETE', '/admin/delivery_variants/' . $item->id . '.json');
+            }
+        }
+    }
+
+
+    public function getXmlField( $name )
+    {
+        return $pulet = '<field>
+                          <type>Field::TextField</type>
+                          <for-buyer type="boolean">false</for-buyer>
+                          <office-title>' . $name . '</office-title>
+                          <obligatory type="boolean">false</obligatory>
+                          <title>' . $name . '</title>
+                          <destiny type="integer">3</destiny>
+                          <for-buyer type="boolean">true</for-buyer>
+                          <show-in-checkout type="boolean">true</show-in-checkout>
+                          <show-in-result type="boolean">false</show-in-result>
+                        </field>';
+    }
+    public function getXmlUpdateHook( $insalesuser )
+    {
+        return $payload = '<webhook>
+                               <address>' . URL::base( $this->request ) . 'orders/update/?mag_id=' .
+                               $insalesuser . '</address>
+                               <topic>orders/update</topic>
+                               <format type="integer">1</format>
+                           </webhook>';
+    }
+    public function getXmlCreateHook( $insalesuser )
+    {
+        return $payload = '<webhook>
+                               <address>' . URL::base( $this->request ) . 'orders/create/?mag_id=' .
+                               $insalesuser . '</address>
+                               <topic>orders/create</topic>
+                               <format type="integer">1</format>
+                           </webhook>';
+    }
+    public function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id )
+    {
+        return $payload = '<?xml version="1.0" encoding="UTF-8"?>
+                            <delivery-variant>
+                              <title>DDelivery</title>
+                              <position type="integer">1</position>
+                              <url>' . URL::base( $this->request ) . 'hello/gus/</url>
+                              <description>DDelivery</description>
+                              <type>DeliveryVariant::External</type>
+                              <delivery-locations type="array"/>
+                              <javascript>&lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/ddelivery.js"&gt;&lt;/script&gt;
+                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) .'html/assets/jquery.the-modal.js"&gt;&lt;/script&gt;
+                                    &lt;link rel="stylesheet" href="' . URL::base( $this->request ) . 'html/assets/the-modal.css" type="text/css" media="screen"/&gt;
+                                     &lt;script type="text/javascript"&gt;var ddelivery_insales={"field_id":' . $field_id . ', "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ', "url": "' . URL::base( $this->request ) . '" };&lt;/script&gt;
+                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/action.js"&gt;&lt;/script&gt;
+                                &lt;div class="id_dd"&gt;&lt;/div&gt;
+                              </javascript>
+                            </delivery-variant>';
     }
 
     public function getPaymentWays( $passwd, $shop )

@@ -55,8 +55,9 @@ function DDeliveryStart(){
         change: function(data)
         {
             var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
+            CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
             //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
-            CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: 1677899, value: data.orderId }] );
+            CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: data.orderId }] );
             CheckoutDelivery.find( variant_id ).toExternal().setPrice(data.clientPrice);
             closePopup();
         }
@@ -71,6 +72,11 @@ $(function(){
 
         console.log(CheckoutDelivery);
         var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
+        //alert( ddelivery_insales.field2_id );
+        //alert( ddelivery_insales.field_id );
+        //CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
+        //CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: '361' }] );
+
         /*
             CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: 1677899, value: 'test'}] );
             alert ( CheckoutDelivery.find( variant_id ).fieldsValues[0].value );

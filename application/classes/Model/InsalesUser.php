@@ -18,7 +18,8 @@ class Model_InsalesUser extends ORM
                                         'token' =>  array (),
                                         'shop' => array (),
                                         'insales_id' => array (),
-                                        'passwd' => array ()
+                                        'passwd' => array (),
+                                        'delivery_variant_id' => array ()
     );
 
 }

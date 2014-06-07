@@ -21,7 +21,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     public function __construct( $request, $uid )
     {
         $this->request = $request;
-        $insales_user = ORM::factory('InsalesUser', array('insales_id' => $uid));
+        $insales_user = ORM::factory('InsalesUser', array('id' => $uid));
         $this->settings = $insales_user->usersetting;
         if( empty($this->settings->api) )
         {
