@@ -9,11 +9,11 @@
  */
 ?>
 
-<form class="form-signin" role="form">
+<form class="form-signin" action="admin/auth/login" method="post" role="form">
     <div class="col-sm-4" style="margin: 0 auto;">
         <h2 class="form-signin-heading">Вход</h2>
-        <input type="email" class="form-control" placeholder="Логин" required autofocus>
-        <input type="password" class="form-control" placeholder="Пароль" required>
+        <input type="text" name="login" class="form-control" placeholder="Логин" required autofocus>
+        <input type="password" name="password" class="form-control" placeholder="Пароль" required>
         <!--
         <label class="checkbox">
             <input type="checkbox" value="remember-me"> Remember me

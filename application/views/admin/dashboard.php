@@ -8,24 +8,9 @@
  * @copyright  Copyrights (c) 2012 Novichkov Sergey
  */
 ?>
-<div class="navbar navbar-inverse navbar-fixed-top">
-    <div class="navbar-inner">
-        <div class="container">
-            <ul class="nav pull-right">
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Authorized as: <?php //echo $user->username ?></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="<?php echo URL::site('/admin/auth/logout') ?>">Logout</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<div class="container jumbotron">
+Привет админка
 <?php
-
+    /*
     foreach($usr_ins as $user)
     {
 
@@ -38,6 +23,7 @@
         print_r($array);
         */
         //var_dump(array_map('ini_get', array('safe_mode', 'open_basedir')));
+/*
         try
         {
            $result = $insales_api->api('DELETE', '/admin/js_tags/7223.xml');
@@ -47,7 +33,7 @@
            echo 'error';
 
         }
-
+        */
         //print_r($result);
         /*
         InsalesApi::insales_api_client();
@@ -61,10 +47,11 @@
            $orders = $insales_api('POST', '/admin/delivery_variants.xml', $array);
         //var_dump($orders);
         //open_basedir is set
-        */
+
     }
+*/
 ?>
-</div>
+
 
 <style type="text/css">
     .jumbotron{ padding-top: 40px; }

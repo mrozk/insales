@@ -34,6 +34,15 @@
     //echo is_array($pvz_companies);
     ?>
             <h1>Настройки</h1>
+<div class="navbar-collapse collapse">
+    <div class="navbar-form navbar-right">
+        <button type="submit" onclick="jQuery('#insales-form').submit();"  class="btn btn-success">Сохранить</button>
+    </div>
+    <div class="navbar-form navbar-right">
+        <a href="cabinet/addway/"  class="btn btn-success">Добавить способ доставки в Insales</a>
+    </div>
+
+</div><!--/.navbar-collapse -->
             <form role="form" id="insales-form" action="cabinet/save/" method="post">
                 <h3>Основые</h3>
                 <div class="form-group" >
@@ -42,7 +51,8 @@
                         <?php
                             $attrs = array(
                                 'placeholder' => 'API ключ из личного кабинета',
-                                'class' => 'form-control'
+                                'class' => 'form-control',
+                                'required' => ''
                             );
                             echo Form::input('api', $usersettings->usersetting->api, $attrs);
                         ?>

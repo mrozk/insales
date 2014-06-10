@@ -36,18 +36,18 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * Синхронизация локальных статусов
      * @var array
      */
-    protected  $cmsOrderStatus = array( DDStatusProvider::ORDER_IN_PROGRESS => 0,
-                                        DDStatusProvider::ORDER_CONFIRMED => 23,
-                                        DDStatusProvider::ORDER_IN_STOCK => 14,
-                                        DDStatusProvider::ORDER_IN_WAY => 15,
-                                        DDStatusProvider::ORDER_DELIVERED => 16,
-                                        DDStatusProvider::ORDER_RECEIVED => 17,
-                                        DDStatusProvider::ORDER_RETURN => 20,
-                                        DDStatusProvider::ORDER_CUSTOMER_RETURNED => 21,
-                                        DDStatusProvider::ORDER_PARTIAL_REFUND => 22,
-                                        DDStatusProvider::ORDER_RETURNED_MI => 2,
-                                        DDStatusProvider::ORDER_WAITING => 25,
-                                        DDStatusProvider::ORDER_CANCEL => 26 );
+    protected  $cmsOrderStatus = array( DDStatusProvider::ORDER_IN_PROGRESS => 'new',
+                                        DDStatusProvider::ORDER_CONFIRMED => 'accepted',
+                                        DDStatusProvider::ORDER_IN_STOCK => 'approved',
+                                        DDStatusProvider::ORDER_IN_WAY => 'dispatched',
+                                        DDStatusProvider::ORDER_DELIVERED => 'dispatched',
+                                        DDStatusProvider::ORDER_RECEIVED => 'delivered',
+                                        DDStatusProvider::ORDER_RETURN => 'declined',
+                                        DDStatusProvider::ORDER_CUSTOMER_RETURNED => 'declined',
+                                        DDStatusProvider::ORDER_PARTIAL_REFUND => 'declined',
+                                        DDStatusProvider::ORDER_RETURNED_MI => 'declined',
+                                        DDStatusProvider::ORDER_WAITING => 'declined',
+                                        DDStatusProvider::ORDER_CANCEL => 'declined' );
     /**
      * Верните true если нужно использовать тестовый(stage) сервер
      * @return bool
@@ -221,9 +221,30 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      *
      * @return bool
      */
-    public function setCmsOrderStatus($cmsOrderID, $status)
+    public function setInsalesOrderStatus($cmsOrderID, $status, $clientID)
     {
-        // TODO: Implement setCmsOrderStatus() method.
+        $insales_user = ORM::factory('InsalesUser', array('id' => $clientID));
+
+        if ( $insales_user->loaded() )
+        {
+
+            $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+
+            $pulet = '<order>
+                            <id type="integer">' . $cmsOrderID . '</id>
+                            <fulfillment-status>' . $status . '</fulfillment-status>
+                      </order>';
+            //echo strlen($pulet);
+            //echo $cmsOrderID;
+            $result = json_decode( $insales_api->api('PUT','/admin/orders/' . $cmsOrderID . '.json', $pulet) );
+            return $result->id;
+        }
+            //echo $insales_user->id;
+    }
+
+    public function setCmsOrderStatus( $cmsOrderID, $status )
+    {
+
     }
 
     public function isStatusToSendOrder( $cmsStatus )

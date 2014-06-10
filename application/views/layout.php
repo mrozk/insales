@@ -48,15 +48,7 @@
             </button>
             <a class="navbar-brand" href="javascript:void(0);">Панель настроек Insales - DDelivery</a>
         </div>
-        <div class="navbar-collapse collapse">
-            <div class="navbar-form navbar-right">
-                <button type="submit" onclick="jQuery('#insales-form').submit();"  class="btn btn-success">Сохранить</button>
-            </div>
-            <div class="navbar-form navbar-right">
-                <a href="cabinet/addway/"  class="btn btn-success">Добавить способ доставки в Insales</a>
-            </div>
 
-        </div><!--/.navbar-collapse -->
     </div>
 </div>
 

@@ -217,6 +217,18 @@ class Controller_Sdk extends Controller
         }
         //echo $uid;
     }
+    public function action_status()
+    {
+        $uid = (int)$this->get_request_state('insales_id');
+        if( !$uid )
+        {
+            return;
+        }
+        $IntegratorShop = new IntegratorShop( $this->request, $uid );
+        $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+        $ddeliveryUI->getInsalesPullOrdersStatus();
+
+    }
     public function action_index()
     {
         try

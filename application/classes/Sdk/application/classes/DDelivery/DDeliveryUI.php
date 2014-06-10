@@ -95,7 +95,49 @@ class DDeliveryUI
         $this->messager = new Sdk\DDeliveryMessager($this->shop->isTestMode());
         $this->cache = new DCache( $this, $this->shop->getCacheExpired(), $this->shop->isCacheEnabled() );
     }
+    public function getInsalesPullOrdersStatus()
+    {
+        $orders = $this->getUnfinishedOrders();
+        $statusReport = array();
+        if( count( $orders ) )
+        {
+            foreach ( $orders as $item)
+            {
+                $rep = $this->changeInsalesOrderStatus( $item );
+                if( count( $rep ) )
+                {
+                    $statusReport[] = $rep;
+                }
+            }
+        }
+        return $statusReport;
+    }
+    public function changeInsalesOrderStatus($order)
+    {
+        if( $order )
+        {
+            if( $order->ddeliveryID == 0 )
+            {
+                return array();
+            }
+            $ddStatus = $this->getDDOrderStatus($order->ddeliveryID);
 
+            if( $ddStatus == 0 )
+            {
+                return array();
+            }
+            $order->ddStatus = $ddStatus;
+            $order->localStatus = $this->shop->getLocalStatusByDD( $order->ddStatus );
+            $this->saveFullOrder($order);
+            $this->shop->setInsalesOrderStatus($order->shopRefnum, $order->localStatus, $order->insalesuser_id);
+            return array('cms_order_id' => $order->shopRefnum, 'ddStatus' => $order->ddStatus,
+                         'localStatus' => $order->localStatus );
+        }
+        else
+        {
+            return array();
+        }
+    }
     /**
      * Чистим кэш
      */
@@ -181,6 +223,7 @@ class DDeliveryUI
         $data = $orderDB->getNotFinishedOrders();
         $orderIDs = array();
         $orders = array();
+
         if(count( $data ))
         {
             foreach( $data as $item )
@@ -1857,6 +1900,7 @@ class DDeliveryUI
      */
     public function _initOrderInfo($currentOrder, $item)
     {
+
         $currentOrder->type = $item->type;
         $currentOrder->paymentVariant = $item->payment_variant;
         $currentOrder->localId = $item->id;
@@ -1883,6 +1927,7 @@ class DDeliveryUI
         $currentOrder->toFlat = $item->to_flat;
         $currentOrder->toEmail = $item->to_email;
         $currentOrder->comment = $item->comment;
+        $currentOrder->insalesuser_id = $item->insalesuser_id;
     }
 
 
