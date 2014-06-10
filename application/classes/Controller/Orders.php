@@ -179,58 +179,7 @@ class Controller_Orders extends Controller
                 }
             }
         }
-        /*
-        if( $ddelivery_id && $user_id )
-        {
-            $insales_user = ORM::factory('InsalesUser', array('id' => $user_id));
-            if($insales_user->loaded())
-            {
-                if( $data->delivery_variant_id == $insales_user->delivery_variant_id )
-                {
-                    try
-                    {
-                        $IntegratorShop = new IntegratorShop( $this->request, $user_id );
-                        $ddeliveryUI = new DDeliveryUI($IntegratorShop, true);
-                        $ddeliveryUI->onCmsOrderFinish( $item->value, $data->order_lines[0]->order_id,
-                            $data->fulfillment_status, $data->payment_gateway_id );
-                    }
-                    catch( \DDelivery\DDeliveryException $e )
-                    {
-                        echo $e->getMessage();
-                        return;
-                    }
-                }
-            }
-        }
-        */
 
-        //echo $method_id . '<br />';
-        /*
-        echo $ddelivery_id;
-        echo $query[0]->insalesuser_id;
-        */
-        /*
-        //echo $creator->delivery_variant_id;
-        if( $creator->delivery_variant_id == 221842 )
-        {
-            foreach( $creator->fields_values as $item )
-            {
-                if ( $item->name == 'ddelivery_id')
-                {
-                    echo $item->value;
-                }
-            }
-        }
-        */
-        /*
-        foreach( $return as $item )
-        {
-            $creator = json_decode( $item->creater );
-            print_r($creator);
-            echo '<hr />';
-
-        }
-        */
 
     }
 }
