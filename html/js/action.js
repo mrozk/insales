@@ -54,6 +54,7 @@ function DDeliveryStart(){
         },
         change: function(data)
         {
+            $( '.dd_asset_conteiner').append( '<div style="position: absolute;margin-top: 10px; color:#E98B73" >' + data.comment + '</div>' );
             var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
             CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
             //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
@@ -81,7 +82,8 @@ $(function(){
             CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: 1677899, value: 'test'}] );
             alert ( CheckoutDelivery.find( variant_id ).fieldsValues[0].value );
         */
-        $('#order_delivery_variant_id_' + variant_id).parent().next().append("<a id=\"startDD\" " +
+        $('#order_delivery_variant_id_' + variant_id).parent().next().append("<div class='dd_asset_conteiner' style='position: relative'>" +
+            "<a class=\"button\" style='display:block;position: absolute;top: -25px; left:120px;' id=\"startDD\" " +
                 " href=\"javascript:void(0);\">Выбрать способ доставки</a>" +
                 "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");
 
