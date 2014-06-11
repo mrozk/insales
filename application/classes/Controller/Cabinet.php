@@ -54,7 +54,7 @@ class Controller_Cabinet extends  Controller_Base{
         }
         else
         {
-
+            Notice::add( Notice::ERROR,'Доступ только из админпанели магазина insales' );
         }
     }
 
@@ -243,6 +243,7 @@ class Controller_Cabinet extends  Controller_Base{
             else
             {
                 echo 'Вход осуществляется через личный кабинет insales.ru';
+                Notice::add( Notice::ERROR,'Доступ только из админпанели магазина insales' );
             }
         }
     }

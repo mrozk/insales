@@ -4,8 +4,7 @@ class Controller_Welcome extends Controller_Base {
 
 	public function action_index()
 	{
-		exit('insales');
-		///$this->response->body('hello, world!' . $this->request->param('id'));
+        Notice::add( Notice::ERROR,'Доступ только из админпанели магазина insales' );
 	}
 
 
