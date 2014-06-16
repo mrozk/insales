@@ -75,7 +75,6 @@ function DDeliveryStart(){
     };
     product_str = sendCart();
 
-    //alert(ddelivery_insales._id);
     DDelivery.delivery('ddelivery', ddelivery_insales.url + 'sdk/?iframe=1&pr=' + product_str + '&insales_id=' + ddelivery_insales._id, params, callback);
 }
 $(function(){

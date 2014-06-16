@@ -36,9 +36,73 @@ class Controller_Sdk extends Controller
         }
         $IntegratorShop = new IntegratorShop( $this->request, $uid );
         $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-        $ddeliveryUI->getInsalesPullOrdersStatus();
+
+
+        $orders = $ddeliveryUI->getUnfinishedOrders();
+        $statusReport = array();
+        if( count( $orders ) )
+        {
+            foreach ( $orders as $item)
+            {
+                $rep = $this->changeInsalesOrderStatus( $item, $ddeliveryUI );
+                if( count( $rep ) )
+                {
+                    $statusReport[] = $rep;
+                }
+            }
+        }
+        return $statusReport;
 
     }
+
+
+    public function setInsalesOrderStatus($cmsOrderID, $status, $clientID)
+    {
+        $insales_user = ORM::factory('InsalesUser', array('id' => $clientID));
+
+        if ( $insales_user->loaded() )
+        {
+
+            $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+
+            $pulet = '<order>
+                            <id type="integer">' . $cmsOrderID . '</id>
+                            <fulfillment-status>' . $status . '</fulfillment-status>
+                      </order>';
+            //echo strlen($pulet);
+            //echo $cmsOrderID;
+            $result = json_decode( $insales_api->api('PUT','/admin/orders/' . $cmsOrderID . '.json', $pulet) );
+            return $result->id;
+        }
+    }
+
+    public function changeInsalesOrderStatus( $order, $ui )
+    {
+        if( $order )
+        {
+            if( $order->ddeliveryID == 0 )
+            {
+                return array();
+            }
+            $ddStatus = $ui->getDDOrderStatus($order->ddeliveryID);
+
+            if( $ddStatus == 0 )
+            {
+                return array();
+            }
+            $order->ddStatus = $ddStatus;
+            $order->localStatus = $this->getLocalStatusByDD( $order->ddStatus );
+            $ui->saveFullOrder($order);
+            $this->setInsalesOrderStatus($order->shopRefnum, $order->localStatus, $order->insalesuser_id);
+            return array('cms_order_id' => $order->shopRefnum, 'ddStatus' => $order->ddStatus,
+                'localStatus' => $order->localStatus );
+        }
+        else
+        {
+            return array();
+        }
+    }
+
     public function action_index()
     {
         try
@@ -52,7 +116,6 @@ class Controller_Sdk extends Controller
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
             $order = $ddeliveryUI->getOrder();
             $order->insalesuser_id = $uid;
-
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
             //echo '</pre>';
         }
