@@ -8,6 +8,7 @@
 
 namespace DDelivery\DataBase;
 
+use DDelivery\Adapter\DShopAdapter;
 use PDO;
 /**
  *
@@ -19,30 +20,43 @@ class Cache {
     /**
      * @var PDO
      */
-    public $pdo;
+    private $pdo;
+    /**
+     * @var int
+     */
+    private $pdoType;
+    /**
+     * @var string
+     */
+    private $prefix;
 
 
-    public function __construct()
+    public function __construct(PDO $pdo, $prefix = '')
     {
-
-        $this->pdo = SQLite::getPDO();
-        //$this->createTable();
+        $this->pdo = $pdo;
+        $this->prefix = $prefix;
+        if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) == 'sqlite') {
+            $this->pdoType = DShopAdapter::DB_SQLITE;
+        }else{
+            $this->pdoType = DShopAdapter::DB_MYSQL;
+        }
     }
 
-    /**
-     * Создать таблицу
-     */
     public function createTable()
     {
-
-        $this->pdo->exec("CREATE TABLE IF NOT EXISTS cache (
-                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-				                 sig TEXT,
-				                 data_container TEXT,
-				                 expired TEXT
-				         )");
-        //echo 'CREATE TABLE IF NOT';
-
+        if($this->pdoType == DShopAdapter::DB_MYSQL) {
+            $query = 'CREATE TABLE `'.$this->prefix.'cache` (
+                    `id`  int NOT NULL AUTO_INCREMENT ,
+                    `sig`  varchar(255) NULL ,
+                    `data_container`  text NULL ,
+                    `expired`  datetime NULL ,
+                    PRIMARY KEY (`id`)
+                )';
+            $sth = $this->pdo->prepare( $query );
+            $sth->execute();
+        }else{
+            // ;)
+        }
     }
 
     /**
@@ -67,25 +81,24 @@ class Cache {
      */
     public function getCacheRec( $sig )
     {
-        // SQLite
-        /*
-            $query = 'SELECT data_container FROM cache WHERE sig = :sig AND expired > datetime("now")';
-        */
-        $query = 'SELECT data_container FROM cache WHERE sig = :sig AND expired > NOW()';
-
+        if($this->pdoType == DShopAdapter::DB_SQLITE) {
+            $query = 'SELECT data_container
+                FROM '.$this->prefix.'cache
+                WHERE sig = :sig AND expired > datetime("now")';
+        }elseif($this->pdoType == DShopAdapter::DB_MYSQL){
+            $query = 'SELECT data_container
+                FROM '.$this->prefix.'cache
+                WHERE sig = :sig AND expired > NOW()';
+        }
         $sth = $this->pdo->prepare( $query );
         $sth->bindParam( ':sig', $sig );
         $sth->execute();
         $result = $sth->fetchAll(PDO::FETCH_OBJ);
-
         if( count( $result ) )
         {
             return $result[0]->data_container;
         }
-        else
-        {
-            return null;
-        }
+        return null;
     }
 
     /**
@@ -97,11 +110,13 @@ class Cache {
      */
     public function getCacheDataBySig( $sig )
     {
-        $query = 'SELECT data_container FROM cache WHERE sig = :sig';
+        if($this->pdoType == DShopAdapter::DB_SQLITE || $this->pdoType == DShopAdapter::DB_MYSQL) {
+            $query = 'SELECT data_container FROM '.$this->prefix.'cache WHERE sig = :sig';
+        }
+
         $sth = $this->pdo->prepare( $query );
         $sth->bindParam( ':sig', $sig );
         $sth->execute();
-
         $result = $sth->fetchAll(PDO::FETCH_OBJ);
 
         if( count( $result ) )
@@ -121,7 +136,7 @@ class Cache {
      */
     public function getAll()
     {
-        $query = 'SELECT * FROM cache ';
+        $query = 'SELECT * FROM '.$this->prefix.'cache';
         $sth = $this->pdo->prepare( $query );
         $sth->execute();
         $result = $sth->fetchAll(PDO::FETCH_OBJ);
@@ -139,42 +154,41 @@ class Cache {
      */
     public function save( $sig, $data_container, $expired )
     {
+        $expired = (int)$expired;
         $this->pdo->beginTransaction();
 
         if( $this->isRecordExist( $sig ) )
         {
-            // SQLite
-            /*
-            $query = 'UPDATE cache SET data_container = :data_container,
-                      expired = datetime("now", "+' . $expired . ' minutes") WHERE sig = :sig';
-            */
-            $query = 'UPDATE cache SET data_container = :data_container,
-                      expired = ( NOW()+ INTERVAL ' . $expired . ' MINUTE ) WHERE sig = :sig';
+            if($this->pdoType == DShopAdapter::DB_SQLITE) {
+                $query = 'UPDATE '.$this->prefix.'cache
+                    SET data_container = :data_container,
+                        expired = datetime("now", "+' . $expired . ' minutes")
+                    WHERE sig = :sig';
+            }elseif($this->pdoType == DShopAdapter::DB_MYSQL){
+                $query = 'UPDATE '.$this->prefix.'cache
+                    SET
+                        data_container = :data_container,
+                        expired = NOW() + INTERVAL ' . $expired . ' MINUTE
+                    WHERE sig = :sig';
+            }
             $sth = $this->pdo->prepare( $query );
         }
         else
         {
-
-            // SQLite
-            /*
-            $query = 'INSERT INTO cache (sig, data_container, expired) VALUES
+            if($this->pdoType == DShopAdapter::DB_SQLITE) {
+                $query = 'INSERT INTO cache (sig, data_container, expired) VALUES
                           (:sig, :data_container, datetime("now", "+' . $expired . ' minutes"))';
-            */
-            $query = 'INSERT INTO cache (sig, data_container, expired) VALUES
-                          (:sig, :data_container, ( NOW()+ INTERVAL ' . $expired . ' MINUTE ))';
+            }elseif($this->pdoType == DShopAdapter::DB_MYSQL) {
+                $query = 'INSERT INTO cache (sig, data_container, expired) VALUES
+                          (:sig, :data_container, expired = NOW() + INTERVAL ' . $expired . ' MINUTE)';
+            }
             $sth = $this->pdo->prepare( $query );
         }
+
         $sth->bindParam( ':sig', $sig );
         $sth->bindParam( ':data_container', $data_container );
-        if( $sth->execute() )
-        {
-            $result = true;
-        }
-        else
-        {
 
-            $result = false;
-        }
+        $result = $sth->execute();
         $this->pdo->commit();
         return $result;
     }
@@ -186,32 +200,33 @@ class Cache {
     public function removeExpired()
     {
         $this->pdo->beginTransaction();
-        // SQLite
-        /*
+        if($this->pdoType == DShopAdapter::DB_SQLITE) {
             $query = 'DELETE FROM cache WHERE expired < datetime("now")';
-        */
-        $query = 'DELETE FROM cache WHERE expired < NOW()';
+        }elseif($this->pdoType == DShopAdapter::DB_MYSQL) {
+            $query = 'DELETE FROM cache WHERE expired < NOW()';
+        }
         $sth = $this->pdo->prepare( $query );
         $sth->execute();
         $this->pdo->commit();
         $result = $sth->fetchAll(PDO::FETCH_OBJ);
         return $result;
-}
+    }
 
-/**
- * Получить просроченые
- * @return array
- */
+    /**
+     * Получить просроченые
+     * @return array
+     */
     public function selectExpired()
     {
         $this->pdo->beginTransaction();
-        // SQLite
-        /*
+        if($this->pdoType == DShopAdapter::DB_SQLITE) {
             $query = 'SELECT expired,  datetime("now") AS expired2  FROM
                   cache WHERE expired < datetime("now")';
-        */
-        $query = 'SELECT expired,  NOW() AS expired2  FROM
-                  cache WHERE expired <  NOW()';
+        }elseif($this->pdoType == DShopAdapter::DB_MYSQL) {
+            $query = 'SELECT expired,  NOW() AS expired2
+                FROM cache
+                WHERE expired < NOW()';
+        }
         $sth = $this->pdo->prepare( $query );
         $sth->execute();
         $this->pdo->commit();
@@ -228,17 +243,10 @@ class Cache {
     {
         $this->pdo->beginTransaction();
         $query = 'DELETE FROM cache';
+
         $sth = $this->pdo->prepare( $query );
-        if( $sth->execute() )
-        {
-            $result = true;
-        }
-        else
-        {
-            $result = false;
-        }
+        $result = $sth->execute();
         $this->pdo->commit();
-        //print_r($this->pdo->errorInfo());
         return $result;
     }
 

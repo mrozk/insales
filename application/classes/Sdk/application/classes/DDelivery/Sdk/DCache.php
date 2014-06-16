@@ -9,6 +9,7 @@
 namespace DDelivery\Sdk;
 use DDelivery\DataBase\Cache;
 use DDelivery\DDeliveryException;
+use DDelivery\DDeliveryUI;
 
 /**
  * Клас для кэширования в контексте объекта
@@ -36,16 +37,43 @@ class DCache
     public $enabled;
 
     /**
-     * @param      $context
-     * @param      $expired
-     * @param bool $enabled
+     * @var \PDO
      */
-    public function __construct( $context, $expired, $enabled = true )
-    {
+    private $pdo;
 
+    /**
+     * @var Cache
+     */
+    private $cache = null;
+
+    private $pdoTablePrefix;
+
+    /**
+     * @param DDeliveryUI $context
+     * @param int $expired
+     * @param bool $enabled
+     * @param \PDO $PDO
+     * @param string $pdoTablePrefix
+     */
+    public function __construct( DDeliveryUI $context, $expired, $enabled = true, \PDO $PDO, $pdoTablePrefix = '' )
+    {
+        $this->pdo = $PDO;
+        $this->pdoTablePrefix = $pdoTablePrefix;
         $this->context = $context;
         $this->expired = $expired;
         $this->enabled = $context;
+    }
+
+    /**
+     * @return Cache
+     */
+    private function getCacheObject()
+    {
+        if(!$this->cache){
+            $cache = new Cache($this->pdo, $this->pdoTablePrefix);
+            $this->cache = $cache;
+        }
+        return $this->cache;
     }
 
     /**
@@ -65,7 +93,6 @@ class DCache
 
             if( ($result = $this->getCache( $sig )) && $this->enabled )
             {
-
                 return $result;
             }
             else
@@ -82,23 +109,21 @@ class DCache
     /**
      * Загрузить запись кэша
      *
-     * @param $sig ключ вызова метода
+     * @param string $sig ключ вызова метода
      *
      * @return mixed|null
      */
     public function getCache( $sig )
     {
-        $cache = new Cache();
+        $cache = $this->getCacheObject();
         if( $data_container = $cache->getCacheRec($sig) )
         {
-
             return unserialize($data_container);
         }
         else
         {
             return null;
         }
-
     }
 
     /**
@@ -111,8 +136,10 @@ class DCache
      */
     public function setCache( $sig, $data, $expired )
     {
-        $cache = new Cache();
+        $cache = $this->getCacheObject();
         $data_container = serialize( $data );
+        if(strlen($data_container) > 65000)
+            return false;
         $id = $cache->save($sig, $data_container, $expired);
         return $id;
     }
@@ -122,8 +149,7 @@ class DCache
      */
     public function clean()
     {
-        $cache = new Cache();
-        return $cache->removeAll();
+        return $this->getCacheObject()->removeAll();
     }
 
     /**
@@ -132,15 +158,9 @@ class DCache
      */
     public function cleanExpired()
     {
-        $cache = new Cache();
-        return $cache->removeExpired();
+        return $this->getCacheObject()->removeExpired();
     }
 
-    public function getAll()
-    {
-        $cache = new Cache();
-        return $cache->getAll();
-    }
 
 
 

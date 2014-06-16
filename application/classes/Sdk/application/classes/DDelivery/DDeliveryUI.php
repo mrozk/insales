@@ -72,11 +72,20 @@ class DDeliveryUI
     private $cache;
 
     /**
+     * @var /PDO бд
+     */
+    private $pdo;
+    /**
+     * @var string префикс таблицы
+     */
+    private $pdoTablePrefix;
+
+    /**
      * Запускает движок SDK
      *
      * @param DShopAdapter $dShopAdapter адаптер интегратора
      * @param bool $skipOrder запустить движок без инициализации заказа  из корзины
-     *
+     * @throws DDeliveryException
      */
     public function __construct(DShopAdapter $dShopAdapter, $skipOrder = false)
     {
@@ -84,7 +93,28 @@ class DDeliveryUI
 
         $this->sdk = new Sdk\DDeliverySDK($dShopAdapter->getApiKey(), $this->shop->isTestMode());
 
-        SQLite::$dbUri = $dShopAdapter->getPathByDB();
+        $dbConfig = $dShopAdapter->getDbConfig();
+        if(isset($dbConfig['pdo']) && $dbConfig['pdo'] instanceof \PDO) {
+            $this->pdo = $dbConfig['pdo'];
+        }elseif($dbConfig['type'] == DShopAdapter::DB_SQLITE) {
+            if(!$dbConfig['dbPath'])
+                throw new DDeliveryException('SQLite db is empty');
+
+            $dbDir = dirname($dbConfig['dbPath']);
+            if(  (!is_writable( $dbDir )) || ( !is_writable( $dbConfig['dbPath'] ) ) || (!is_dir( $dbDir )) ) {
+                throw new DDeliveryException('SQLite database does not exist or is not writable');
+            }
+
+            $this->pdo = new \PDO('sqlite:'.$dbConfig['dbPath']);
+            $this->pdo->exec('PRAGMA journal_mode=WAL;');
+        } elseif($dbConfig['type'] == DShopAdapter::DB_MYSQL) {
+            $this->pdo = new \PDO($dbConfig['dsn'], $dbConfig['user'], $dbConfig['pass']);
+            $this->pdo->exec('SET NAMES utf8');
+        }else{
+            throw new DDeliveryException('Not support database type');
+        }
+        $this->pdoTablePrefix = isset($dbConfig['prefix']) ? $dbConfig['prefix'] : '';
+
         // Формируем объект заказа
         if(!$skipOrder)
         {
@@ -93,51 +123,17 @@ class DDeliveryUI
             $this->order->amount = $this->shop->getAmount();
         }
         $this->messager = new Sdk\DDeliveryMessager($this->shop->isTestMode());
-        $this->cache = new DCache( $this, $this->shop->getCacheExpired(), $this->shop->isCacheEnabled() );
+        $this->cache = new DCache( $this, $this->shop->getCacheExpired(), $this->shop->isCacheEnabled(), $this->pdo, $this->pdoTablePrefix );
     }
-    public function getInsalesPullOrdersStatus()
-    {
-        $orders = $this->getUnfinishedOrders();
-        $statusReport = array();
-        if( count( $orders ) )
-        {
-            foreach ( $orders as $item)
-            {
-                $rep = $this->changeInsalesOrderStatus( $item );
-                if( count( $rep ) )
-                {
-                    $statusReport[] = $rep;
-                }
-            }
-        }
-        return $statusReport;
-    }
-    public function changeInsalesOrderStatus($order)
-    {
-        if( $order )
-        {
-            if( $order->ddeliveryID == 0 )
-            {
-                return array();
-            }
-            $ddStatus = $this->getDDOrderStatus($order->ddeliveryID);
 
-            if( $ddStatus == 0 )
-            {
-                return array();
-            }
-            $order->ddStatus = $ddStatus;
-            $order->localStatus = $this->shop->getLocalStatusByDD( $order->ddStatus );
-            $this->saveFullOrder($order);
-            $this->shop->setInsalesOrderStatus($order->shopRefnum, $order->localStatus, $order->insalesuser_id);
-            return array('cms_order_id' => $order->shopRefnum, 'ddStatus' => $order->ddStatus,
-                         'localStatus' => $order->localStatus );
-        }
-        else
-        {
-            return array();
-        }
+    public function createTables()
+    {
+        $cache = new DataBase\Cache($this->pdo, $this->pdoTablePrefix);
+        $cache->createTable();
+        $order = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
+        $order->createTable();
     }
+
     /**
      * Чистим кэш
      */
@@ -185,6 +181,7 @@ class DDeliveryUI
 
     /**
      * Функция вызывается при изменении статуса внутри cms для отправки
+     * @deprecated Не работает.
      *
      * @param $cmsID
      * @param $cmsStatus
@@ -211,6 +208,31 @@ class DDeliveryUI
         }
         return false;
     }
+
+    /**
+     * Отправить order в DD
+     * @param DDeliveryOrder $order
+     * @param string $cmsID
+     * @param int $paymentType
+     * @return bool|int
+     */
+    public function sendOrderToDD($order, $cmsID, $paymentType)
+    {
+        if(!$order)
+            return false;
+        $order->shopRefnum = $cmsID;
+        $order->paymentVariant = $paymentType;
+        if($order->type == DDeliverySDK::TYPE_SELF)
+        {
+            return $this->createSelfOrder($order);
+        }
+        elseif( $order->type == DDeliverySDK::TYPE_COURIER )
+        {
+            return $this->createCourierOrder($order);
+        }
+        return false;
+    }
+
     /**
      *
      * Получить заказы которые еще не окончили обработку
@@ -219,11 +241,10 @@ class DDeliveryUI
      */
     public function getUnfinishedOrders()
     {
-        $orderDB = new DataBase\Order();
+        $orderDB = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
         $data = $orderDB->getNotFinishedOrders();
         $orderIDs = array();
         $orders = array();
-
         if(count( $data ))
         {
             foreach( $data as $item )
@@ -329,7 +350,7 @@ class DDeliveryUI
      */
     function getOrderByCmsID( $cmsOrderID )
     {
-        $orderDB = new DataBase\Order();
+        $orderDB = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
         $data = $orderDB->getOrderByCmsOrderID( $cmsOrderID );
 
         if( count($data) )
@@ -457,32 +478,10 @@ class DDeliveryUI
      */
     public function setShopOrderID( $id, $paymentVariant, $status, $shopOrderID )
     {
-    	$orderDB = new DataBase\Order();
+    	$orderDB = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
     	return $orderDB->setShopOrderID($id, $paymentVariant, $status, $shopOrderID);
     }
 
-    /**
-     * Инициализирует заказ по id из заказов локальной БД, в контексте текущего UI
-     *
-     * @param int $id id заказа
-     *
-     * @throws DDeliveryException
-     *
-     * @return DDeliveryOrder[]
-     */
-    public function initIntermediateOrder( $id )
-    {
-        $orderDB = new DataBase\Order();
-        if(!$id)
-            return false;
-        $orders = $orderDB->getOrderList(array( $id ));
-        if( count($orders) )
-        {
-            $item = $orders[0];
-            $this->_initOrderInfo( $this->order,  $item);
-        }
-        return true;
-    }
 
     /**
      * Инициализирует массив заказов из массива id заказов локальной БД
@@ -495,7 +494,7 @@ class DDeliveryUI
      */
     public function initOrder( $ids )
     {   
-    	$orderDB = new DataBase\Order();
+    	$orderDB = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
         $orderList = array();
         if(!count($ids))
         	throw new DDeliveryException('Пустой массив для инициализации заказа');
@@ -736,7 +735,7 @@ class DDeliveryUI
     public function getSelfPointByID( $pointId, $order )
     {
         if(!$this->_validateOrderToGetPoints( $order))
-            throw new DDeliveryException('Для получения списка необходимо корректный order');
+            throw new DDeliveryException('Not valid order');
         $points = $this->cache->render( 'getSelfPointsDetail', array( $order->city ) );
         $selfPoint = null;
         if(count($points))
@@ -752,7 +751,7 @@ class DDeliveryUI
         }
         if( $selfPoint == null )
         {
-            throw new DDeliveryException('Точка не найдена');
+            throw new DDeliveryException('Point not found');
         }
         /**
          * @var DDeliveryPointSelf $selfPoint
@@ -771,7 +770,7 @@ class DDeliveryUI
     public function getSelfPoints( DDeliveryOrder $order )
     {
         if(!$this->_validateOrderToGetPoints( $order))
-            throw new DDeliveryException('Для получения списка необходимо корректный order');
+            throw new DDeliveryException('Not valid order');
         // Есть ли необходимость искать точки на сервере ddelivery
         $result_points = array();
         if( $this->shop->preGoToFindPoints( $order ))
@@ -1019,7 +1018,7 @@ class DDeliveryUI
      */
     public function saveFullOrder( DDeliveryOrder $order )
     {
-    	$orderDB = new DataBase\Order();
+    	$orderDB = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
     	$id = $orderDB->saveFullOrder( $order );
     	return $id;
     }
@@ -1128,9 +1127,9 @@ class DDeliveryUI
     		$this->messager->pushMessage($e->getMessage());
     	    return 0;
     	}
-    	$ddeliveryOrderID = 0;
-    	if( $this->shop->sendOrderToDDeliveryServer($order) )
-    	{
+    	if(! $this->shop->sendOrderToDDeliveryServer($order) ) {
+            return 0;
+        } else {
     	    $point = $order->getPoint();
     	    $pointID = $point->get('_id');
     	    $dimensionSide1 = $order->getDimensionSide1();
@@ -1179,7 +1178,7 @@ class DDeliveryUI
      */
     public function getAllOrders()
     {
-    	$orderDB = new DataBase\Order();
+    	$orderDB = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
     	return $orderDB->selectAll();
     }
 
@@ -1345,7 +1344,8 @@ class DDeliveryUI
     public function render($request)
     {
         if(!empty($request['order_id'])) {
-            $this->initIntermediateOrder($request['order_id']);
+            $orders =  $this->initOrder( array($request['order_id']) );
+            $this->order = $orders[0];
         }
 
         if(isset($request['action'])) {
@@ -1558,30 +1558,38 @@ class DDeliveryUI
                 echo $this->renderContactForm();
                 break;
             case 'change':
-                $comment = '';
-                $point = $this->order->getPoint();
-                if ($point instanceof DDeliveryPointSelf) {
-                    $comment = 'Самовывоз, '.$point->address;
-                } elseif($point instanceof DDeliveryPointCourier) {
-                    $comment = 'Доставка курьером по адресу '.$this->order->getFullAddress();
-                }
-                $this->shop->onFinishChange($this->order->localId, $this->order, $point);
-                echo json_encode(array(
-                    'html'=>'',
-                    'js'=>'change',
-                    'comment'=>htmlspecialchars($comment),
-                    'orderId' => $this->order->localId,
-                    'clientPrice'=>$point->getDeliveryInfo()->clientPrice,
-                    'userInfo' => $this->getDDUserInfo($this->order->localId),
-                ));
+                echo $this->renderChange();
                 break;
             default:
                 throw new DDeliveryException('Not support action');
                 break;
         }
+    }
 
+    private function renderChange()
+    {
+        $comment = '';
+        $point = $this->order->getPoint();
+        if ($point instanceof DDeliveryPointSelf) {
+            $comment = 'Самовывоз, '.$point->address;
+        } elseif($point instanceof DDeliveryPointCourier) {
+            $comment = 'Доставка курьером по адресу '.$this->order->getFullAddress();
+        }
+        $pointDDInfo = $this->shop->filterSelfInfo(array($point->getDeliveryInfo()));
+        if(!count($pointDDInfo)) {
+            return '';
+        }
+        $pointDDInfo = reset($pointDDInfo);
 
-
+        $this->shop->onFinishChange($this->order->localId, $this->order, $point);
+        return json_encode(array(
+            'html'=>'',
+            'js'=>'change',
+            'comment'=>htmlspecialchars($comment),
+            'orderId' => $this->order->localId,
+            'clientPrice'=>$pointDDInfo->clientPrice,
+            'userInfo' => $this->getDDUserInfo($this->order->localId),
+        ));
     }
 
     /**
@@ -1591,7 +1599,7 @@ class DDeliveryUI
      */
     protected function getCityByDisplay($cityId)
     {
-        $cityDB = new City();
+        $cityDB = new City($this->pdo, $this->pdoTablePrefix);
         $cityList = $cityDB->getTopCityList();
         // Складываем массивы получаем текущий город наверху, потом его и выберем
         if(isset($cityList[$cityId])){
@@ -1798,7 +1806,7 @@ class DDeliveryUI
             return '';
         }
 
-        $cityDB = new City();
+        $cityDB = new City($this->pdo, $this->pdoTablePrefix);
         $currentCity = $cityDB->getCityById($this->getOrder()->city);
 
         //Собирает строчку с названием города для отображения
@@ -1808,12 +1816,18 @@ class DDeliveryUI
         }
         $type = $this->getOrder()->type;
         if($this->getOrder()->type == DDeliverySDK::TYPE_COURIER) {
+            $displayCityName.=', '.$point->getDeliveryInfo()->delivery_company_name;
             $requiredFieldMask = $this->shop->getCourierRequiredFields();
         }elseif($this->getOrder()->type == DDeliverySDK::TYPE_SELF) {
+            $displayCityName.=' '. $point->address;
             $requiredFieldMask = $this->shop->getSelfRequiredFields();
         }else{
             return '';
         }
+        if($requiredFieldMask == 0){
+            return $this->renderChange();
+        }
+
         $deliveryType = $this->getOrder()->type;
 
         $order = $this->order;
@@ -1900,7 +1914,6 @@ class DDeliveryUI
      */
     public function _initOrderInfo($currentOrder, $item)
     {
-
         $currentOrder->type = $item->type;
         $currentOrder->paymentVariant = $item->payment_variant;
         $currentOrder->localId = $item->id;
@@ -1927,8 +1940,29 @@ class DDeliveryUI
         $currentOrder->toFlat = $item->to_flat;
         $currentOrder->toEmail = $item->to_email;
         $currentOrder->comment = $item->comment;
-        $currentOrder->insalesuser_id = $item->insalesuser_id;
     }
 
+    /**
+     * Удалить все заказы
+     * @return bool
+     */
+    public function deleteAllOrders()
+    {
+        $orderDB = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
+        return $orderDB->cleanOrders();
+    }
+
+    /**
+     * Получить описание статуса на DDelivery
+     *
+     * @param $ddStatus код статуса на DDeivery
+     *
+     * @return string
+     */
+    public function getDDStatusDescription( $ddStatus )
+    {
+       $statusProvider = new DDStatusProvider();
+       return $statusProvider->getOrderDescription( $ddStatus );
+    }
 
 }

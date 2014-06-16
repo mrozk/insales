@@ -12,6 +12,7 @@
     <script type="text/javascript" src="<?=$staticURL?>js/jquery.custom-radio-checkbox.min.js?<?=$version?>"></script>
     <script type="text/javascript" src="<?=$staticURL?>js/jquery.formtips.js?<?=$version?>"></script>
     <script type="text/javascript" src="<?=$staticURL?>js/jquery.maskedinput.js?<?=$version?>"></script>
+    <script type="text/javascript" src="<?=$staticURL?>js/jquery.JSON.min.js?<?=$version?>"></script>
     <script type="text/javascript" src="<?=$staticURL?>js/ddelivery.iframe.js?<?=$version?>"></script>
     <script type="text/javascript" src="<?=$staticURL?>js/ddelivery.map.js?<?=$version?>"></script>
     <script type="text/javascript" src="<?=$staticURL?>js/ddelivery.header.js?<?=$version?>"></script>
@@ -32,7 +33,7 @@
                 <div class="map-popup__main__overlay">&nbsp;</div>
                 <div class="map-popup__main__delivery">
                     <div class="loader">
-                        <p>Подождите, ищется лучший маршрут...</p>
+                        <p>Подождите пожалуйста, мы ищем лучшие предложения</p>
                         <img src="<?=$staticURL?>/img/ajax_loader_horizont.gif"/>
                     </div>
                     <div>

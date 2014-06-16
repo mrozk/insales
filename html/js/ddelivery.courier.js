@@ -44,8 +44,13 @@ var Courier = (function () {
             $('.map-popup__main__delivery__next a').click(function () {
                 var radio = $('input[type="radio"]:checked').val();
                 if (radio) {
+                    DDeliveryIframe.postMessage('courierChange', {point: couriers[radio]});
+                    if(typeof(params.displayContactForm) == 'boolean' && !params.displayContactForm){
+                        return;
+                    }
+
                     DDeliveryIframe.ajaxPage({
-                        point: $('input[name=delivery_company]').val(),
+                        point: radio,
                         action: 'contactForm',
                         type: 2
                     });

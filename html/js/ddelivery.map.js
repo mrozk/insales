@@ -10,6 +10,7 @@ Map = (function () {
     var current_points = false;
     var current_point = false;
     var clusterer;
+    var currentPointExtendData = false;
     var filter = {
         cash: true,
         card: true,
@@ -128,7 +129,6 @@ Map = (function () {
                 })
                 .add('click', function (e) {
                     var target = e.get('target');
-                    t = target;
                     // Вернет все геобъекты
                     var geoObjects = target.properties.get('geoObjects');
                     if (geoObjects) { // Клик по кластеру
@@ -150,7 +150,31 @@ Map = (function () {
                         }
 
                         // Вычисляем центр и зум которые нам нужны, отступ 20 - первое число которое указал и оно нормально работает
-                        var centerAndZoom = ymaps.util.bounds.getCenterAndZoom(bound, yamap.container.getSize(), ymaps.projection.wgs84Mercator, {margin:20});
+                        //var centerAndZoom = ymaps.util.bounds.getCenterAndZoom(bound, yamap.container.getSize(), ymaps.projection.wgs84Mercator, {margin:20});
+
+
+                        // Отсупы с всех сторон
+                        var correctSize = [35, $('.map-popup__main__right').width()+10, 25, 35]; // top, right, bottom, left
+                        var displayMapSize = yamap.container.getSize();
+                        displayMapSize = [
+                            displayMapSize[0] - correctSize[1] - correctSize[3],
+                            displayMapSize[1] - correctSize[0] - correctSize[2]];
+
+                        // Получаем зум для неперекрытого квадрата
+                        var centerAndZoomFake = ymaps.util.bounds.getCenterAndZoom(bound, displayMapSize,
+                            ymaps.projection.wgs84Mercator);
+
+                        // Теперь двигаем видимый центр в реальный центр
+                        var projection = yamap.options.get('projection');
+                        var pixelCenter = projection.toGlobalPixels( centerAndZoomFake.center, centerAndZoomFake.zoom );
+                        centerAndZoom = {center:[], zoom:centerAndZoomFake.zoom};
+                        centerAndZoom.center = projection.fromGlobalPixels(
+                            [
+                                pixelCenter[0] - correctSize[3]/2 + correctSize[1]/2,
+                                pixelCenter[1] - correctSize[2]/2 + correctSize[0]/2
+                            ],
+                            centerAndZoomFake.zoom
+                        );
 
                         // Точки эквивалентны в допустимой погрешности и зумить есть куда
                         if (!ymaps.util.math.areEqual(bound[0], bound[1], 0.0002) && yamap.getZoom() != yamap.options.get('maxZoom')) {
@@ -258,7 +282,15 @@ Map = (function () {
             });
 
             $('.map-popup__info__btn a').click(function(){
-                DDeliveryIframe.ajaxPage({action:'contactForm', point: current_point._id, type:1});
+                if(!currentPointExtendData)
+                    return;
+                var point = $.extend({}, current_point, currentPointExtendData);
+                point.placemark = undefined;
+                DDeliveryIframe.postMessage('mapPointChange', {point: point});
+                if(typeof(params.displayContactForm) == 'boolean' && !params.displayContactForm){
+                    return;
+                }
+                DDeliveryIframe.ajaxPage({action:'contactForm', point: current_point._id, type:1, custom: current_point.is_custom ? 1 : ''});
             });
 
             $(window).on('ddeliveryCityPlace', function (e, city) {
@@ -285,22 +317,17 @@ Map = (function () {
             });
 
             // Удаляем старые поинты, какраз пока ждем ответа ajax
-            var pointsRemove = [];
-            for (var pointKey in points) {
-                var point = points[pointKey];
-                if (point.display) {
-                    pointsRemove.push(point);
-                }
-            }
-            clusterer.remove(pointsRemove);
+            points = [];
+            clusterer.removeAll();
         },
 
         placeEvent: function () {
             $('.map-popup__main__right .places a').click(function () {
-                if($('.map-popup__main__right .places').hasClass('info-open')){
-                    return;
-                }
                 if (current_points.length > 0) {
+                    if(current_points.length == 1){
+                        return;
+                    }
+
                     var id = parseInt($(this).data('id'));
                     if (current_point.company_id != parseInt($(this).data('id'))) {
                         for (var i = 0; i < current_points.length; i++) {
@@ -357,7 +384,7 @@ Map = (function () {
 
         },
         renderInfo: function (point, points) {
-
+            currentPointExtendData = false;
             $('.map-popup__main__right .places').addClass('info-open');
             $('.map-popup__main__right .places a').removeClass('active').removeClass('hasinfo');
 
@@ -410,9 +437,10 @@ Map = (function () {
             $('.map-popup__info').fadeIn();
 
             DDeliveryIframe.ajaxData(
-                {action: 'mapGetPoint', id: point._id},
+                {action: 'mapGetPoint', id: point._id, 'custom': point.is_custom ? 1 : ''},
                 function (data) {
                     if(typeof(data.length) == 'undefined') { // object
+                        currentPointExtendData = data.point;
                         $('.map-popup__info__table .rub').html(data.point.total_price);
                         var day = $('.map-popup__info__table .day').show();
                         $('strong', day).html(data.point.delivery_time_min);

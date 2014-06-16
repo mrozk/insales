@@ -48,6 +48,19 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                                         DDStatusProvider::ORDER_RETURNED_MI => 'declined',
                                         DDStatusProvider::ORDER_WAITING => 'declined',
                                         DDStatusProvider::ORDER_CANCEL => 'declined' );
+
+    /**
+     * Настройки базы данных
+     * @return array
+     */
+    public function getDbConfig()
+    {
+        return array(
+            'pdo' => new \PDO('mysql:host=localhost;dbname=c1insales', 'c1dba', 'OH2AgbFiU', array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")),
+            'prefix' => 'ddelivery_',
+        );
+    }
+
     /**
      * Верните true если нужно использовать тестовый(stage) сервер
      * @return bool

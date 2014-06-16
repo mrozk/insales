@@ -2,7 +2,7 @@ if(typeof(DDelivery) == 'undefined')
 var DDelivery = {
     delivery: function (objectId, componentUrl, params, callbacks) {
         var iframe = document.createElement('iframe');
-        iframe.params = params;
+
         iframe.style.width = '1000px';
         iframe.style.height = '650px';
         iframe.style.overflow = 'hidden';
@@ -18,22 +18,25 @@ var DDelivery = {
         var object = document.getElementById(objectId);
         object.innerHTML = '';
         object.appendChild(iframe);
+        iframe.contentWindow.params = params;
 
         if(typeof(callbacks)!='object'){
             callbacks = false;
         }
         var message = function (event) {
+
             // Не наше окно, мы его не слушаем
             if(iframe.contentWindow != event.source) {
                 return;
             }
+            var data;
+            eval('data = '+event.data);
             var result;
-
-            if (typeof(callbacks[event.data.action]) == 'function') {
-                result = callbacks[event.data.action](event.data.data);
+            if (typeof(callbacks[data.action]) == 'function') {
+                result = callbacks[data.action](data.data);
             }
             if( result !== false ) {
-                if (event.data.action == 'close') {
+                if (data.action == 'close') {
                     //iframe.parentNode.removeChild(iframe);
                 }
             }

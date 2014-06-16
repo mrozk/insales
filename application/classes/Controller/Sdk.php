@@ -52,7 +52,7 @@ class Controller_Sdk extends Controller
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
             $order = $ddeliveryUI->getOrder();
             $order->insalesuser_id = $uid;
-            //print_r($order);
+
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
             //echo '</pre>';
         }

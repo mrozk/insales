@@ -67,7 +67,7 @@
                             );
                             $options = array(
                                 '1' => 'Тестирование (stage.ddelivery.ru)',
-                                '2' => 'Продакшн (cabinet.ddelivery.ru)'
+                                '2' => 'Рабочий (cabinet.ddelivery.ru)'
                             );
                             echo Form::select('rezhim', $options, $usersettings->usersetting->rezhim, $attrs);
                         ?>
@@ -406,7 +406,7 @@
                     <div class="form-group">
                         <?php
                             $attrs = array(
-                                'placeholder' => 'Сума',
+                                'placeholder' => 'Сумма',
                                 'class' => 'form-control'
                             );
                             echo Form::input('sum1', $usersettings->usersetting->sum1, $attrs);
