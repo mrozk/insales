@@ -181,7 +181,6 @@ class DDeliveryUI
 
     /**
      * Функция вызывается при изменении статуса внутри cms для отправки
-     * @deprecated Не работает.
      *
      * @param $cmsID
      * @param $cmsStatus
@@ -191,11 +190,14 @@ class DDeliveryUI
     public function onCmsChangeStatus( $cmsID, $cmsStatus )
     {
         $order = $this->getOrderByCmsID( $cmsID );
+
         if( $order )
         {
             $order->localStatus = $cmsStatus;
+
             if( $this->shop->isStatusToSendOrder($cmsStatus) && $order->ddeliveryID == 0 )
             {
+
                 if($order->type == DDeliverySDK::TYPE_SELF)
                 {
                     return $this->createSelfOrder($order);

@@ -425,19 +425,19 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         $interval2 = array();
         $interval3 = array();
         //$interval4 = array();
-        if( !empty( $this->settings->from1 ) )
+        if( ( isset( $this->settings->from1 ) ) && ( isset( $this->settings->to1 ) ) && ( isset( $this->settings->sum1 ) ) )
         {
             $interval1 = array('min' => $this->settings->from1, 'max' => $this->settings->to1,
                                'type' => (int)$this->settings->val1, 'amount' => $this->settings->sum1);
         }
 
-        if( !empty( $this->settings->from2 ) )
+        if( ( isset( $this->settings->from2 ) ) && ( isset( $this->settings->to2 ) ) && ( isset( $this->settings->sum2 ) ) )
         {
             $interval2 = array('min' => $this->settings->from2, 'max' => $this->settings->to2,
                                'type' => (int)$this->settings->val2, 'amount' => $this->settings->sum2);
         }
 
-        if( !empty( $this->settings->from3 ) )
+        if( ( isset( $this->settings->from3 ) ) && ( isset( $this->settings->to3 ) ) && ( isset( $this->settings->sum3 ) ) )
         {
             $interval3 = array('min' => $this->settings->from3, 'max' => $this->settings->to3,
                                'type' => (int)$this->settings->val3, 'amount' => $this->settings->sum3);

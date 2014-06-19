@@ -100,7 +100,7 @@ class Controller_Cabinet extends  Controller_Base{
                 $insales_user->delivery_variant_id = $delivery->id;
                 $insales_user->save();
 
-                Notice::add( Notice::SUCCESS,'Способ доставки успешно добавлен, необходимо активировать его в личном кабинете Insales' );
+                Notice::add( Notice::SUCCESS,'Способ доставки успешно добавлен' );
                 $this->redirect( URL::base( $this->request ) . 'cabinet/' );
             }
         }
@@ -192,6 +192,8 @@ class Controller_Cabinet extends  Controller_Base{
                                     &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/action.js"&gt;&lt;/script&gt;
                                 &lt;div class="id_dd"&gt;&lt;/div&gt;
                               </javascript>
+                              <price type="decimal">0</price>
+                              <add-payment-gateways>true</add-payment-gateways>
                             </delivery-variant>';
     }
 
@@ -227,7 +229,7 @@ class Controller_Cabinet extends  Controller_Base{
 
         if ( !empty( $insalesuser ) )
         {
-
+            echo $insalesuser;
             $usersettings = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
             $payment = $this->getPaymentWays( $usersettings->passwd, $usersettings->shop );
             $fields = $this->getFields( $usersettings->passwd, $usersettings->shop );

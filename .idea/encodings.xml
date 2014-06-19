@@ -4,6 +4,10 @@
     <file url="file://$PROJECT_DIR$/application/classes/Controller/Cabinet.php" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/application/classes/InsalesApi.php" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/application/views/admin/dashboard.php" charset="UTF-8" />
+    <file url="file:///var/www/html/clients.core.php" charset="windows-1251" />
+    <file url="file:///var/www/html/clients_forma.tpl" charset="windows-1251" />
+    <file url="file:///var/www/html/done.core.php" charset="windows-1251" />
+    <file url="file:///var/www/html/users_page_list.tpl" charset="windows-1251" />
   </component>
 </project>
 

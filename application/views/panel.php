@@ -44,6 +44,7 @@
 
 </div><!--/.navbar-collapse -->
             <form role="form" id="insales-form" action="cabinet/save/" method="post">
+                <h3>Магазин <?php echo $usersettings->shop; ?></h3>
                 <h3>Основые</h3>
                 <div class="form-group" >
                     <label for="inputEmail3" class="col-sm-6 control-label">API ключ из личного кабинета</label>
@@ -453,7 +454,7 @@
                     <div class="form-group">
                         <?php
                         $attrs = array(
-                            'placeholder' => 'Сума',
+                            'placeholder' => 'Сумма',
                             'class' => 'form-control'
                         );
                         echo Form::input('sum2', $usersettings->usersetting->sum2, $attrs);
@@ -500,7 +501,7 @@
                     <div class="form-group">
                         <?php
                         $attrs = array(
-                            'placeholder' => 'Сума',
+                            'placeholder' => 'Сумма',
                             'class' => 'form-control'
                         );
                         echo Form::input('sum3', $usersettings->usersetting->sum2, $attrs);

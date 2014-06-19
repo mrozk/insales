@@ -16,8 +16,7 @@ class Controller_Orders extends Controller
     {
         if (!isset($HTTP_RAW_POST_DATA))
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
-            $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
-                ->values( array( $HTTP_RAW_POST_DATA, "asdsd") )->execute();
+
             $data = json_decode( $HTTP_RAW_POST_DATA );
             if( count( $data->fields_values ) )
             {
@@ -57,9 +56,11 @@ class Controller_Orders extends Controller
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
 
         $data = json_decode( $HTTP_RAW_POST_DATA );
-
+        $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
+            ->values( array( $HTTP_RAW_POST_DATA, "asdsd") )->execute();
         if( count( $data->fields_values ) )
         {
+
             foreach( $data->fields_values as $item )
             {
                 if ( $item->name == 'ddelivery_id' && !empty( $item->value ))
@@ -141,7 +142,7 @@ class Controller_Orders extends Controller
         $query = DB::select()->from('ordddd')->as_object()->execute();
         //print_r($query);
 
-        $query = DB::query(Database::SELECT, 'SELECT * FROM ordddd WHERE id = 77');
+        $query = DB::query(Database::SELECT, 'SELECT * FROM ordddd WHERE id = 93');
         //$query->param(':user', 'john');
         $query->as_object();
         $return = $query->execute();
@@ -165,7 +166,24 @@ class Controller_Orders extends Controller
                     $user_id = (int)$item->value;
                 }
             }
+            if( $ddelivery_id && $user_id )
+            {
+                $insales_user = ORM::factory('InsalesUser', array('id' => $user_id));
+                if($insales_user->loaded())
+                {
+                    if( $data->delivery_variant_id == $insales_user->delivery_variant_id  )
+                    {
+                        $IntegratorShop = new IntegratorShop( $this->request, $user_id );
+                        $ddeliveryUI = new DDeliveryUI( $IntegratorShop, true );
+                        $ddeliveryUI->onCmsOrderFinish( $ddelivery_id, $data->order_lines[0]->order_id,
+                            $data->fulfillment_status, $data->payment_gateway_id );
+
+                    }
+
+                }
+            }
         }
+        /*
         if( $ddelivery_id && $user_id )
         {
             $insales_user = ORM::factory('InsalesUser', array('id' => $user_id));
@@ -179,6 +197,7 @@ class Controller_Orders extends Controller
                 }
             }
         }
+        */
 
 
     }
