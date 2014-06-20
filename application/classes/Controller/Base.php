@@ -68,5 +68,6 @@ abstract class Controller_Base extends Controller_Template
         parent::before();
         $this->template->system_msg = $this->_proccessMessages();
         $this->template->content = '';
+        $this->template->base_url = URL::base( $this->request );
     }
 }

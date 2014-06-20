@@ -8,6 +8,10 @@
     {
         padding-top: 20px;
     }
+    .bg-success
+    {
+        padding: 10px;
+    }
 </style>
 
 
@@ -45,9 +49,25 @@
 </div><!--/.navbar-collapse -->
             <form role="form" id="insales-form" action="cabinet/save/" method="post">
                 <h3>Магазин <?php echo $usersettings->shop; ?></h3>
+
+                <p class="bg-success" >
+                    Уважаемые пользователи! Мы постарались сделать настройки наиболее гибкими,
+                    но от вас требуется внимательность при выборе параметров. Если Вам непонятно
+                    значение каких-то настроек, просим связатся с менеджерами DD. В случае, если
+                    Вам потребуется больше настроек, так же просим связатся с клиентским отделом.
+                </p>
+
                 <h3>Основые</h3>
+
+
                 <div class="form-group" >
-                    <label for="inputEmail3" class="col-sm-6 control-label">API ключ из личного кабинета</label>
+
+                    <label for="inputEmail3" class="col-sm-10 control-label">API ключ из личного кабинета
+                        <p class="bg-success" >
+                            Ключ можно получить в личном кабинете DDelivery.ru, зарегистрировавшись на сайте ( для новых клиентов )
+                        </p>
+                    </label>
+
                     <div class="col-sm-10">
                         <?php
                             $attrs = array(
@@ -60,7 +80,12 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="rezhim" class="col-sm-6 control-label">Режим работы</label>
+                    <label for="rezhim" class="col-sm-10 control-label">Режим работы
+                        <p class="bg-success" >
+                            Для отладки модуля используйте пожалуйста режим тестирования.
+                        </p>
+
+                    </label>
                     <div class="col-sm-10">
                         <?php
                             $attrs = array(
@@ -75,7 +100,12 @@
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="declared" class="col-sm-6 control-label">Какой % от стоимости товара страхуется</label>
+                    <label for="declared" class="col-sm-10 control-label">Какой % от стоимости товара страхуется
+                        <p class="bg-success" >
+                            Вы можете снизить оценочную стоимость для уменьшения стоимости
+                            доставки за счет снижения размеров страховки
+                        </p>
+                    </label>
                     <div class="col-sm-10">
                         <?php
                             $attrs = array(
@@ -90,7 +120,12 @@
                     <h3>Соответствие полей</h3>
                 </div>
                 <div class="form-group">
-                    <label for="width" class="col-sm-6 control-label">Оплата на месте</label>
+                    <label for="width" class="col-sm-10 control-label">Оплата на месте
+                        <p class="bg-success" >
+                            Выберите поле соответствующее способу оплаты "оплата на месте".
+                            Например "оплата курьеру". У вас в системе может быть только 1 такой способ
+                        </p>
+                    </label>
                     <div class="col-sm-10">
                         <?php
                             $attrs = array(
@@ -103,7 +138,11 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="width" class="col-sm-6 control-label">Ширина</label>
+                    <label for="width" class="col-sm-10 control-label">Ширина
+                        <p class="bg-success" >
+                            Выберите поле, соответствуещее "ширина товара" в Вашей системе
+                        </p>
+                    </label>
                     <div class="col-sm-10">
                         <?php
 
@@ -117,7 +156,11 @@
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="length" class="col-sm-6 control-label">Длина</label>
+                    <label for="length" class="col-sm-10 control-label">Длина
+                        <p class="bg-success" >
+                            Выберите поле, соответствуещее "длина товара" в Вашей системе
+                        </p>
+                    </label>
                     <div class="col-sm-10">
                         <?php
 
@@ -130,7 +173,11 @@
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="height" class="col-sm-6 control-label">Высота</label>
+                    <label for="height" class="col-sm-10 control-label">Высота
+                        <p class="bg-success" >
+                            Выберите поле, соответствуещее "высота товара" в Вашей системе
+                        </p>
+                    </label>
                     <div class="col-sm-10">
                         <?php
 
@@ -145,7 +192,12 @@
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="weight" class="col-sm-6 control-label">Вес</label>
+                    <label for="weight" class="col-sm-10 control-label">
+                        Вес
+                        <p class="bg-success" >
+                            Выберите поле, соответствуещее "вес товара" в Вашей системе
+                        </p>
+                    </label>
                     <div class="col-sm-10">
                         <?php
                            $attrs = array(
@@ -158,7 +210,13 @@
                     </div>
                 </div>
                 <div class="form-group" >
-                    <label for="status" class="col-sm-6 control-label">Статус для отправки</label>
+                    <label for="status" class="col-sm-10 control-label">
+                        Статус для отправки
+                        <p class="bg-success" >
+                            Выберите статус при котором заявки из вашей системы будут уходить в DDelivery.
+                            Помните что отправка означает готовность отгрузить заказ на следующий рабочий день
+                        </p>
+                    </label>
                     <div class="col-sm-10">
                         <?php
 
@@ -184,7 +242,7 @@
                         ?>
                     </div>
                 </div>
-
+                <?php /* ?>
                 <div class="form-group">
                     <label for="secondname" class="col-sm-6 control-label">Фамилия</label>
                     <div class="col-sm-10">
@@ -210,11 +268,18 @@
                         ?>
                     </div>
                 </div>
+                <?php */ ?>
                 <div class="form-group" >
                     <h3>Габариты по умолчанию</h3>
+                    <p class="bg-success" >
+                        Данные габариты используются для определения цены доставки в случае, если у товара не прописаны размеры. Просим внимательней отнестись к ввод данных полей
+                    </p>
                 </div>
                 <div class="form-group" >
-                    <label for="plan_width" class="col-sm-6 control-label">Ширина, см</label>
+                    <label for="plan_width" class="col-sm-10 control-label">Ширина, см
+
+
+                    </label>
                     <div class="col-sm-10">
                         <?php
                             $attrs = array(
@@ -266,7 +331,11 @@
                     <h3>Настройка способов доставки</h3>
                 </div>
                 <div class="form-group" >
-                    <label for="avalible_way" class="col-sm-6 control-label">Доступные способы</label>
+                    <label for="avalible_way" class="col-sm-6 control-label">Доступные способы
+                        <p class="bg-success" >
+                            Настройка влияет на то, какие мемтоды будут отображатся
+                        </p>
+                    </label>
                     <div class="col-sm-10">
                         <?php
                             $attrs = array(
@@ -284,6 +353,9 @@
                 </div>
                 <div class="form-group">
                     <h4>Дотупные компании ПВЗ</h4>
+                    <p class="bg-success" >
+                        Выберите компании доставки, которые вы бы хотели сделать доступными для для ваших клиентов
+                    </p>
                 </div>
                 <div class="form-group" >
                     <label class="checkbox-inline">
@@ -334,6 +406,9 @@
 
                 <div class="form-group" >
                     <h4>Дотупные компании Курьерская доставка</h4>
+                    <p class="bg-success" >
+                        Выберите компании доставки, которые вы бы хотели сделать доступными для для ваших клиентов
+                    </p>
                 </div>
 
                 <div class="form-group" >
@@ -367,6 +442,10 @@
 
                 <div class="form-group" >
                     <h3>Настройка цены доставки</h3>
+                    <p class="bg-success" >
+                        Как меняется стоимость доставки в зависимости от размера заказа в руб. Вы можете гибко настроить
+                        условия доставки,чтобы учесть вашу маркетинговую политику.
+                    </p>
                 </div>
 
                 <div class="navbar-form" >
@@ -510,6 +589,8 @@
                 </div>
 
                 <div class="navbar-form" >
+
+
                     <div class="form-group">
                         Округление цены доставки для покупателя
                     </div>
@@ -544,6 +625,9 @@
                     </div>
 
                     <div class="form-group" >
+                        <p class="bg-success" >
+                            В некоторых случаях есть необходимость включить цену забора
+                        </p>
                         <label class="checkbox-inline">
                             <?php
                                 echo Form::checkbox('zabor', '1', ( $usersettings->usersetting->zabor )? true : false );

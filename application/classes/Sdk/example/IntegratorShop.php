@@ -121,10 +121,19 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                                                             $this->settings->length);
                     $item['weight'] = $prods->products[$i]->variants[0]->weight;
 
-                    $item['width'] = $this->getDefault($item['width'], $this->settings->plan_width);
-                    $item['height'] = $this->getDefault($item['height'], $this->settings->plan_height);
-                    $item['length'] = $this->getDefault($item['length'], $this->settings->plan_lenght);
-                    $item['weight'] = $this->getDefault($item['weight'], $this->settings->plan_weight);
+                    $item['width'] =  (int) $this->getDefault($item['width'], $this->settings->plan_width);
+                    $item['height'] = (int) $this->getDefault($item['height'], $this->settings->plan_height);
+                    $item['length'] = (int) $this->getDefault($item['length'], $this->settings->plan_lenght);
+                    $item['weight'] = (float) $this->getDefault($item['weight'], $this->settings->plan_weight);
+
+                    if( !$item['width'] )
+                        $item['width'] = $this->settings->plan_width;
+                    if( !$item['height'] )
+                        $item['height'] = $this->settings->plan_height;
+                    if( !$item['length'] )
+                        $item['length'] = $this->settings->plan_lenght;
+                    if( !$item['weight'] )
+                        $item['weight'] = $this->settings->plan_weight;
                     //echo $item['width'];
                     /*
                     20,	//	float $width длинна
@@ -153,7 +162,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         {
             foreach( $option_list as $item )
             {
-                if( $needle == $item->option_name_id )
+                if( $needle == $item->option_name_id  )
                 {
                     return $item->title;
                 }
