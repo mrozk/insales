@@ -33,6 +33,7 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
                 async: false,
                 success: function(data)
                 {
+                    //console.log(data);
                     if( data.order_lines.length > 0 )
                     {
                         for(var i = 0; i < data.order_lines.length; i++)

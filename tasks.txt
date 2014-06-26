@@ -17,3 +17,8 @@
 2. Вылавливать обновление статусов
 3. Уточняю по ms_order_data:
 
+
+Список измененных файлов на dev
+application/classes/Controller/Control.php (секретный ключ)
+application/classes/Controller/Cabinet.php ( идентификатор приложения )
+application/classes/InsalesApi.php ( Изменил конструктор. теперь api_key внутрення переменная )

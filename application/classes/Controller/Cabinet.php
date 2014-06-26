@@ -240,6 +240,7 @@ class Controller_Cabinet extends  Controller_Base{
         {
             if( !empty( $insales_id ) && !empty( $shop ) )
             {
+
                 $this->_proccess_enter($insales_id, $shop);
             }
             else
@@ -253,15 +254,20 @@ class Controller_Cabinet extends  Controller_Base{
     {
         $options = array();
         $insales_api =  new InsalesApi('ddelivery', $passwd, $shop );
+        /*
         $payment_gateways = json_decode( $insales_api->api('GET', '/admin/option_names.json') );
+        */
+        $payment_gateways = json_decode( $insales_api->api('GET', '/admin/product_fields.json') );
         //print_r($payment_gateways);
+        $options[0] = 'Выберитите поле';
         if( count( $payment_gateways ) )
         {
-            foreach( $payment_gateways as $gateways )
-            {
-                $options[$gateways->id] = $gateways->title;
-            }
+              foreach( $payment_gateways as $gateways )
+              {
+                  $options[$gateways->id] = $gateways->title;
+              }
         }
+
         return $options;
     }
     public function action_autologin()
@@ -273,6 +279,7 @@ class Controller_Cabinet extends  Controller_Base{
         $token = $session->get('ddelivery_token');
         $insales_id = $session->get('token_insales_id');
 
+        echo $insales_id;
 
         $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insales_id));
         if( $insales_user->loaded() )
@@ -302,7 +309,8 @@ class Controller_Cabinet extends  Controller_Base{
         $session = Session::instance();
         $session->set('ddelivery_token', $token);
         $session->set('token_insales_id', $insales_id);
-        $url = 'http://' . $shop . '/admin/applications/ddelivery/login?token=' . $token . '&login=' . $back_url;
+        //$url = 'http://' . $shop . '/admin/applications/ddelivery/login?token=' . $token . '&login=' . $back_url;
+        $url = 'http://' . $shop . '/admin/applications/devddelivery/login?token=' . $token . '&login=' . $back_url;
         $this->redirect( $url );
     }
 

@@ -11,9 +11,11 @@ class InsalesApi {
 
     public $baseurl = '';
 
-    public function __construct( $api_key, $password, $my_insales_domain )
+    public $api_key = 'devddelivery';
+
+    public function __construct( $password, $my_insales_domain )
     {
-        $this->baseurl = "http://$api_key:$password@$my_insales_domain/";
+        $this->baseurl = "http://$this->api_key:$password@$my_insales_domain/";
     }
     public function api($method, $path, $payload = '', &$response_headers=array())
     {

@@ -2,7 +2,8 @@
 
 class Controller_Control extends Controller {
 
-    public $secret_key = '1a29563d2f955e2c34b19f738ea1f8a6';
+    //public $secret_key = '1a29563d2f955e2c34b19f738ea1f8a6';
+    public $secret_key = '8e0dcc9e787bb5458f8ef86aa12c7bdc';
 
     public function action_index()
     {

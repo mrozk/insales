@@ -55,6 +55,46 @@ class Controller_Sdk extends Controller
 
     }
 
+    public function action_test()
+    {
+            $session = Session::instance();
+            $insalesuser = (int)$session->get('insalesuser');
+            if( !$insalesuser )
+            {
+                return;
+            }
+            echo '<pre>';
+        $prods =json_decode(file_get_contents('http://ddelivery-3.myinsales.ru/products_by_id/29303484.json'));
+
+            print_r($prods->products[0]->product_field_values);
+            echo '</pre>';
+            $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
+
+            if ( $insales_user->loaded() )
+            {
+                try{
+
+
+                $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+                $pulet = '';
+                /*
+                $pulet = '<order>
+                                <id type="integer">' . $cmsOrderID . '</id>
+                                <fulfillment-status>' . $status . '</fulfillment-status>
+                          </order>';
+                */
+                //echo strlen($pulet);
+                //echo $cmsOrderID;
+                }
+                catch(Exception $e)
+                {
+                    echo $e->getMessage();
+                }
+                $result = json_decode( $insales_api->api('GET','/admin/product_fields.json', $pulet) );
+
+                print_r($result);
+            }
+    }
 
     public function setInsalesOrderStatus($cmsOrderID, $status, $clientID)
     {

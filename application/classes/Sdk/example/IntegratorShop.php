@@ -28,8 +28,6 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
             throw new  \DDelivery\DDeliveryException("Пустой api ключ");
         }
         $this->shop_url = $insales_user->shop;
-        //echo $this->shop_url;
-        //print_r($this->settings);
     }
 
     /**
@@ -109,16 +107,16 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
             {
                 for( $i = 0; $i < count( $prods->products); $i++ )
                 {
-                    //print_r( $prods->products[$i]->option_names );
-                    //print_r( $prods->products[$i]->variants[0]->option_values );
+
                     $item = array();
 
-                    $item['width'] = $this->getOptionValue($prods->products[$i]->variants[0]->option_values,
+                    $item['width'] = $this->getOptionValue($prods->products[$i]->product_field_values,
                                                            $this->settings->width);
-                    $item['height'] = $this->getOptionValue($prods->products[$i]->variants[0]->option_values,
+                    $item['height'] = $this->getOptionValue($prods->products[$i]->product_field_values,
                                                             $this->settings->height);
-                    $item['length'] = $this->getOptionValue($prods->products[$i]->variants[0]->option_values,
+                    $item['length'] = $this->getOptionValue($prods->products[$i]->product_field_values,
                                                             $this->settings->length);
+
                     $item['weight'] = $prods->products[$i]->variants[0]->weight;
 
                     $item['width'] =  (int) $this->getDefault($item['width'], $this->settings->plan_width);
@@ -134,6 +132,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                         $item['length'] = $this->settings->plan_lenght;
                     if( !$item['weight'] )
                         $item['weight'] = $this->settings->plan_weight;
+
                     //echo $item['width'];
                     /*
                     20,	//	float $width длинна
@@ -162,9 +161,9 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         {
             foreach( $option_list as $item )
             {
-                if( $needle == $item->option_name_id  )
+                if( $needle == $item->product_field_id  )
                 {
-                    return $item->title;
+                    return $item->value;
                 }
             }
         }

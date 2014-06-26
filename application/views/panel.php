@@ -191,6 +191,7 @@
                         ?>
                     </div>
                 </div>
+                <?php /*
                 <div class="form-group" >
                     <label for="weight" class="col-sm-10 control-label">
                         Вес
@@ -209,6 +210,7 @@
                         ?>
                     </div>
                 </div>
+                <?php */ ?>
                 <div class="form-group" >
                     <label for="status" class="col-sm-10 control-label">
                         Статус для отправки
@@ -224,12 +226,12 @@
                                 'class' => 'form-control'
                             );
                             $options = array(
-                                'new' => 'new',
-                                'accepted' => 'accepted',
-                                'approved' => 'approved',
-                                'dispatched' => 'dispatched',
-                                'delivered' => 'delivered',
-                                'declined' => 'declined',
+                                'new' => 'новый',
+                                'accepted' => 'в обработке',
+                                'approved' => 'согласован',
+                                'dispatched' => 'отгружен',
+                                'delivered' => 'доставлен',
+                                'declined' => 'отменен',
                             );
                             echo Form::select('status', $options, $usersettings->usersetting->status, $attrs);
                         /*
