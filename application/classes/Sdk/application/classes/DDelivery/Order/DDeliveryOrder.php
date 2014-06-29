@@ -168,8 +168,6 @@ class DDeliveryOrder
 
     public $comment;
 
-    public $insalesuser_id = 0;
-
     /**
      * @param DDeliveryProduct[] $productList
      * @throws DDeliveryOrderException

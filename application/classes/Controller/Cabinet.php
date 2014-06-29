@@ -69,7 +69,7 @@ class Controller_Cabinet extends  Controller_Base{
             $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
             if ( $insales_user->loaded() )
             {
-                $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+                $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
                 $this->preClean( $insales_api );
 
                 // Добавляем поля для хранения id заказа ddelivery
@@ -186,10 +186,9 @@ class Controller_Cabinet extends  Controller_Base{
                               <type>DeliveryVariant::External</type>
                               <delivery-locations type="array"/>
                               <javascript>&lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/ddelivery.js"&gt;&lt;/script&gt;
-                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) .'html/assets/jquery.the-modal.js"&gt;&lt;/script&gt;
-                                    &lt;link rel="stylesheet" href="' . URL::base( $this->request ) . 'html/assets/the-modal.css" type="text/css" media="screen"/&gt;
+
                                      &lt;script type="text/javascript"&gt;var ddelivery_insales={"field_id":' . $field_id . ', "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ', "url": "' . URL::base( $this->request ) . '" };&lt;/script&gt;
-                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/action.js"&gt;&lt;/script&gt;
+                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/action.js"&gt;&lt;/script&gt;
                                 &lt;div class="id_dd"&gt;&lt;/div&gt;
                               </javascript>
                               <price type="decimal">0</price>
@@ -200,9 +199,9 @@ class Controller_Cabinet extends  Controller_Base{
     public function getPaymentWays( $passwd, $shop )
     {
         $options = array();
-        $insales_api =  new InsalesApi('ddelivery', $passwd, $shop );
+        $insales_api =  new InsalesApi( $passwd, $shop );
         $payment_gateways = json_decode( $insales_api->api('GET', '/admin/payment_gateways.json') );
-        //print_r($payment_gateways);
+
         if( count( $payment_gateways ) )
         {
             foreach( $payment_gateways as $gateways )
@@ -234,7 +233,7 @@ class Controller_Cabinet extends  Controller_Base{
             $payment = $this->getPaymentWays( $usersettings->passwd, $usersettings->shop );
             $fields = $this->getFields( $usersettings->passwd, $usersettings->shop );
             $this->template->set('content', View::factory('panel')->set('usersettings', $usersettings )
-                           ->set('payment', $payment)->set('fields', $fields));
+                           ->set('payment', $payment)->set('fields', $fields)->set('base_url', URL::base( $this->request )));
         }
         else
         {
@@ -253,7 +252,7 @@ class Controller_Cabinet extends  Controller_Base{
     public function getFields( $passwd, $shop )
     {
         $options = array();
-        $insales_api =  new InsalesApi('ddelivery', $passwd, $shop );
+        $insales_api =  new InsalesApi($passwd, $shop );
         /*
         $payment_gateways = json_decode( $insales_api->api('GET', '/admin/option_names.json') );
         */
@@ -279,7 +278,7 @@ class Controller_Cabinet extends  Controller_Base{
         $token = $session->get('ddelivery_token');
         $insales_id = $session->get('token_insales_id');
 
-        echo $insales_id;
+
 
         $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insales_id));
         if( $insales_user->loaded() )
@@ -310,7 +309,7 @@ class Controller_Cabinet extends  Controller_Base{
         $session->set('ddelivery_token', $token);
         $session->set('token_insales_id', $insales_id);
         //$url = 'http://' . $shop . '/admin/applications/ddelivery/login?token=' . $token . '&login=' . $back_url;
-        $url = 'http://' . $shop . '/admin/applications/devddelivery/login?token=' . $token . '&login=' . $back_url;
+        $url = 'http://' . $shop . '/admin/applications/' . InsalesApi::$api_key . '/login?token=' . $token . '&login=' . $back_url;
         $this->redirect( $url );
     }
 

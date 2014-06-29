@@ -43,11 +43,14 @@
         <button type="submit" onclick="jQuery('#insales-form').submit();"  class="btn btn-success">Сохранить</button>
     </div>
     <div class="navbar-form navbar-right">
-        <a href="cabinet/addway/"  class="btn btn-success">Добавить способ доставки в Insales</a>
+        <a href="<?php echo $base_url . 'cabinet/addway/'?>"  class="btn btn-success">Добавить способ доставки в Insales</a>
+    </div>
+    <div class="navbar-form navbar-left">
+        <a href="http://<?php echo $usersettings->shop . '/admin/installed_applications/';  ?>"  class="btn  btn-warning">Вернуться в кабинет</a>
     </div>
 
 </div><!--/.navbar-collapse -->
-            <form role="form" id="insales-form" action="cabinet/save/" method="post">
+            <form role="form" id="insales-form" action="<?php echo $base_url . 'cabinet/save/';?>" method="post">
                 <h3>Магазин <?php echo $usersettings->shop; ?></h3>
 
                 <p class="bg-success" >
@@ -356,89 +359,431 @@
                 <div class="form-group">
                     <h4>Дотупные компании ПВЗ</h4>
                     <p class="bg-success" >
-                        Выберите компании доставки, которые вы бы хотели сделать доступными для для ваших клиентов
+                        Выберите компании доставки, которые вы бы хотели сделать НЕ доступными для для ваших клиентов
                     </p>
                 </div>
                 <div class="form-group" >
                     <label class="checkbox-inline">
                         <?php
 
-                            echo Form::checkbox('pvz_companies[]', '1', in_array('1', $pvz_companies) );
-                        ?>
-                         DPD
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label class="checkbox-inline">
-                        <?php
-                            echo Form::checkbox('pvz_companies[]', '2', in_array('2', $pvz_companies) );
-                        ?>
-                        IML
-                    </label>
-                </div>
-                <div class="form-group">
-                    <label class="checkbox-inline">
-                        <?php
-                            echo Form::checkbox('pvz_companies[]', '3', in_array('3', $pvz_companies) );
-                        ?>
-                        Hermes-dpd
-                    </label>
-                </div>
-
-
-                <div class="form-group">
-                    <label class="checkbox-inline">
-                        <?php
                             echo Form::checkbox('pvz_companies[]', '4', in_array('4', $pvz_companies) );
+                        ?>
+                        Boxberry
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                            echo Form::checkbox('pvz_companies[]', '21', in_array('21', $pvz_companies) );
+                        ?>
+                        Boxberry Express
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                            echo Form::checkbox('pvz_companies[]', '29', in_array('29', $pvz_companies) );
+                        ?>
+                        DPD Classic
+                    </label>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                            echo Form::checkbox('pvz_companies[]', '23', in_array('23', $pvz_companies) );
+                        ?>
+                        DPD Consumer
+                    </label>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                            echo Form::checkbox('pvz_companies[]', '27', in_array('27', $pvz_companies) );
+                        ?>
+                        DPD ECONOMY
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '28', in_array('28', $pvz_companies) );
+                        ?>
+                        DPD Express
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '20', in_array('20', $pvz_companies) );
+                        ?>
+                        DPD Parcel
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '30', in_array('30', $pvz_companies) );
+                        ?>
+                        EMS
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '31', in_array('31', $pvz_companies) );
+                        ?>
+                        Grastin
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '11', in_array('11', $pvz_companies) );
+                        ?>
+                        Hermes
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '16', in_array('16', $pvz_companies) );
+                        ?>
+                        IM Logistics Пушкинская
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '22', in_array('22', $pvz_companies) );
+                        ?>
+                        IM Logistics Экспресс
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '17', in_array('11', $pvz_companies) );
+                        ?>
+                        IMLogistics
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '3', in_array('3', $pvz_companies) );
                         ?>
                         Logibox
                     </label>
                 </div>
 
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '14', in_array('14', $pvz_companies) );
+                        ?>
+                        Maxima Express
+                    </label>
+                </div>
 
                 <div class="form-group">
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('pvz_companies[]', '5', in_array('5', $pvz_companies) );
+                        echo Form::checkbox('pvz_companies[]', '1', in_array('1', $pvz_companies) );
                         ?>
-                        Pickpoint
+                        PickPoint
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '13', in_array('13', $pvz_companies) );
+                        ?>
+                        КТС
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '18', in_array('18', $pvz_companies) );
+                        ?>
+                        Сам Заберу
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '6', in_array('6', $pvz_companies) );
+                        ?>
+                        СДЭК забор
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '26', in_array('26', $pvz_companies) );
+                        ?>
+                        СДЭК Посылка
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '25', in_array('25', $pvz_companies) );
+                        ?>
+                        СДЭК Посылка Самовывоз
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '24', in_array('24', $pvz_companies) );
+                        ?>
+                        Сити Курьер
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('pvz_companies[]', '7', in_array('7', $pvz_companies) );
+                        ?>
+                        QIWI Post
                     </label>
                 </div>
 
                 <div class="form-group" >
                     <h4>Дотупные компании Курьерская доставка</h4>
                     <p class="bg-success" >
-                        Выберите компании доставки, которые вы бы хотели сделать доступными для для ваших клиентов
+                        Выберите компании доставки, которые вы бы хотели сделать НЕ доступными для для ваших клиентов
                     </p>
                 </div>
 
                 <div class="form-group" >
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('cur_companies[]', '1', in_array('1', $cur_companies) );
+
+                        echo Form::checkbox('cur_companies[]', '4', in_array('4', $cur_companies) );
                         ?>
-                        DPD
+                        Boxberry
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '21', in_array('21', $cur_companies) );
+                        ?>
+                        Boxberry Express
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '29', in_array('29', $cur_companies) );
+                        ?>
+                        DPD Classic
                     </label>
                 </div>
 
 
-                <div class="form-group" >
+                <div class="form-group">
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('cur_companies[]', '2', in_array('2', $cur_companies) );
+                        echo Form::checkbox('cur_companies[]', '23', in_array('23', $cur_companies) );
                         ?>
-                        СДЭК
+                        DPD Consumer
                     </label>
                 </div>
 
 
-                <div class="form-group" >
+                <div class="form-group">
                     <label class="checkbox-inline">
                         <?php
-                            echo Form::checkbox('cur_companies[]', '3', in_array('3', $cur_companies) );
+                        echo Form::checkbox('cur_companies[]', '27', in_array('27', $cur_companies) );
                         ?>
-                        IML
+                        DPD ECONOMY
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '28', in_array('28', $cur_companies) );
+                        ?>
+                        DPD Express
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '20', in_array('20', $cur_companies) );
+                        ?>
+                        DPD Parcel
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '30', in_array('30', $cur_companies) );
+                        ?>
+                        EMS
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '31', in_array('31', $cur_companies) );
+                        ?>
+                        Grastin
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '11', in_array('11', $cur_companies) );
+                        ?>
+                        Hermes
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '16', in_array('16', $cur_companies) );
+                        ?>
+                        IM Logistics Пушкинская
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '22', in_array('22', $cur_companies) );
+                        ?>
+                        IM Logistics Экспресс
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '17', in_array('11', $cur_companies) );
+                        ?>
+                        IMLogistics
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '3', in_array('3', $cur_companies) );
+                        ?>
+                        Logibox
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '14', in_array('14', $cur_companies) );
+                        ?>
+                        Maxima Express
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '1', in_array('1', $cur_companies) );
+                        ?>
+                        PickPoint
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '13', in_array('13', $cur_companies) );
+                        ?>
+                        КТС
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '18', in_array('18', $cur_companies) );
+                        ?>
+                        Сам Заберу
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '6', in_array('6', $cur_companies) );
+                        ?>
+                        СДЭК забор
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '26', in_array('26', $cur_companies) );
+                        ?>
+                        СДЭК Посылка
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '25', in_array('25', $cur_companies) );
+                        ?>
+                        СДЭК Посылка Самовывоз
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '24', in_array('24', $cur_companies) );
+                        ?>
+                        Сити Курьер
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-inline">
+                        <?php
+                        echo Form::checkbox('cur_companies[]', '7', in_array('7', $cur_companies) );
+                        ?>
+                        QIWI Post
                     </label>
                 </div>
 

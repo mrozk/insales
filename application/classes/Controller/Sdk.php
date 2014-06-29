@@ -3,7 +3,7 @@
 use DDelivery\DDeliveryUI;
 
 include_once( APPPATH . 'classes/Sdk/application/bootstrap.php');
-include_once( APPPATH . 'classes/Sdk/example/IntegratorShop.php');
+include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop.php');
 
 class Controller_Sdk extends Controller
 {
@@ -75,7 +75,7 @@ class Controller_Sdk extends Controller
                 try{
 
 
-                $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+                $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
                 $pulet = '';
                 /*
                 $pulet = '<order>
@@ -103,7 +103,7 @@ class Controller_Sdk extends Controller
         if ( $insales_user->loaded() )
         {
 
-            $insales_api =  new InsalesApi('ddelivery', $insales_user->passwd, $insales_user->shop );
+            $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
 
             $pulet = '<order>
                             <id type="integer">' . $cmsOrderID . '</id>
@@ -147,6 +147,16 @@ class Controller_Sdk extends Controller
     {
         try
         {
+            $address = $this->get_request_state('address');
+            $client_name = $this->get_request_state('client_name');
+            $client_phone = $this->get_request_state('client_phone');
+
+            $this->request->query('address',$address);
+            $this->request->query('client_name',$client_name);
+            $this->request->query('client_phone',$client_phone);
+
+            //echo $this->request->query('client_name',$client_name);
+
             $uid = (int)$this->get_request_state('insales_id');
             if( !$uid )
             {
@@ -156,6 +166,7 @@ class Controller_Sdk extends Controller
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
             $order = $ddeliveryUI->getOrder();
             $order->insalesuser_id = $uid;
+
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
             //echo '</pre>';
         }

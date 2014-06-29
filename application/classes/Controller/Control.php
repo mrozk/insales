@@ -2,8 +2,7 @@
 
 class Controller_Control extends Controller {
 
-    //public $secret_key = '1a29563d2f955e2c34b19f738ea1f8a6';
-    public $secret_key = '8e0dcc9e787bb5458f8ef86aa12c7bdc';
+
 
     public function action_index()
     {
@@ -17,7 +16,7 @@ class Controller_Control extends Controller {
         if( $token && $shop && $insales_id )
         {
 
-            $password = md5( $token . $this->secret_key );
+            $password = md5( $token . InsalesApi::$secret_key );
             $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insales_id));
             if( !$insales_user->loaded() )
             {

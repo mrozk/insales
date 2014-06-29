@@ -11,11 +11,17 @@ class InsalesApi {
 
     public $baseurl = '';
 
-    public $api_key = 'devddelivery';
+    public static  $api_key = 'devddelivery';
+
+    // public static  $api_key = 'ddelivery';
+
+    public static $secret_key = '8e0dcc9e787bb5458f8ef86aa12c7bdc';
+
+    //public static $secret_key = '1a29563d2f955e2c34b19f738ea1f8a6';
 
     public function __construct( $password, $my_insales_domain )
     {
-        $this->baseurl = "http://$this->api_key:$password@$my_insales_domain/";
+        $this->baseurl = "http://" . self::$api_key . ":$password@$my_insales_domain/";
     }
     public function api($method, $path, $payload = '', &$response_headers=array())
     {

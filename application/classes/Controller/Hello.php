@@ -5,7 +5,7 @@ class Controller_Hello extends Controller
 
     public function action_gus()
     {
-        echo 'jQuery(".loader").css("display","none")';
+        echo 'jQuery(".loader").css("display","none");';
         return;
     }
 

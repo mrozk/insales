@@ -181,6 +181,7 @@ class DDeliveryUI
 
     /**
      * Функция вызывается при изменении статуса внутри cms для отправки
+     * @deprecated Не работает.
      *
      * @param $cmsID
      * @param $cmsStatus
@@ -190,14 +191,11 @@ class DDeliveryUI
     public function onCmsChangeStatus( $cmsID, $cmsStatus )
     {
         $order = $this->getOrderByCmsID( $cmsID );
-
         if( $order )
         {
             $order->localStatus = $cmsStatus;
-
             if( $this->shop->isStatusToSendOrder($cmsStatus) && $order->ddeliveryID == 0 )
             {
-
                 if($order->type == DDeliverySDK::TYPE_SELF)
                 {
                     return $this->createSelfOrder($order);
@@ -469,6 +467,7 @@ class DDeliveryUI
     	$orderDB = new DataBase\Order($this->pdo, $this->pdoTablePrefix);
     	return $orderDB->setShopOrderID($id, $paymentVariant, $status, $shopOrderID);
     }
+
 
 
     /**
@@ -1437,10 +1436,12 @@ class DDeliveryUI
         if(!$this->order->city ) {
             $this->order->city = $this->getCityId();
         }
+
         if(!empty($request['point']) && isset($request['type'])) {
             if ( $request['type'] == DDeliverySDK::TYPE_SELF ) {
                 if(isset($request['custom']) && $request['custom']) {
                     $points = $this->shop->filterPointsSelf(array(), $this->getOrder());
+
                     $pointSelf = false;
                     foreach($points as $point) {
                         if($point->_id == $request['point']) {
@@ -1552,6 +1553,7 @@ class DDeliveryUI
                 throw new DDeliveryException('Not support action');
                 break;
         }
+
     }
 
     private function renderChange()
@@ -1560,14 +1562,13 @@ class DDeliveryUI
         $point = $this->order->getPoint();
         if ($point instanceof DDeliveryPointSelf) {
             $comment = 'Самовывоз, '.$point->address;
+            $point = $this->getSelfPointByID($point->_id, $this->order);
+            $this->shop->filterSelfInfo(array($point->getDeliveryInfo()));
         } elseif($point instanceof DDeliveryPointCourier) {
             $comment = 'Доставка курьером по адресу '.$this->order->getFullAddress();
+            $this->getCourierPointByCompanyID($point->getDeliveryInfo()->delivery_company, $this->order);
         }
-        $pointDDInfo = $this->shop->filterSelfInfo(array($point->getDeliveryInfo()));
-        if(!count($pointDDInfo)) {
-            return '';
-        }
-        $pointDDInfo = reset($pointDDInfo);
+        $this->saveFullOrder($this->order);
 
         $this->shop->onFinishChange($this->order->localId, $this->order, $point);
         return json_encode(array(
@@ -1575,7 +1576,7 @@ class DDeliveryUI
             'js'=>'change',
             'comment'=>htmlspecialchars($comment),
             'orderId' => $this->order->localId,
-            'clientPrice'=>$pointDDInfo->clientPrice,
+            'clientPrice'=>$point->getDeliveryInfo()->clientPrice,
             'userInfo' => $this->getDDUserInfo($this->order->localId),
         ));
     }
@@ -1624,14 +1625,17 @@ class DDeliveryUI
         $cityId = $this->order->city;
 
         $points = $this->getSelfPoints($this->order);
+
         $this->saveFullOrder($this->getOrder());
         $pointsJs = array();
 
         foreach($points as $point) {
             $pointsJs[] = $point->toJson();
         }
+
         $staticURL = $this->shop->getStaticPath();
         $selfCompanyList = $this->getSelfDeliveryInfoForCity( $this->order );
+
         $selfCompanyList = $this->_getOrderedDeliveryInfo( $selfCompanyList );
         $selfCompanyList = $this->shop->filterSelfInfo($selfCompanyList);
 
@@ -1952,5 +1956,6 @@ class DDeliveryUI
        $statusProvider = new DDStatusProvider();
        return $statusProvider->getOrderDescription( $ddStatus );
     }
+
 
 }

@@ -3,7 +3,7 @@
 use DDelivery\DDeliveryUI;
 
 include_once( APPPATH . 'classes/Sdk/application/bootstrap.php');
-include_once( APPPATH . 'classes/Sdk/example/IntegratorShop.php');
+include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop.php');
 
 class Controller_Orders extends Controller
 {
