@@ -82,8 +82,24 @@ class Controller_Cabinet extends  Controller_Base{
                 $data2 = json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
                 // Добавляем поля для хранения id ddelivery_insales
 
+                // Добавляем поля для оформления заказа
+                $payload  = $this->getXmlAddress( 'street', 'Улица' );
+                $addr_fields =  json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
+                $data_fields['street'] = $addr_fields->id;
+                $payload  = $this->getXmlAddress( 'house', 'Дом' );
+                $addr_fields =  json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
+                $data_fields['house'] = $addr_fields->id;
+                $payload  = $this->getXmlAddress( 'flat', 'Квартира' );
+                $addr_fields =  json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
+                $data_fields['flat'] = $addr_fields->id;
+                $payload  = $this->getXmlAddress( 'corp', 'Корпус' );
+                $addr_fields =  json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
+                $data_fields['corp'] = $addr_fields->id;
+                // Добавляем поля для оформления заказа
+
+
                 // Добавляем JS
-                $payload = $this->getXmlJsToInsales( $insales_user->id, $data->id, $data2->id);
+                $payload = $this->getXmlJsToInsales( $insales_user->id, $data->id, $data2->id, $data_fields);
                 $delivery = json_decode( $insales_api->api('POST', '/admin/delivery_variants.json', $payload) );
                 // Добавляем JS
 
@@ -128,6 +144,10 @@ class Controller_Cabinet extends  Controller_Base{
             {
                 if( ( $item->office_title == 'ddelivery_id' ) || ( $item->office_title == 'ddelivery_insales' ) )
                     $insales_api->api('DELETE', '/admin/fields/' . $item->id . '.json');
+                if( $item->system_name == 'house' || $item->system_name == 'street' ||
+                    $item->system_name == 'flat' || $item->system_name == 'corp' ){
+                    $insales_api->api('DELETE', '/admin/fields/' . $item->id . '.json');
+                }
             }
         }
 
@@ -142,6 +162,22 @@ class Controller_Cabinet extends  Controller_Base{
         }
     }
 
+    public function getXmlAddress( $name, $human_title ){
+        return $pulet = '<field>
+                                <active type="boolean">true</active>
+                                <destiny type="integer">1</destiny>
+                                <for-buyer type="boolean">true</for-buyer>
+                                <obligatory type="boolean">false</obligatory>
+                                <office-title>' . $human_title . '</office-title>
+                                <position type="integer">4</position>
+                                <show-in-checkout type="boolean">true</show-in-checkout>
+                                <show-in-result type="boolean">true</show-in-result>
+                                <system-name>' . $name .'</system-name>
+                                <title>' . $human_title . '</title>
+                                <example></example>
+                                <type>Field::TextField</type>
+                           </field>';
+    }
 
     public function getXmlField( $name )
     {
@@ -175,7 +211,7 @@ class Controller_Cabinet extends  Controller_Base{
                                <format type="integer">1</format>
                            </webhook>';
     }
-    public function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id )
+    public function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id, $data_fields )
     {
         return $payload = '<?xml version="1.0" encoding="UTF-8"?>
                             <delivery-variant>
@@ -187,7 +223,11 @@ class Controller_Cabinet extends  Controller_Base{
                               <delivery-locations type="array"/>
                               <javascript>&lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/ddelivery.js"&gt;&lt;/script&gt;
 
-                                     &lt;script type="text/javascript"&gt;var ddelivery_insales={"field_id":' . $field_id . ', "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ', "url": "' . URL::base( $this->request ) . '" };&lt;/script&gt;
+                                     &lt;script type="text/javascript"&gt;var ddelivery_insales={"field_id":' . $field_id . ',
+                                     "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ',
+                                     "url": "' . URL::base( $this->request ) . '", "house":' . $data_fields['house'] . ',
+                                     "street":' . $data_fields['street'] . ',"flat":' . $data_fields['flat'] . ',"corp":' . $data_fields['corp'] . '
+                                       };&lt;/script&gt;
                                     &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/action.js"&gt;&lt;/script&gt;
                                 &lt;div class="id_dd"&gt;&lt;/div&gt;
                               </javascript>

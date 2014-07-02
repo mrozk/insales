@@ -514,7 +514,14 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return string|null
      */
     public function getClientFirstName() {
-        return $this->request->query( 'client_name' );
+        $client_name = $this->request->query( 'client_name' );
+        if( !empty( $client_name ) ){
+            $data = explode(' ', trim($client_name));
+            if(isset($data[0])){
+                return $data[0];
+            }
+        }
+        return '';
     }
 
     /**
@@ -522,7 +529,14 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return string|null
      */
     public function getClientLastName() {
-        return null;
+        $client_name = $this->request->query( 'client_name' );
+        if( !empty( $client_name ) ){
+            $data = explode(' ', trim($client_name));
+            if(isset($data[1])){
+                return $data[1];
+            }
+        }
+        return '';
     }
 
     /**
@@ -538,7 +552,9 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return string[]
      */
     public function getClientAddress() {
-        return array();
+        //return array(1,2,3,4,5,6,7,8);
+        return array( $this->request->query( 'street' ), $this->request->query( 'house' ),
+                      $this->request->query( 'corp' ), $this->request->query( 'flat' ) );
     }
 
     /**

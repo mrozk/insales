@@ -49,9 +49,20 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
         }
         function fillFeields(data)
         {
+            //console.log(data);
             $( '#client_name').val(data.userInfo.secondName + ' ' + data.userInfo.firstName);
             $( '#client_phone').val(data.userInfo.toPhone);
             $( '#shipping_address_address').val(data.comment);
+
+            $('#shipping_address_field_' + ddelivery_insales.house).val(data.userInfo.toHouse);
+            $('#shipping_address_field_' + ddelivery_insales.street).val(data.userInfo.toStreet);
+            $('#shipping_address_field_' + ddelivery_insales.flat).val(data.userInfo.toFlat);
+            /*
+            params.house = $('#shipping_address_field_' + ddelivery_insales.house).val();
+            params.street = $('#shipping_address_field_' + ddelivery_insales.street).val();
+            params.flat = $('#shipping_address_field_' + ddelivery_insales.flat).val();
+            params.corp = $('#shipping_address_field_' + ddelivery_insales.corp).val();
+            */
         }
         th.openPopup = function(){
             showPrompt();
@@ -97,7 +108,16 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
             params.iframe = 1;
             params.pr = product_str;
             params.insales_id = ddelivery_insales._id;
-            params.address = $('#shipping_address_address').val();
+            // params.address = $('#shipping_address_address').val();
+            params.client_name = $('#client_name').val();
+            params.client_phone = $('#client_phone').val();
+
+            params.house = $('#shipping_address_field_' + ddelivery_insales.house).val();
+            params.street = $('#shipping_address_field_' + ddelivery_insales.street).val();
+            params.flat = $('#shipping_address_field_' + ddelivery_insales.flat).val();
+            params.corp = $('#shipping_address_field_' + ddelivery_insales.corp).val();
+
+           // console.log(params);
             parametrs = $.param(params);
             url = ddelivery_insales.url + "sdk/?" + parametrs;
 

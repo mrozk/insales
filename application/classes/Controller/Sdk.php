@@ -58,41 +58,34 @@ class Controller_Sdk extends Controller
     public function action_test()
     {
             $session = Session::instance();
-            $insalesuser = (int)$session->get('insalesuser');
+            $insalesuser = (int)$session->get('insales_id');
             if( !$insalesuser )
             {
                 return;
             }
-            echo '<pre>';
-        $prods =json_decode(file_get_contents('http://ddelivery-3.myinsales.ru/products_by_id/29303484.json'));
-
-            print_r($prods->products[0]->product_field_values);
-            echo '</pre>';
-            $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
+            $insales_user = ORM::factory('InsalesUser', array('id' => $insalesuser));
 
             if ( $insales_user->loaded() )
             {
-                try{
-
-
-                $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
-                $pulet = '';
-                /*
-                $pulet = '<order>
-                                <id type="integer">' . $cmsOrderID . '</id>
-                                <fulfillment-status>' . $status . '</fulfillment-status>
-                          </order>';
-                */
-                //echo strlen($pulet);
-                //echo $cmsOrderID;
-                }
-                catch(Exception $e)
-                {
-                    echo $e->getMessage();
-                }
-                $result = json_decode( $insales_api->api('GET','/admin/product_fields.json', $pulet) );
-
-                print_r($result);
+                $insales_api =  new InsalesApi(  $insales_user->passwd,  $insales_user->shop );
+                $pulet = '<field>
+                                <active type="boolean">true</active>
+                                <destiny type="integer">1</destiny>
+                                <for-buyer type="boolean">true</for-buyer>
+                                <obligatory type="boolean">false</obligatory>
+                                <office-title>Улица</office-title>
+                                <position type="integer">4</position>
+                                <show-in-checkout type="boolean">true</show-in-checkout>
+                                <show-in-result type="boolean">true</show-in-result>
+                                <system-name>street</system-name>
+                                <title>Улица</title>
+                                <example></example>
+                                <type>Field::TextField</type>
+                           </field>';
+                $result =  $insales_api->api('DELETE','/admin/fields/1711751.xml', $pulet);
+                echo '<pre>';
+                    print_r($result);
+                echo '</pre>';
             }
     }
 
@@ -151,11 +144,19 @@ class Controller_Sdk extends Controller
             $client_name = $this->get_request_state('client_name');
             $client_phone = $this->get_request_state('client_phone');
 
+            $house = $this->get_request_state('house');
+            $street = $this->get_request_state('street');
+            $flat = $this->get_request_state('flat');
+            $corp = $this->get_request_state('corp');
+
             $this->request->query('address',$address);
             $this->request->query('client_name',$client_name);
             $this->request->query('client_phone',$client_phone);
 
-            //echo $this->request->query('client_name',$client_name);
+            $this->request->query('house',$house);
+            $this->request->query('street',$street);
+            $this->request->query('flat',$flat);
+            $this->request->query('corp',$corp);
 
             $uid = (int)$this->get_request_state('insales_id');
             if( !$uid )
