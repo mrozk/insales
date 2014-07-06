@@ -14,7 +14,13 @@
     }
 </style>
 
-
+<?php
+if(empty($usersettings->usersetting->address)){
+    $address = array('street' => '','house' => '','corp' => '','flat' => '');
+}else{
+    $address = json_decode($usersettings->usersetting->address, true);
+}
+?>
 
 <!-- Main jumbotron for a primary marketing message or call to action -->
 <!--
@@ -194,6 +200,9 @@
                         ?>
                     </div>
                 </div>
+
+
+
                 <?php /*
                 <div class="form-group" >
                     <label for="weight" class="col-sm-10 control-label">
@@ -247,6 +256,89 @@
                         ?>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <h3>Соответствие полей оформления заказа</h3>
+                </div>
+                <div class="form-group" >
+                    <label for="height" class="col-sm-10 control-label">Улица
+                        <p class="bg-success" >
+                            Выберите поле, соответствуещее "Улица" в Вашей системе
+                        </p>
+                    </label>
+                    <div class="col-sm-10">
+                        <?php
+
+
+                        $attrs = array(
+                            'class' => 'form-control'
+                        );
+
+                        echo Form::select('address[street]', $addr_fields, $address['street'], $attrs);
+
+                        ?>
+                    </div>
+                </div>
+                <div class="form-group" >
+                    <label for="height" class="col-sm-10 control-label">Номер дома
+                        <p class="bg-success" >
+                            Выберите поле, соответствуещее "Номер дома" в Вашей системе
+                        </p>
+                    </label>
+                    <div class="col-sm-10">
+                        <?php
+
+
+                        $attrs = array(
+                            'class' => 'form-control'
+                        );
+
+                        echo Form::select('address[house]', $addr_fields, $address['house'], $attrs);
+
+                        ?>
+                    </div>
+                </div>
+
+                <div class="form-group" >
+                    <label for="height" class="col-sm-10 control-label">Корпус
+                        <p class="bg-success" >
+                            Выберите поле, соответствуещее "Корпус" в Вашей системе
+                        </p>
+                    </label>
+                    <div class="col-sm-10">
+                        <?php
+
+
+                        $attrs = array(
+                            'class' => 'form-control'
+                        );
+
+                        echo Form::select('address[corp]', $addr_fields, $address['corp'], $attrs);
+
+                        ?>
+                    </div>
+                </div>
+                <div class="form-group" >
+                    <label for="height" class="col-sm-10 control-label">Квартира
+                        <p class="bg-success" >
+                            Выберите поле, соответствуещее "Квартира" в Вашей системе
+                        </p>
+                    </label>
+                    <div class="col-sm-10">
+                        <?php
+
+
+                        $attrs = array(
+                            'class' => 'form-control'
+                        );
+
+                        echo Form::select('address[flat]', $addr_fields, $address['flat'], $attrs);
+
+                        ?>
+                    </div>
+                </div>
+
+
                 <?php /* ?>
                 <div class="form-group">
                     <label for="secondname" class="col-sm-6 control-label">Фамилия</label>

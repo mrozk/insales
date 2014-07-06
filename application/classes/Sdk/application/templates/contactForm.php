@@ -81,12 +81,10 @@ use DDelivery\Adapter\DShopAdapter;
                                 <input type="text" title="Дом" class="small" <?if($requiredFieldMask & DShopAdapter::FIELD_REQUIRED_ADDRESS_HOUSE):?>req="req"<?endif;?> name="address_house" value="<?=htmlspecialchars(trim($order->getToHouse()))?>"/>
                             <?endif;?>
                             <?if($requiredFieldMask & DShopAdapter::FIELD_EDIT_ADDRESS_HOUSING || ($requiredFieldMask & DShopAdapter::FIELD_REQUIRED_ADDRESS_HOUSING )):?>
-                                <input type="text" title="Корпус" class="small" name="address_housing"  value="<?=htmlspecialchars(trim($order->getToHousing()))?>"
-                                       <?if($requiredFieldMask & DShopAdapter::FIELD_REQUIRED_ADDRESS_HOUSING):?>req="req"<?endif;?>/>
+                                <input type="text" title="Корпус" class="small" name="address_housing"  value="<?=htmlspecialchars(trim($order->getToHousing()))?>" <?if($requiredFieldMask & DShopAdapter::FIELD_REQUIRED_ADDRESS_HOUSING):?>req="req"<?endif;?>/>
                             <?endif;?>
                             <?if($requiredFieldMask & DShopAdapter::FIELD_EDIT_ADDRESS_FLAT || ($requiredFieldMask & DShopAdapter::FIELD_REQUIRED_ADDRESS_FLAT && !$order->getToFlat() )):?>
-                                <input type="text" title="Квартира" class="small" name="address_flat" value="<?=htmlspecialchars(trim($order->getToFlat()))?>"
-                                       <?if($requiredFieldMask & DShopAdapter::FIELD_REQUIRED_ADDRESS_FLAT):?>req="req"<?endif;?>/>
+                                <input type="text" title="Квартира" class="small" name="address_flat" value="<?=htmlspecialchars(trim($order->getToFlat()))?>" <?if($requiredFieldMask & DShopAdapter::FIELD_REQUIRED_ADDRESS_FLAT):?>req="req"<?endif;?>/>
                             <?endif;?>
                             <div class="error-box">
                                 <i>&nbsp;</i> Поле обязательное для заполнения

@@ -39,13 +39,13 @@ class Controller_Cabinet extends  Controller_Base{
                 }
                 $this->request->post('pvz_companies', $pvz_companies);
                 $this->request->post('cur_companies', $cur_companies);
+                $address = $this->request->post('address');
+                $this->request->post('address', json_encode($address));
 
-              //  print_r($pvz_companies);
-               // print_r($cur_companies);
 
-                //exit();
 
                 $insales_user->usersetting->values( $this->request->post() );
+
                 $insales_user->usersetting->save();
                 Notice::add( Notice::SUCCESS,'Успешно сохранено' );
                 $this->redirect( URL::base( $this->request ) . 'cabinet/' );
@@ -83,6 +83,7 @@ class Controller_Cabinet extends  Controller_Base{
                 // Добавляем поля для хранения id ddelivery_insales
 
                 // Добавляем поля для оформления заказа
+                /*
                 $payload  = $this->getXmlAddress( 'street', 'Улица' );
                 $addr_fields =  json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
                 $data_fields['street'] = $addr_fields->id;
@@ -95,11 +96,12 @@ class Controller_Cabinet extends  Controller_Base{
                 $payload  = $this->getXmlAddress( 'corp', 'Корпус' );
                 $addr_fields =  json_decode( $insales_api->api('POST', '/admin/fields.json', $payload) );
                 $data_fields['corp'] = $addr_fields->id;
+                */
                 // Добавляем поля для оформления заказа
 
 
                 // Добавляем JS
-                $payload = $this->getXmlJsToInsales( $insales_user->id, $data->id, $data2->id, $data_fields);
+                $payload = $this->getXmlJsToInsales( $insales_user->id, $data->id, $data2->id);
                 $delivery = json_decode( $insales_api->api('POST', '/admin/delivery_variants.json', $payload) );
                 // Добавляем JS
 
@@ -144,10 +146,12 @@ class Controller_Cabinet extends  Controller_Base{
             {
                 if( ( $item->office_title == 'ddelivery_id' ) || ( $item->office_title == 'ddelivery_insales' ) )
                     $insales_api->api('DELETE', '/admin/fields/' . $item->id . '.json');
+                /*
                 if( $item->system_name == 'house' || $item->system_name == 'street' ||
                     $item->system_name == 'flat' || $item->system_name == 'corp' ){
                     $insales_api->api('DELETE', '/admin/fields/' . $item->id . '.json');
                 }
+                */
             }
         }
 
@@ -161,7 +165,7 @@ class Controller_Cabinet extends  Controller_Base{
             }
         }
     }
-
+    /*
     public function getXmlAddress( $name, $human_title ){
         return $pulet = '<field>
                                 <active type="boolean">true</active>
@@ -178,7 +182,7 @@ class Controller_Cabinet extends  Controller_Base{
                                 <type>Field::TextField</type>
                            </field>';
     }
-
+    */
     public function getXmlField( $name )
     {
         return $pulet = '<field>
@@ -211,7 +215,7 @@ class Controller_Cabinet extends  Controller_Base{
                                <format type="integer">1</format>
                            </webhook>';
     }
-    public function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id, $data_fields )
+    public function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id)
     {
         return $payload = '<?xml version="1.0" encoding="UTF-8"?>
                             <delivery-variant>
@@ -225,8 +229,7 @@ class Controller_Cabinet extends  Controller_Base{
 
                                      &lt;script type="text/javascript"&gt;var ddelivery_insales={"field_id":' . $field_id . ',
                                      "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ',
-                                     "url": "' . URL::base( $this->request ) . '", "house":' . $data_fields['house'] . ',
-                                     "street":' . $data_fields['street'] . ',"flat":' . $data_fields['flat'] . ',"corp":' . $data_fields['corp'] . '
+                                     "url": "' . URL::base( $this->request ) . '"
                                        };&lt;/script&gt;
                                     &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/action.js"&gt;&lt;/script&gt;
                                 &lt;div class="id_dd"&gt;&lt;/div&gt;
@@ -268,11 +271,13 @@ class Controller_Cabinet extends  Controller_Base{
 
         if ( !empty( $insalesuser ) )
         {
-            echo $insalesuser;
+            // echo $insalesuser;
             $usersettings = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
             $payment = $this->getPaymentWays( $usersettings->passwd, $usersettings->shop );
             $fields = $this->getFields( $usersettings->passwd, $usersettings->shop );
+            $addr_fields = $this->getAddressFields( $usersettings->passwd, $usersettings->shop );
             $this->template->set('content', View::factory('panel')->set('usersettings', $usersettings )
+                           ->set('addr_fields', $addr_fields)
                            ->set('payment', $payment)->set('fields', $fields)->set('base_url', URL::base( $this->request )));
         }
         else
@@ -289,6 +294,30 @@ class Controller_Cabinet extends  Controller_Base{
             }
         }
     }
+
+    public function getAddressFields( $passwd, $shop )
+    {
+        $options = array();
+        $insales_api =  new InsalesApi($passwd, $shop );
+        /*
+        $payment_gateways = json_decode( $insales_api->api('GET', '/admin/option_names.json') );
+        */
+        $payment_gateways = json_decode( $insales_api->api('GET', '/admin/fields.json') );
+        //print_r($payment_gateways);
+        $options[0] = 'Выберитите поле';
+        if( count( $payment_gateways ) )
+        {
+            foreach( $payment_gateways as $gateways )
+            {
+                if($gateways->for_buyer && ($gateways->type !='Field::Phone')){
+                    $options[$gateways->id] = $gateways->office_title;
+                }
+            }
+        }
+
+        return $options;
+    }
+
     public function getFields( $passwd, $shop )
     {
         $options = array();

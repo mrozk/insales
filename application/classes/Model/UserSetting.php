@@ -43,7 +43,8 @@ class Model_UserSetting extends ORM {
         'okrugl' => array (),
         'shag' => array (),
         'zabor' => array (),
-        'payment' => array ()
+        'payment' => array (),
+        'address' => array ()
     );
 
 } 

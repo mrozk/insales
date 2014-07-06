@@ -23,9 +23,15 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         $this->request = $request;
         $insales_user = ORM::factory('InsalesUser', array('id' => $uid));
         $this->settings = $insales_user->usersetting;
+
         if( empty($this->settings->api) )
         {
             throw new  \DDelivery\DDeliveryException("Пустой api ключ");
+        }
+        if( empty( $this->settings->address ) ){
+            $this->settings->address = array('street' => '','house' => '','corp' => '','flat' => '');
+        }else{
+            $this->settings->address = json_decode($this->settings->address, true);
         }
         $this->shop_url = $insales_user->shop;
 
@@ -516,15 +522,12 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     public function getClientFirstName() {
         $client_name = $this->request->query( 'client_name' );
         if( !empty( $client_name ) ){
-            $data = explode(' ', trim($client_name));
-            if(isset($data[0])){
-                return $data[0];
-            }
+            return $client_name;
         }
         return '';
     }
 
-    /**
+    /**lo
      * Если вы знаете фамилию покупателя, сделайте чтобы оно вернулось в этом методе
      * @return string|null
      */
@@ -538,13 +541,26 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         }
         return '';
     }
+    /**
+     * Вырезаем из номера телефона ненужные символы
+     *
+     * @param string $phone
+     *
+     * @return string
+     */
+    public function formatPhone( $phone )
+    {
+        return preg_replace( array('/-/', '/\(/', '/\)/', '/\+7/', '/\s\s+/'), '', $phone );
+    }
 
     /**
      * Если вы знаете телефон покупателя, сделайте чтобы оно вернулось в этом методе. 11 символов, например 79211234567
      * @return string|null
      */
     public function getClientPhone() {
-        return $this->request->query( 'client_phone' );
+        $phone = $this->formatPhone( $this->request->query( 'client_phone' ) );
+        $phone  = substr( $phone, -10);
+        return '+7' . $phone;
     }
 
     /**
@@ -552,9 +568,40 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return string[]
      */
     public function getClientAddress() {
-        //return array(1,2,3,4,5,6,7,8);
-        return array( $this->request->query( 'street' ), $this->request->query( 'house' ),
-                      $this->request->query( 'corp' ), $this->request->query( 'flat' ) );
+        /// return array(1,2,3,4,5,6,7,8);
+
+        $shipping_address = $this->request->query('shipping_address');
+        $street = '';
+        $house = '';
+        $corp = '';
+        $flat = '';
+        if( !empty( $this->settings->address['street'] ) ){
+            if(isset( $shipping_address['fields_values_attributes'][$this->settings->address['street']] )){
+                $street = $shipping_address['fields_values_attributes'][$this->settings->address['street']]['value'];
+            }
+        }
+
+        if( !empty( $this->settings->address['house'] ) ){
+            if(isset( $shipping_address['fields_values_attributes'][$this->settings->address['house']] )){
+                $house = $shipping_address['fields_values_attributes'][$this->settings->address['house']]['value'];
+            }
+        }
+
+        if( !empty( $this->settings->address['corp'] ) ){
+            if(isset( $shipping_address['fields_values_attributes'][$this->settings->address['corp']] )){
+                $corp = $shipping_address['fields_values_attributes'][$this->settings->address['corp']]['value'];
+            }
+        }
+
+        if( !empty( $this->settings->address['flat'] ) ){
+            if(isset( $shipping_address['fields_values_attributes'][$this->settings->address['flat']] )){
+                $flat = $shipping_address['fields_values_attributes'][$this->settings->address['flat']]['value'];
+            }
+        }
+
+        return array( $street, $house, $corp, $flat );
+
+        //return  array(1,2,3,4);
     }
 
     /**
@@ -565,6 +612,36 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     {
         // Если нет информации о городе, оставьте вызов родительского метода.
         return parent::getClientCityId();
+    }
+
+    /**
+     * Возвращает бинарную маску обязательных полей для курьера
+     * Если редактирование не включено, но есть обязательность то поле появится
+     * Если редактируемых полей не будет то пропустим шаг
+     * @return int
+     */
+    public function getCourierRequiredFields()
+    {
+        // ВВести все обязательно, кроме корпуса
+        return self::FIELD_EDIT_FIRST_NAME | self::FIELD_REQUIRED_FIRST_NAME
+        | self::FIELD_EDIT_PHONE | self::FIELD_REQUIRED_PHONE
+        | self::FIELD_EDIT_ADDRESS | self::FIELD_REQUIRED_ADDRESS
+        | self::FIELD_EDIT_ADDRESS_HOUSE | self::FIELD_REQUIRED_ADDRESS_HOUSE
+        | self::FIELD_EDIT_ADDRESS_HOUSING
+        | self::FIELD_EDIT_ADDRESS_FLAT;
+    }
+
+    /**
+     * Возвращает бинарную маску обязательных полей для пунктов самовывоза
+     * Если редактирование не включено, но есть обязательность то поле появится
+     * Если редактируемых полей не будет то пропустим шаг
+     * @return int
+     */
+    public function getSelfRequiredFields()
+    {
+        // Имя, фамилия, мобилка
+        return self::FIELD_EDIT_FIRST_NAME | self::FIELD_REQUIRED_FIRST_NAME
+        | self::FIELD_EDIT_PHONE | self::FIELD_REQUIRED_PHONE;
     }
 
     /**

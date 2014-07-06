@@ -82,7 +82,7 @@ class Controller_Sdk extends Controller
                                 <example></example>
                                 <type>Field::TextField</type>
                            </field>';
-                $result =  $insales_api->api('DELETE','/admin/fields/1711751.xml', $pulet);
+                $result =  $insales_api->api('GET','/admin/fields.xml', $pulet);
                 echo '<pre>';
                     print_r($result);
                 echo '</pre>';
@@ -140,32 +140,46 @@ class Controller_Sdk extends Controller
     {
         try
         {
-            $address = $this->get_request_state('address');
-            $client_name = $this->get_request_state('client_name');
-            $client_phone = $this->get_request_state('client_phone');
 
+            /*
             $house = $this->get_request_state('house');
             $street = $this->get_request_state('street');
             $flat = $this->get_request_state('flat');
             $corp = $this->get_request_state('corp');
+            */
 
-            $this->request->query('address',$address);
-            $this->request->query('client_name',$client_name);
-            $this->request->query('client_phone',$client_phone);
-
-            $this->request->query('house',$house);
-            $this->request->query('street',$street);
-            $this->request->query('flat',$flat);
-            $this->request->query('corp',$corp);
 
             $uid = (int)$this->get_request_state('insales_id');
             if( !$uid )
             {
                 return;
             }
+
+            if( $this->request->query('insales_id')){
+                $session = Session::instance();
+                $session->set('client_name', '');
+                $session->set('client_phone', '');
+                $session->set('shipping_address', '');
+
+            }
+            $client_name = $this->get_request_state('client_name');
+            $client_phone = $this->get_request_state('client_phone');
+            $shipping_address = $this->get_request_state('shipping_address');
+
+            $this->request->query('shipping_address', $shipping_address);
+            $this->request->query('client_name',$client_name);
+            $this->request->query('client_phone',$client_phone);
+            /*
+            $this->request->query('house',$house);
+            $this->request->query('street',$street);
+            $this->request->query('flat',$flat);
+            $this->request->query('corp',$corp);
+            */
+
             $IntegratorShop = new IntegratorShop( $this->request, $uid );
             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
             $order = $ddeliveryUI->getOrder();
+
             $order->insalesuser_id = $uid;
 
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());

@@ -71,11 +71,8 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
             var params = {
                 formData: {}
             };
-            /*
-            $($('#order_form').serializeArray()).each(function(){
-                params.formData[this.name] = this.value;
-            });
-            */
+
+            order_form = $('#order_form').serializeArray();
             var callback = {
                 close: function(){
                     hideCover();
@@ -112,15 +109,13 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
             params.client_name = $('#client_name').val();
             params.client_phone = $('#client_phone').val();
 
-            params.house = $('#shipping_address_field_' + ddelivery_insales.house).val();
-            params.street = $('#shipping_address_field_' + ddelivery_insales.street).val();
-            params.flat = $('#shipping_address_field_' + ddelivery_insales.flat).val();
-            params.corp = $('#shipping_address_field_' + ddelivery_insales.corp).val();
-
            // console.log(params);
-            parametrs = $.param(params);
-            url = ddelivery_insales.url + "sdk/?" + parametrs;
 
+            parametrs = $.param(params);
+            order_form = $.param(order_form);
+
+            url = ddelivery_insales.url + "sdk/?" + parametrs + '&' + order_form;
+            console.log(url);
             DDelivery.delivery('ddelivery_popup', url, {/*orderId: 4*/}, callback);
 
             return void(0);

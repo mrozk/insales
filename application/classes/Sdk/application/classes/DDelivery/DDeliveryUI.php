@@ -336,6 +336,7 @@ class DDeliveryUI
         {
             throw new DDeliveryException('Точка не найдена');
         }
+        $this->shop->filterSelfInfo( array($order->getPoint()->getDeliveryInfo()) );
         return $order->getPoint()->getDeliveryInfo()->clientPrice;
     }
 
@@ -1436,12 +1437,10 @@ class DDeliveryUI
         if(!$this->order->city ) {
             $this->order->city = $this->getCityId();
         }
-
         if(!empty($request['point']) && isset($request['type'])) {
             if ( $request['type'] == DDeliverySDK::TYPE_SELF ) {
                 if(isset($request['custom']) && $request['custom']) {
                     $points = $this->shop->filterPointsSelf(array(), $this->getOrder());
-
                     $pointSelf = false;
                     foreach($points as $point) {
                         if($point->_id == $request['point']) {
@@ -1553,7 +1552,6 @@ class DDeliveryUI
                 throw new DDeliveryException('Not support action');
                 break;
         }
-
     }
 
     private function renderChange()
@@ -1625,17 +1623,14 @@ class DDeliveryUI
         $cityId = $this->order->city;
 
         $points = $this->getSelfPoints($this->order);
-
         $this->saveFullOrder($this->getOrder());
         $pointsJs = array();
 
         foreach($points as $point) {
             $pointsJs[] = $point->toJson();
         }
-
         $staticURL = $this->shop->getStaticPath();
         $selfCompanyList = $this->getSelfDeliveryInfoForCity( $this->order );
-
         $selfCompanyList = $this->_getOrderedDeliveryInfo( $selfCompanyList );
         $selfCompanyList = $this->shop->filterSelfInfo($selfCompanyList);
 
@@ -1846,9 +1841,9 @@ class DDeliveryUI
             if(isset($address[0]))
                 $order->setToStreet($address[0]);
             if(isset($address[1]))
-                $order->setToFlat($address[1]);
+                $order->setToHouse($address[1]);
             if(isset($address[2]))
-                $order->setToHouse($address[2]);
+                $order->setToHousing($address[2]);
             if(isset($address[3]))
                 $order->setToFlat($address[3]);
         }
