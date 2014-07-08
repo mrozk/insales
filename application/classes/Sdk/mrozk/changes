@@ -1,3 +1,4 @@
 Переименовать имя на ФИО application/classes/Sdk/application/templates/contactForm.php
 application/classes/InsalesApi.php  изменить  $api_key, $secret_key
 перекинуть фс   вфів
+Изменить настройки БД

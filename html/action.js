@@ -26,13 +26,15 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
         function sendCart()
         {
             var product_list = '';
-
+            if (!window.location.origin)
+                window.location.origin = window.location.protocol+"//"+window.location.host;
             $.ajax({
                 dataType: "json",
-                url: 'cart_items.json',
+                url: window.location.origin + '/cart_items.json',
                 async: false,
                 success: function(data)
                 {
+                    console.log(data);
                     //console.log(data);
                     if( data.order_lines.length > 0 )
                     {
@@ -45,12 +47,13 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
                     }
                 }
             });
+            //console.log(product_list);
             return product_list;
         }
         function fillFeields(data)
         {
             //console.log(data);
-            $( '#client_name').val(data.userInfo.secondName + ' ' + data.userInfo.firstName);
+            $( '#client_name').val(data.userInfo.firstName);
             $( '#client_phone').val(data.userInfo.toPhone);
             $( '#shipping_address_address').val(data.comment);
 
@@ -109,13 +112,10 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
             params.client_name = $('#client_name').val();
             params.client_phone = $('#client_phone').val();
 
-           // console.log(params);
-
             parametrs = $.param(params);
             order_form = $.param(order_form);
 
             url = ddelivery_insales.url + "sdk/?" + parametrs + '&' + order_form;
-            console.log(url);
             DDelivery.delivery('ddelivery_popup', url, {/*orderId: 4*/}, callback);
 
             return void(0);

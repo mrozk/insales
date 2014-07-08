@@ -68,21 +68,11 @@ class Controller_Sdk extends Controller
             if ( $insales_user->loaded() )
             {
                 $insales_api =  new InsalesApi(  $insales_user->passwd,  $insales_user->shop );
-                $pulet = '<field>
-                                <active type="boolean">true</active>
-                                <destiny type="integer">1</destiny>
-                                <for-buyer type="boolean">true</for-buyer>
-                                <obligatory type="boolean">false</obligatory>
-                                <office-title>Улица</office-title>
-                                <position type="integer">4</position>
-                                <show-in-checkout type="boolean">true</show-in-checkout>
-                                <show-in-result type="boolean">true</show-in-result>
-                                <system-name>street</system-name>
-                                <title>Улица</title>
-                                <example></example>
-                                <type>Field::TextField</type>
-                           </field>';
-                $result =  $insales_api->api('GET','/admin/fields.xml', $pulet);
+                $pulet = '<application-widget>
+                              <code>some html or javascript code</code>
+                              <height>60</height>
+                          </application-widget>';
+                $result =  $insales_api->api('POST','/admin/application_widgets.xml', $pulet);
                 echo '<pre>';
                     print_r($result);
                 echo '</pre>';
@@ -140,7 +130,6 @@ class Controller_Sdk extends Controller
     {
         try
         {
-
             /*
             $house = $this->get_request_state('house');
             $street = $this->get_request_state('street');
@@ -189,6 +178,11 @@ class Controller_Sdk extends Controller
         {
             echo $e->getMessage();
             return;
+        }
+        catch ( \Exception $e ){
+            echo $e->getMessage();
+            return;
+
         }
 
         /*

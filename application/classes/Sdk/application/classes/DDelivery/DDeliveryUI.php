@@ -193,9 +193,13 @@ class DDeliveryUI
         $order = $this->getOrderByCmsID( $cmsID );
         if( $order )
         {
+
             $order->localStatus = $cmsStatus;
+
+            echo $order->ddeliveryID;
             if( $this->shop->isStatusToSendOrder($cmsStatus) && $order->ddeliveryID == 0 )
             {
+
                 if($order->type == DDeliverySDK::TYPE_SELF)
                 {
                     return $this->createSelfOrder($order);
@@ -1927,6 +1931,7 @@ class DDeliveryUI
         $currentOrder->toFlat = $item->to_flat;
         $currentOrder->toEmail = $item->to_email;
         $currentOrder->comment = $item->comment;
+        $currentOrder->insalesuser_id = $item->insalesuser_id;
     }
 
     /**

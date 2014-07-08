@@ -16,8 +16,10 @@ class Controller_Orders extends Controller
     {
         if (!isset($HTTP_RAW_POST_DATA))
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
-
+        $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
+            ->values(array($HTTP_RAW_POST_DATA, "asdsd"))->execute();
             $data = json_decode( $HTTP_RAW_POST_DATA );
+
             if( count( $data->fields_values ) )
             {
                 foreach( $data->fields_values as $item )
@@ -40,6 +42,7 @@ class Controller_Orders extends Controller
                 {
                     if( $data->delivery_variant_id == $insales_user->delivery_variant_id  )
                     {
+
                         $IntegratorShop = new IntegratorShop( $this->request, $user_id );
                         $ddeliveryUI = new DDeliveryUI( $IntegratorShop, true );
                         $ddeliveryUI->onCmsChangeStatus( $data->order_lines[0]->order_id, $data->fulfillment_status );
@@ -56,8 +59,7 @@ class Controller_Orders extends Controller
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
 
         $data = json_decode( $HTTP_RAW_POST_DATA );
-        $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
-            ->values( array( $HTTP_RAW_POST_DATA, "asdsd") )->execute();
+
         if( count( $data->fields_values ) )
         {
 
@@ -82,6 +84,7 @@ class Controller_Orders extends Controller
                     {
                         try
                         {
+
                             $IntegratorShop = new IntegratorShop( $this->request, $user_id );
                             $ddeliveryUI = new DDeliveryUI($IntegratorShop, true);
                             $ddeliveryUI->onCmsOrderFinish( $ddelivery_id, $data->order_lines[0]->order_id,
@@ -139,10 +142,10 @@ class Controller_Orders extends Controller
 
     public function action_get()
     {
-        $query = DB::select()->from('ordddd')->as_object()->execute();
+        //$query = DB::select()->from('ordddd')->as_object()->execute();
         //print_r($query);
 
-        $query = DB::query(Database::SELECT, 'SELECT * FROM ordddd WHERE id = 93');
+        $query = DB::query(Database::SELECT, 'SELECT * FROM ordddd WHERE id =144');
         //$query->param(':user', 'john');
         $query->as_object();
         $return = $query->execute();
@@ -151,8 +154,9 @@ class Controller_Orders extends Controller
         $data = json_decode( $return[0]->creater );
 
         echo '<pre>';
-           //print_r($data);
+              print_r($data);
         echo '</pre>';
+        try{
         if( count( $data->fields_values ) )
         {
             foreach( $data->fields_values as $item )
@@ -175,13 +179,16 @@ class Controller_Orders extends Controller
                     {
                         $IntegratorShop = new IntegratorShop( $this->request, $user_id );
                         $ddeliveryUI = new DDeliveryUI( $IntegratorShop, true );
-                        $ddeliveryUI->onCmsOrderFinish( $ddelivery_id, $data->order_lines[0]->order_id,
-                            $data->fulfillment_status, $data->payment_gateway_id );
+
+                        $ddeliveryUI->onCmsChangeStatus( $data->order_lines[0]->order_id, $data->fulfillment_status );
 
                     }
 
                 }
             }
+        }
+        }catch (\DDelivery\DDeliveryException $e){
+            echo $e->getMessage();
         }
         /*
         if( $ddelivery_id && $user_id )

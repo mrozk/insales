@@ -306,10 +306,12 @@ class Order {
 	    $toFlat = $order->toFlat;
 	    $type = $order->type;
         $comment = $order->comment;
+
+        $insalesuser_id = $order->insalesuser_id;
 	    //$this->pdo->beginTransaction();
 	    if( $this->isRecordExist($localId) )
 	    {
-	    	$query = "UPDATE {$this->prefix}orders SET comment = :comment, payment_variant = :payment_variant, type = :type, amount =:amount,
+	    	$query = "UPDATE {$this->prefix}orders SET insalesuser_id = :insalesuser_id, comment = :comment, payment_variant = :payment_variant, type = :type, amount =:amount,
 	    			  to_city = :to_city,
 	    			  ddeliveryorder_id = :ddeliveryorder_id, delivery_company = :delivery_company,
 	    			  dimension_side1 = :dimension_side1, dimension_side2 = :dimension_side2,
@@ -326,19 +328,20 @@ class Order {
 	    }
 	    else 
 	    {
-	    	$query = "INSERT INTO {$this->prefix}orders ( comment, payment_variant, type, amount, to_city, ddeliveryorder_id,
+	    	$query = "INSERT INTO {$this->prefix}orders ( insalesuser_id,comment, payment_variant, type, amount, to_city, ddeliveryorder_id,
 	    			  delivery_company, dimension_side1,
                       dimension_side2, dimension_side3, confirmed, weight, declared_price,
 	    			  payment_price, to_name, to_phone, goods_description, to_flat, to_house,
 	    			  to_street, date, shop_refnum, products, local_status, dd_status,
 	    			  first_name, second_name, point)
-	                  VALUES( :comment, :payment_variant, :type, :amount, :to_city, :ddeliveryorder_id, :delivery_company,
+	                  VALUES( :insalesuser_id,:comment, :payment_variant, :type, :amount, :to_city, :ddeliveryorder_id, :delivery_company,
 	    			  :dimension_side1, :dimension_side2, :dimension_side3, :confirmed, :weight,
 	    			  :declared_price, :payment_price, :to_name, :to_phone, :goods_description,
 	    			  :to_flat, :to_house, :to_street,  :date, :shop_refnum, :products,
 	    			  :local_status, :dd_status, :first_name, :second_name, :point )";
 	    	$stmt = $this->pdo->prepare($query);
 	    }
+        $stmt->bindParam( ':insalesuser_id', $insalesuser_id  );
         $stmt->bindParam( ':comment', $comment  );
 	    $stmt->bindParam( ':payment_variant', $payment_variant  );
 	    $stmt->bindParam( ':type', $type );

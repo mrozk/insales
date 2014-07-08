@@ -245,6 +245,8 @@ class Controller_Cabinet extends  Controller_Base{
         $insales_api =  new InsalesApi( $passwd, $shop );
         $payment_gateways = json_decode( $insales_api->api('GET', '/admin/payment_gateways.json') );
 
+
+        $options[0] = 'Выберитите поле';
         if( count( $payment_gateways ) )
         {
             foreach( $payment_gateways as $gateways )
