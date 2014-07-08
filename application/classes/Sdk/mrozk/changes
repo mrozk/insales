@@ -2,3 +2,8 @@
 application/classes/InsalesApi.php  изменить  $api_key, $secret_key
 перекинуть фс   вфів
 Изменить настройки БД
+
+(insalesuser_id)
+Изменить /home/mrozk/git/insales/application/classes/Sdk/application/classes/DDelivery/DataBase/Order.php вставку и обновление в БД (insalesuser_id)
+Изменить /home/mrozk/git/insales/application/classes/Sdk/application/classes/DDelivery/DDeliveryUI.php initOrder
+/home/mrozk/git/insales/application/classes/Sdk/application/classes/DDelivery/Order/DDeliveryOrder.php атрибут
