@@ -52,22 +52,15 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
         }
         function fillFeields(data)
         {
-            //console.log(data);
             $( '#client_name').val(data.userInfo.firstName);
             $( '#client_phone').val(data.userInfo.toPhone);
             $( '#shipping_address_address').val(data.comment);
-
             $('#shipping_address_field_' + ddelivery_insales.house).val(data.userInfo.toHouse);
             $('#shipping_address_field_' + ddelivery_insales.street).val(data.userInfo.toStreet);
             $('#shipping_address_field_' + ddelivery_insales.flat).val(data.userInfo.toFlat);
-            /*
-            params.house = $('#shipping_address_field_' + ddelivery_insales.house).val();
-            params.street = $('#shipping_address_field_' + ddelivery_insales.street).val();
-            params.flat = $('#shipping_address_field_' + ddelivery_insales.flat).val();
-            params.corp = $('#shipping_address_field_' + ddelivery_insales.corp).val();
-            */
         }
         th.openPopup = function(){
+            $('.id_dd').parent().parent().find('.radio_button').attr("checked","checked");
             showPrompt();
             document.getElementById('ddelivery_popup').innerHTML = '';
             //jQuery('#ddelivery_popup').html('').modal().open();
@@ -87,7 +80,7 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
                     $( '.moto_moto').empty();
                     $( '.dd_asset_conteiner').append( '<div class="moto_moto" style="position: absolute;' +
                         'margin-top: 10px; color:#E98B73" >' + data.comment + '</div>' );
-                    var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
+                    var variant_id = ddelivery_insales.delivery_id;
                     CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
                     //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
                     CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: data.orderId }] );
@@ -95,15 +88,11 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
                     $('.dd_last_check').val(data.orderId);
 
                     status = data.comment;
-                    document.getElementById('ddelivery').getElementsByTagName('SPAN').innerHTML = data.comment;
 
                     hideCover();
                     document.getElementById('ddelivery_container').style.display = 'none';
-
-                    //$('#ID_DELIVERY_ddelivery_all').click();
                 }
             };
-            //url_params = "?" + ( $.param(params) ) + "";
             product_str = sendCart();
             params.iframe = 1;
             params.pr = product_str;
@@ -111,13 +100,11 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
             // params.address = $('#shipping_address_address').val();
             params.client_name = $('#client_name').val();
             params.client_phone = $('#client_phone').val();
-
             parametrs = $.param(params);
             order_form = $.param(order_form);
-
             url = ddelivery_insales.url + "sdk/?" + parametrs + '&' + order_form;
+            $('#order_delivery_variant_id_' + ddelivery_insales.delivery_id).click();
             DDelivery.delivery('ddelivery_popup', url, {/*orderId: 4*/}, callback);
-
             return void(0);
         };
         var style = document.createElement('STYLE');
@@ -140,23 +127,18 @@ var DDeliveryIntegration = topWindow.DDeliveryIntegration;
 
 $(function(){
     $(document).ready(function(){
-
         $('#create_order').on('click',function(){
-            var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-            checked = $('.id_dd').parent().parent().find('.radio_button').attr("checked");
+            checked = $('#order_delivery_variant_id_' + ddelivery_insales.delivery_id).attr("checked");
             if( checked == 'checked' )
             {
                 if( $('.dd_last_check').val() != '' )
                 {
-                    //alert($('.dd_last_check').val());
                     return true;
                 }
                 else
                 {
                     alert('Выберите точку доставки DDelivery');
                 }
-                //console.log(CheckoutDelivery.find( variant_id ).fieldsValues[0].value);
-                //CheckoutDelivery.find( variant_id ).fieldsValues[0].value
             }
             else
             {
@@ -164,18 +146,10 @@ $(function(){
             }
             return false;
         });
-        var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-        //alert( ddelivery_insales.field2_id );
-        //alert( ddelivery_insales.field_id );
-        //CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
-        //CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: '361' }] );
-
-
-        $('#order_delivery_variant_id_' + variant_id).parent().next().append("<div class='dd_asset_conteiner' style='position: relative'>" +
+        $('#order_delivery_variant_id_' + ddelivery_insales.delivery_id).parent().next().append("<div class='dd_asset_conteiner' style='position: relative'>" +
             "<input type='hidden' class='dd_last_check' value=''>" +
-            "<button onclick=\"return false\" class=\"button\" style='display:block;position: absolute;top: -25px; left:120px;min-width: 190px' id=\"startDD\" " +
-            " href=\"javascript:void(0);\" >Выбрать способ доставки</button>" +
-            "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");
+            "<button onclick=\"return false\" class=\"button\" style='max-height:20px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;position: absolute;top: -30px; left:65px;min-width: 190px' id=\"startDD\" " +
+            " href=\"javascript:void(0);\" >Выбрать способ доставки</button>" );
 
         $('#startDD').on('click', function(){
             DDeliveryIntegration.openPopup();
@@ -184,138 +158,3 @@ $(function(){
 
     });
 });
-
-
-/*
-
-function closePopup()
-{
-    jQuery(function($){
-        $.modal().close();
-    })
-}
-function getHost()
-{
-    pathArray = window.location.href.split( '/' );
-    protocol = pathArray[0];
-    host = pathArray[2];
-    url22 = ( protocol + '://' + host + '/' );
-    return url22;
-}
-function sendCart()
-{
-    var product_list = '';
-
-    $.ajax({
-        dataType: "json",
-        url: 'cart_items.json',
-        async: false,
-        success: function(data)
-        {
-            if( data.order_lines.length > 0 )
-            {
-                for(var i = 0; i < data.order_lines.length; i++)
-                {
-                    product_list +=  ( data.order_lines[i].product_id + '_' + data.order_lines[i].quantity + ',' );
-
-                }
-                product_list += '-' + ORDER.total_price;
-            }
-        }
-    });
-    return product_list;
-}
-
-function fillFeields(data)
-{
-    $( '#client_name').val(data.userInfo.secondName + ' ' + data.userInfo.firstName);
-    $( '#client_phone').val(data.userInfo.toPhone);
-    $( '#shipping_address_address').val(data.comment);
-}
-
-function DDeliveryStart(){
-
-    jQuery('#test-modal').modal().open();
-
-
-    var callback = {
-        close: function(){
-            closePopup();
-            //alert('Окно закрыто');
-        },
-        change: function(data)
-        {
-            fillFeields(data);
-            $( '.moto_moto').empty();
-            $( '.dd_asset_conteiner').append( '<div class="moto_moto" style="position: absolute;' +
-                'margin-top: 10px; color:#E98B73" >' + data.comment + '</div>' );
-            var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-            CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
-            //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
-            CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: data.orderId }] );
-            CheckoutDelivery.find( variant_id ).toExternal().setPrice(data.clientPrice);
-            $('.dd_last_check').val(data.orderId);
-            closePopup();
-        }
-    };
-
-    var params = {
-        //orderId: 4 // Если у вас есть id заказа который изменяется, то укажите его в этом параметре
-        displayContactForm: true
-    };
-
-    product_str = sendCart();
-    url = ddelivery_insales.url + 'sdk/?iframe=1&pr=' + product_str + '&insales_id=' + ddelivery_insales._id;
-
-    DDelivery.delivery('ddelivery', url, params, callback);
-
-}
-$(function(){
-    $(document).ready(function(){
-
-        $('.loader').css('display','none');
-
-        $('#create_order').on('click',function(){
-            var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-            checked = $('.id_dd').parent().parent().find('.radio_button').attr("checked");
-            if( checked == 'checked' )
-            {
-                if( $('.dd_last_check').val() != '' )
-                {
-                    //alert($('.dd_last_check').val());
-                    return true;
-                }
-                else
-                {
-                    alert('Выберите точку доставки DDelivery');
-                }
-                //console.log(CheckoutDelivery.find( variant_id ).fieldsValues[0].value);
-                    //CheckoutDelivery.find( variant_id ).fieldsValues[0].value
-            }
-            else
-            {
-                return true;
-            }
-            return false;
-        });
-        var variant_id = $('.id_dd').parent().parent().find('.radio_button').val();
-        //alert( ddelivery_insales.field2_id );
-        //alert( ddelivery_insales.field_id );
-        //CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
-        //CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: '361' }] );
-
-
-        $('#order_delivery_variant_id_' + variant_id).parent().next().append("<div class='dd_asset_conteiner' style='position: relative'>" +
-            "<input type='hidden' class='dd_last_check' value=''>" +
-            "<button onclick=\"return false\" class=\"button\" style='display:block;position: absolute;top: -25px; left:120px;min-width: 190px' id=\"startDD\" " +
-                " href=\"javascript:void(0);\" >Выбрать способ доставки</button>" +
-                "<div class=\"modal\" id=\"test-modal\" style=\"display: none\"><div id=\"ddelivery\"></div></div>");
-
-        $('#startDD').on('click', function(){
-            DDeliveryStart();
-        });
-
-
-    });
-});
-    */

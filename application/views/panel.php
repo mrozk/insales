@@ -121,7 +121,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Какой % от стоимости товара страхуется',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('declared', $usersettings->usersetting->declared, $attrs);
+                            echo Form::input('declared', (isset($usersettings->usersetting->declared)?$usersettings->usersetting->declared:100), $attrs);
                         ?>
                     </div>
                 </div>
@@ -383,7 +383,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Ширина, см',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('plan_width', $usersettings->usersetting->plan_width, $attrs);
+                            echo Form::input('plan_width', (isset($usersettings->usersetting->plan_width)?$usersettings->usersetting->plan_width:10), $attrs);
                         ?>
                     </div>
                 </div>
@@ -395,7 +395,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Длина, см',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('plan_lenght', $usersettings->usersetting->plan_lenght, $attrs);
+                            echo Form::input('plan_lenght', (isset($usersettings->usersetting->plan_lenght )?$usersettings->usersetting->plan_lenght:10), $attrs);
                         ?>
                     </div>
                 </div>
@@ -407,7 +407,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Высота, см',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('plan_height', $usersettings->usersetting->plan_height, $attrs);
+                            echo Form::input('plan_height', (isset($usersettings->usersetting->plan_height )?$usersettings->usersetting->plan_height:10), $attrs);
                         ?>
                     </div>
                 </div>
@@ -419,7 +419,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Вес, кг',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('plan_weight', $usersettings->usersetting->plan_weight, $attrs);
+                            echo Form::input('plan_weight', (isset($usersettings->usersetting->plan_weight)?$usersettings->usersetting->plan_weight:1), $attrs);
                         ?>
                     </div>
                 </div>

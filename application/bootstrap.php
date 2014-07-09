@@ -102,14 +102,18 @@ if (isset($_SERVER['KOHANA_ENV']))
  * - boolean  caching     enable or disable internal caching                 FALSE
  * - boolean  expose      set the X-Powered-By header                        FALSE
  */
-
+Kohana::init(array(
+    'base_url'   => '/',
+    'errors'=>true,
+));
+/*
 Kohana::init(array(
     'base_url'   => '/',
     'index_file' => FALSE,
     'errors'=>FALSE,
     'profiling'=>FALSE
 ));
-
+*/
 Cookie::$salt = 'secret';
 /**
  * Attach the file write to logging. Multiple writers are supported.

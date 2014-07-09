@@ -4,6 +4,7 @@ use DDelivery\DDeliveryUI;
 
 include_once( APPPATH . 'classes/Sdk/application/bootstrap.php');
 include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop.php');
+include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop2.php');
 
 class Controller_Sdk extends Controller
 {
@@ -54,25 +55,136 @@ class Controller_Sdk extends Controller
         return $statusReport;
 
     }
+    public function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id)
+    {
+        return $payload = '<?xml version="1.0" encoding="UTF-8"?>
+                            <delivery-variant>
+                              <title>DDelivery</title>
+                              <position type="integer">1</position>
+                              <url>' . URL::base( $this->request ) . 'hello/gus/</url>
+                              <description>DDelivery</description>
+                              <type>DeliveryVariant::External</type>
+                              <delivery-locations type="array"/>
+                              <javascript>&lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/js/ddelivery.js"&gt;&lt;/script&gt;
 
+                                     &lt;script type="text/javascript"&gt;var ddelivery_insales={"field_id":' . $field_id . ',
+                                     "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ',
+                                     "url": "' . URL::base( $this->request ) . '"
+                                       };&lt;/script&gt;
+                                    &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/action.js"&gt;&lt;/script&gt;
+                                    &lt;div class="id_dd"&gt;&lt;/div&gt;
+                              </javascript>
+                              <price type="decimal">0</price>
+                              <add-payment-gateways>true</add-payment-gateways>
+                            </delivery-variant>';
+    }
+    public function action_orderinfo(){
+        $order = $this->request->query('order');
+        try{
+            $IntegratorShop = new IntegratorShop2();
+            $ddeliveryUI = new DDeliveryUI($IntegratorShop,true);
+            $orders = $ddeliveryUI->getOrderByCmsID($order);
+            if( count($orders) ){
+                $answer = (($orders->ddeliveryID == 0)?'Заявка на DDelivery не отправлена':'Номер заявки на DDelivery - ' . $orders->ddeliveryID );
+                echo "set_data({'ID заказа -" . $orders->shopRefnum . "':'" . $answer . "'});";
+            }
+        }catch (\DDeliveryException $e){
+            echo $e->getMessage();
+        }
+    }
     public function action_test()
     {
             $session = Session::instance();
-            $insalesuser = (int)$session->get('insales_id');
+            $insalesuser = (int)$session->get('insalesuser');
+            echo $insalesuser;
+
             if( !$insalesuser )
             {
                 return;
             }
-            $insales_user = ORM::factory('InsalesUser', array('id' => $insalesuser));
+
+            $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
 
             if ( $insales_user->loaded() )
             {
+
                 $insales_api =  new InsalesApi(  $insales_user->passwd,  $insales_user->shop );
-                $pulet = '<application-widget>
-                              <code>some html or javascript code</code>
-                              <height>60</height>
-                          </application-widget>';
-                $result =  $insales_api->api('POST','/admin/application_widgets.xml', $pulet);
+               // print_r( $insales_api->api('GET','/admin/delivery_variants.xml') );
+                $pulet = "<application-widget>
+<code>
+  &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+  &lt;head&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;/&gt;
+    &lt;style&gt;
+      table#statuses {
+        border-collapse: collapse;
+        border-right: 1px solid black;
+        border-left: 1px solid black;
+      }
+      table#statuses td, table#statuses th {
+        border: 1px solid black;
+      }
+    &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+
+    &lt;table id='statuses' style='border: 1px solid black;'&gt;
+
+    &lt;/table&gt;
+
+    &lt;script&gt;
+      var data = {};
+      // функция которая вызывается во внешнем js файле и устанавливает значение переменной data
+      function set_data(input_object) {
+        data = input_object;
+      }
+      var table = document.getElementById('statuses');
+
+      // устанавливаем номер заказа, используя id из переменной window.order_info
+      var order_number_field = document.getElementById('order_number');
+      // order_number_field.innerHTML = window.order_info.id;
+      fields = window.order_info.fields_values;
+      size = fields.length;
+      var i = 0;
+      var green_lite = 0;
+      while(size != 0){
+        if( fields[size - 1].name == 'ddelivery_id' ){
+            if(fields[size - 1].value != 0){
+                green_lite = 1;
+            }
+        }
+
+        size--;
+      };
+      if( green_lite != 0 ){
+                // подключаем скрипт который передаёт нам данные через JSONP
+          var script = document.createElement('script');
+          script.src = '" . URL::base( $this->request ) . "sdk/orderinfo/?order=' + window.order_info.id;
+          document.documentElement.appendChild(script);
+
+          // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
+          script.onload = function() {
+              for (var key in data) {
+                  var new_tr = document.createElement('tr');
+                  new_tr.innerHTML= '&lt;td&gt;'+ key +'&lt;/td&gt;&lt;td&gt;'+ data[key] +'&lt;/td&gt;';
+              table.appendChild(new_tr);
+            }
+          }
+      }
+    &lt;/script&gt;
+  &lt;/body&gt;
+  &lt;/html&gt;
+</code>
+<height>200</height>
+</application-widget>";
+                /*
+                console.log(window.order_info.fields_values);
+                for( var i = 0; i< window.order_info.fields_values.length; i++ ){
+                console.log(window.order_info.fields_values[i]);
+      }*/
+                 $result =  $insales_api->api('POST','/admin/application_widgets.xml', $pulet);
+                // $result =  $insales_api->api('GET','/admin/application_widgets.xml', $pulet);
+                //  $result =  $insales_api->api('DELETE','/admin/application_widgets/7006.xml', $pulet);
                 echo '<pre>';
                     print_r($result);
                 echo '</pre>';
