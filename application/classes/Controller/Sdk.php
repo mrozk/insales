@@ -72,7 +72,6 @@ class Controller_Sdk extends Controller
                                      "url": "' . URL::base( $this->request ) . '"
                                        };&lt;/script&gt;
                                     &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/action.js"&gt;&lt;/script&gt;
-                                    &lt;div class="id_dd"&gt;&lt;/div&gt;
                               </javascript>
                               <price type="decimal">0</price>
                               <add-payment-gateways>true</add-payment-gateways>
@@ -80,13 +79,16 @@ class Controller_Sdk extends Controller
     }
     public function action_orderinfo(){
         $order = $this->request->query('order');
+
         try{
             $IntegratorShop = new IntegratorShop2();
             $ddeliveryUI = new DDeliveryUI($IntegratorShop,true);
-            $orders = $ddeliveryUI->getOrderByCmsID($order);
+
+            $orders = $ddeliveryUI->initOrder(array($order));
+
             if( count($orders) ){
-                $answer = (($orders->ddeliveryID == 0)?'Заявка на DDelivery не отправлена':'Номер заявки на DDelivery - ' . $orders->ddeliveryID );
-                echo "set_data({'ID заказа -" . $orders->shopRefnum . "':'" . $answer . "'});";
+                $answer = (($orders[0]->ddeliveryID == 0)?'Заявка на DDelivery не отправлена':'Номер заявки на DDelivery - ' . $orders[0]->ddeliveryID );
+                echo "set_data({'ID заказа -" . $orders[0]->shopRefnum . "':'" . $answer . "'});";
             }
         }catch (\DDeliveryException $e){
             echo $e->getMessage();
@@ -159,6 +161,7 @@ class Controller_Sdk extends Controller
       if( green_lite != 0 ){
                 // подключаем скрипт который передаёт нам данные через JSONP
           var script = document.createElement('script');
+
           script.src = '" . URL::base( $this->request ) . "sdk/orderinfo/?order=' + window.order_info.id;
           document.documentElement.appendChild(script);
 
@@ -237,7 +240,19 @@ class Controller_Sdk extends Controller
             return array();
         }
     }
+    public function action_settings(){
+        $client = (int)$this->request->query('client');
+        $query = DB::select( 'id', 'width', 'height', 'length', 'weight')->from('usersettings')->
+                      where( 'insalesuser_id', '=', $client )->as_object()->execute();
 
+        echo 'inSettings(';
+        if( count($query) ){
+            echo json_encode( array('result' => 'success', 'request' => $query[0]) );
+        }else{
+            echo json_encode( array('result' => 'error') );
+        }
+        echo ');';
+    }
     public function action_index()
     {
         try
@@ -261,7 +276,6 @@ class Controller_Sdk extends Controller
                 $session->set('client_name', '');
                 $session->set('client_phone', '');
                 $session->set('shipping_address', '');
-
             }
             $client_name = $this->get_request_state('client_name');
             $client_phone = $this->get_request_state('client_phone');

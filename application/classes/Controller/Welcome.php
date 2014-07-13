@@ -6,6 +6,4 @@ class Controller_Welcome extends Controller {
 	{
         Notice::add( Notice::ERROR,'Доступ только из админпанели магазина insales' );
 	}
-
-
 } // End Welcome

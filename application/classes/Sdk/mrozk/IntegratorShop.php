@@ -60,12 +60,36 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getDbConfig()
     {
+        $config = Kohana::$config->load('database')->get('default');
         return array(
-            'pdo' => new \PDO('mysql:host=localhost;dbname=c1insales', 'c1dba', 'OH2AgbFiU', array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")),
-            'prefix' => 'ddelivery_',
+            'pdo' => new \PDO( $config['connection']['dsn'], $config['connection']['username'],
+                               $config['connection']['password'], array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")),
+            'prefix' => 'ddelivery_'
         );
     }
+    public function onFinishResultReturn( $order, $resultArray ){
+        $resultArray['street'] = '' ;
+        $resultArray['house'] = '' ;
+        $resultArray['corp'] = '' ;
+        $resultArray['flat'] = '' ;
+        $resultArray['type'] = $order->type ;
+        if( !empty( $this->settings->address['street'] ) ){
+            $resultArray['street'] = $this->settings->address['street'];
+        }
 
+        if( !empty( $this->settings->address['house'] ) ){
+            $resultArray['house'] = $this->settings->address['house'];
+        }
+
+        if( !empty( $this->settings->address['corp'] ) ){
+            $resultArray['corp'] = $this->settings->address['corp'];
+        }
+
+        if( !empty( $this->settings->address['flat'] ) ){
+            $resultArray['flat'] = $this->settings->address['flat'];
+        }
+        return $resultArray;
+    }
     /**
      * Верните true если нужно использовать тестовый(stage) сервер
      * @return bool
@@ -628,7 +652,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         | self::FIELD_EDIT_ADDRESS | self::FIELD_REQUIRED_ADDRESS
         | self::FIELD_EDIT_ADDRESS_HOUSE | self::FIELD_REQUIRED_ADDRESS_HOUSE
         | self::FIELD_EDIT_ADDRESS_HOUSING
-        | self::FIELD_EDIT_ADDRESS_FLAT;
+        | self::FIELD_EDIT_ADDRESS_FLAT | self::FIELD_REQUIRED_ADDRESS_FLAT;
     }
 
     /**

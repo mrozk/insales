@@ -64,6 +64,7 @@ class Controller_Cabinet extends  Controller_Base{
     {
         $session = Session::instance();
         $insalesuser = (int)$session->get('insalesuser');
+
         if ( $insalesuser )
         {
 
@@ -180,10 +181,12 @@ class Controller_Cabinet extends  Controller_Base{
       size = fields.length;
       var i = 0;
       var green_lite = 0;
+      var ddelivery_id = 0;
       while(size != 0){
         if( fields[size - 1].name == 'ddelivery_id' ){
             if(fields[size - 1].value != 0){
                 green_lite = 1;
+                ddelivery_id = fields[size - 1].value;
             }
         }
 
@@ -192,7 +195,7 @@ class Controller_Cabinet extends  Controller_Base{
       if( green_lite != 0 ){
                 // подключаем скрипт который передаёт нам данные через JSONP
           var script = document.createElement('script');
-          script.src = '" . URL::base( $this->request ) . "sdk/orderinfo/?order=' + window.order_info.id;
+          script.src = '" . URL::base( $this->request ) . "sdk/orderinfo/?order=' + ddelivery_id;
           document.documentElement.appendChild(script);
 
           // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
@@ -302,7 +305,7 @@ class Controller_Cabinet extends  Controller_Base{
                               <title>DDelivery</title>
                               <position type="integer">1</position>
                               <url>' . URL::base( $this->request ) . 'hello/gus/</url>
-                              <description>DDelivery</description>
+                              <description>Доставка товаров во все населенные пункты России + пункты самовывоза в 150 городах</description>
                               <type>DeliveryVariant::External</type>
                               <delivery-locations type="array"/>
                               <javascript></javascript>
@@ -353,7 +356,9 @@ class Controller_Cabinet extends  Controller_Base{
                                      "field_id":' . $field_id . ',
                                      "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ',
                                      "url": "' . URL::base( $this->request ) . '"
-                                       };&lt;/script&gt;
+                                       };
+                                CheckoutDelivery.find( ddelivery_insales.delivery_id ).toExternal().setPrice(200);
+                                       &lt;/script&gt;
                                     &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/action.js"&gt;&lt;/script&gt;
                               </javascript>
                             </delivery-variant>';

@@ -66,6 +66,16 @@ class DDeliveryUI
     private $messager;
 
     /**
+     * Логирование
+     * @var bool
+     */
+    private $loggin = true;
+
+    /**
+     *
+     */
+    private $logginUrl = 'http://devphpshop.ddelivery.ru/loggin.php';
+    /**
      *  Кэш
      *  @var DCache
      */
@@ -122,10 +132,29 @@ class DDeliveryUI
             $this->order = new DDeliveryOrder( $productList );
             $this->order->amount = $this->shop->getAmount();
         }
-        $this->messager = new Sdk\DDeliveryMessager($this->shop->isTestMode());
         $this->cache = new DCache( $this, $this->shop->getCacheExpired(), $this->shop->isCacheEnabled(), $this->pdo, $this->pdoTablePrefix );
     }
-
+    public function logMessage( DDeliveryException $e ){
+        if( $this->loggin ){
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+            curl_setopt($curl, CURLOPT_HEADER, 0);
+            curl_setopt($curl, CURLOPT_URL, $this->logginUrl);
+            curl_setopt($curl, CURLOPT_POST, true);
+            $params = array('message' => $e->getMessage() . ', ' . $e->getFile() . ', '
+                            . $e->getLine() . ', ' . date("Y-m-d H:i:s"), 'url' => $_SERVER['SERVER_NAME'],
+                            'apikey' => $this->shop->getApiKey(),
+                            'testmode' => (int)$this->shop->isTestMode());
+            $urlSuffix = '';
+            foreach($params as $key => $value) {
+                $urlSuffix .= urlencode($key).'='.urlencode($value) . '&';
+            }
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $urlSuffix);
+            $answer = curl_exec($curl);
+            curl_close($curl);
+            return $answer;
+        }
+    }
     public function createTables()
     {
         $cache = new DataBase\Cache($this->pdo, $this->pdoTablePrefix);
@@ -193,13 +222,9 @@ class DDeliveryUI
         $order = $this->getOrderByCmsID( $cmsID );
         if( $order )
         {
-
             $order->localStatus = $cmsStatus;
-
-            echo $order->ddeliveryID;
             if( $this->shop->isStatusToSendOrder($cmsStatus) && $order->ddeliveryID == 0 )
             {
-
                 if($order->type == DDeliverySDK::TYPE_SELF)
                 {
                     return $this->createSelfOrder($order);
@@ -323,7 +348,7 @@ class DDeliveryUI
 
     /**
      *
-     * Получить стоимость доставки по ID заказа в БД SQLite
+     * Получить стоимость доставки по ID заказа
      *
      * @param $localOrderID
      *
@@ -1573,14 +1598,17 @@ class DDeliveryUI
         $this->saveFullOrder($this->order);
 
         $this->shop->onFinishChange($this->order->localId, $this->order, $point);
-        return json_encode(array(
-            'html'=>'',
-            'js'=>'change',
-            'comment'=>htmlspecialchars($comment),
-            'orderId' => $this->order->localId,
-            'clientPrice'=>$point->getDeliveryInfo()->clientPrice,
-            'userInfo' => $this->getDDUserInfo($this->order->localId),
-        ));
+
+        $returnArray = array(
+                        'html'=>'',
+                        'js'=>'change',
+                        'comment'=>htmlspecialchars($comment),
+                        'orderId' => $this->order->localId,
+                        'clientPrice'=>$point->getDeliveryInfo()->clientPrice,
+                        'userInfo' => $this->getDDUserInfo($this->order->localId),
+                        );
+        $returnArray = $this->shop->onFinishResultReturn( $this->order, $returnArray );
+        return json_encode( $returnArray );
     }
 
     /**
@@ -1931,7 +1959,6 @@ class DDeliveryUI
         $currentOrder->toFlat = $item->to_flat;
         $currentOrder->toEmail = $item->to_email;
         $currentOrder->comment = $item->comment;
-        $currentOrder->insalesuser_id = $item->insalesuser_id;
     }
 
     /**
