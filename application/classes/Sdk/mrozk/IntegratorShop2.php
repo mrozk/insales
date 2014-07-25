@@ -99,7 +99,7 @@ class IntegratorShop2 extends \DDelivery\Adapter\PluginFilters
     public function getPhpScriptURL()
     {
         // Тоесть до этого файла
-        return 'ajax.php';
+        return URL::base( $this->request ) . 'sdk/';
     }
 
     /**

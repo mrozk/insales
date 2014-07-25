@@ -253,60 +253,94 @@ class Controller_Sdk extends Controller
         }
         echo ');';
     }
+
+    public function action_putcart(){
+        header('Content-Type: text/javascript; charset=UTF-8');
+        $token = $this->request->post('token');
+        $cart = $this->request->query('data');
+        $memcache = new Memcache;
+        $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
+        $has_token = $memcache->get( 'card_' . $token );
+        if($has_token){
+            $memcache->set( 'card_' . $token, $cart );
+        }
+        echo '{}';
+        exit();
+    }
+
     public function action_index()
     {
         try
         {
+            $token = $this->request->query('token');
+            $cart = $this->request->query('cart');
+            $memcache = new Memcache;
+            $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
+            $has_token = $memcache->get( 'card_' . $token );
+            if($has_token){
+                $IntegratorShop = new IntegratorShop( $this->request );
+                $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+            }else{
+                echo 'Fuck you';
+            }
+
             /*
-            $house = $this->get_request_state('house');
-            $street = $this->get_request_state('street');
-            $flat = $this->get_request_state('flat');
-            $corp = $this->get_request_state('corp');
+            $session = Session::instance();
+            $pos = $session->get('card_' . $token);
+            $IntegratorShop = new IntegratorShop2(  );
+            $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+            $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
             */
-
-
+            /*
             $uid = (int)$this->get_request_state('insales_id');
+            //$uid = 28;
             if( !$uid )
             {
+                echo 'bad request';
                 return;
+                $IntegratorShop = new IntegratorShop2();
+                $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+                echo 'bad request';
+            }
+            else
+            {
+                if( $this->request->query('insales_id')){
+                    $session = Session::instance();
+                    $session->set('client_name', '');
+                    $session->set('client_phone', '');
+                    $session->set('shipping_address', '');
+                }
+
+                $client_name = $this->get_request_state('client_name');
+                $client_phone = $this->get_request_state('client_phone');
+                $shipping_address = $this->get_request_state('shipping_address');
+
+                $this->request->query('shipping_address', $shipping_address);
+                $this->request->query('client_name',$client_name);
+                $this->request->query('client_phone',$client_phone);
+
+                $IntegratorShop = new IntegratorShop( $this->request, $uid );
+                $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+                //$this->request->query('pr', '27913632_2%2C-25200');
+
+                $order = $ddeliveryUI->getOrder();
+                $order->insalesuser_id = $uid;
+
             }
 
-            if( $this->request->query('insales_id')){
-                $session = Session::instance();
-                $session->set('client_name', '');
-                $session->set('client_phone', '');
-                $session->set('shipping_address', '');
-            }
-            $client_name = $this->get_request_state('client_name');
-            $client_phone = $this->get_request_state('client_phone');
-            $shipping_address = $this->get_request_state('shipping_address');
-
-            $this->request->query('shipping_address', $shipping_address);
-            $this->request->query('client_name',$client_name);
-            $this->request->query('client_phone',$client_phone);
-            /*
-            $this->request->query('house',$house);
-            $this->request->query('street',$street);
-            $this->request->query('flat',$flat);
-            $this->request->query('corp',$corp);
-            */
-
-            $IntegratorShop = new IntegratorShop( $this->request, $uid );
-            $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-            $order = $ddeliveryUI->getOrder();
-
-            $order->insalesuser_id = $uid;
 
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
             //echo '</pre>';
+            */
         }
         catch( \DDelivery\DDeliveryException $e )
         {
-            echo $e->getMessage();
+            $ddeliveryUI->logMessage($e);
             return;
         }
         catch ( \Exception $e ){
             echo $e->getMessage();
+            $ddeliveryUI->logMessage($e);
             return;
 
         }
