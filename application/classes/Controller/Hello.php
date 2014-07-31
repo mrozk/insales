@@ -12,26 +12,24 @@ class Controller_Hello extends Controller
     public function action_gus()
     {
         header('Content-Type: text/javascript; charset=UTF-8');
+        $result = 'jQuery(".loader").css("display","none");';
         if( isset($_SERVER["HTTP_REFERER"]) ){
             $parse = parse_url( $_SERVER["HTTP_REFERER"] );
             if(isset( $parse['host'] )){
-                $memcache = new Memcache;
-                $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
-                $settings = $memcache->get($parse['host']);
-                if( empty ( $settings ) ){
-                    $query = DB::select( 'settings', 'shop')->from('ddelivery_insales')->
-                                 where( 'shop', '=', $parse['host'] )->as_object()->execute();
-                    if( isset( $query[0]->shop ) && !empty( $query[0]->shop ) ){
-                        $memcache->set( $query[0]->shop, $query[0]->settings );
-                        $settings = $query[0]->settings;
-                    }
-                }
+                $settings = MemController::initSettingsMemcache( $parse['host'] );
                 if( !empty($settings) ){
                     $token = md5( microtime() . mt_rand(1,20) );
-                    $memcache->set( 'card_' . $token, 1 , 0, 600 );
+                    $memcache = MemController::getMemcacheInstance();
+                    $price = $_REQUEST['price'];
+                    $info = array( "host" => $parse['host'], 'scheme' => $parse['scheme'],
+                                   "price" => $price );
+                    $memcache->set( 'card_' . $token, json_encode( $info ), 0, 1200 );
+                    $result .= 'updatePriceAndSend("' . $token . '");';
+                }else{
+                    $result .= 'updatePriceAndSend(null);';
                 }
 
-                echo 'jQuery(".loader").css("display","none");updatePriceAndSend("' . $token . '");';
+                echo $result;
                 return;
             }
         }

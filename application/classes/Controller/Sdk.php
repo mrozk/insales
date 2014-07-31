@@ -91,7 +91,8 @@ class Controller_Sdk extends Controller
                 echo "set_data({'ID заказа -" . $orders[0]->shopRefnum . "':'" . $answer . "'});";
             }
         }catch (\DDeliveryException $e){
-            echo $e->getMessage();
+            $ddeliveryUI->logMessage($e);
+            //echo $e->getMessage();
         }
     }
     public function action_test()
@@ -268,22 +269,189 @@ class Controller_Sdk extends Controller
         exit();
     }
 
+
+    public function getOptionValue( $option_list, $needle )
+    {
+        if( count($option_list) )
+        {
+            foreach( $option_list as $item )
+            {
+                if( $needle == $item->product_field_id  )
+                {
+                    return $item->value;
+                }
+            }
+        }
+        return null;
+
+    }
+
+    // Нулячие значения заменяем дефолтными
+    public function getDefault( $value, $default )
+    {
+        return ((empty($value))?$default:$value);
+    }
+
+    public function getItemsFromInsales( $url, $ids, $settings ){
+        $idsArray = array();
+        $quantArray = array();
+        $result_products = array();
+        $ids = explode( ',', $ids );
+        if( count( $ids ) ){
+            foreach( $ids as $oneItem ){
+                if( !empty($oneItem) ){
+                    $tempStr = explode(':', $oneItem);
+
+                    $idsArray[] = $tempStr[0];
+                    $quantArray[$tempStr[0]] = $tempStr[1];
+                }
+            }
+
+            $prod_detail = file_get_contents( $url . '/products_by_id/' . implode(',', $idsArray) . '.json');
+            $items = json_decode( $prod_detail );
+
+            if( count( $items->products) )
+            {
+                for( $i = 0; $i < count( $items->products); $i++ )
+                {
+                    $item = array();
+                    $item['width'] = $this->getOptionValue($items->products[$i]->product_field_values, $settings->width );
+                    $item['height'] = $this->getOptionValue($items->products[$i]->product_field_values,
+                                                            $settings->height);
+                    $item['length'] = $this->getOptionValue($items->products[$i]->product_field_values,
+                                                            $settings->length);
+
+                    $item['weight'] = $items->products[$i]->variants[0]->weight;
+
+                    $item['width'] =  (int) $this->getDefault($item['width'], $settings->plan_width);
+                    $item['height'] = (int) $this->getDefault($item['height'], $settings->plan_height);
+                    $item['length'] = (int) $this->getDefault($item['length'], $settings->plan_lenght);
+                    $item['weight'] = (float) $this->getDefault($item['weight'], $settings->plan_weight);
+
+                    if( !$item['width'] )
+                        $item['width'] = $settings->plan_width;
+                    if( !$item['height'] )
+                        $item['height'] = $settings->plan_height;
+                    if( !$item['length'] )
+                        $item['length'] = $settings->plan_lenght;
+                    if( !$item['weight'] )
+                        $item['weight'] = $settings->plan_weight;
+
+                    $item['id'] = $items->products[$i]->id;
+                    $item['title'] = $items->products[$i]->title;
+                    $item['price'] = $items->products[$i]->variants[0]->price;
+                    $item['quantity'] = $quantArray[$item['id']];
+
+                    $result_products[] = $item;
+
+                }
+            }
+        }
+        return $result_products;
+    }
     public function action_index()
     {
-        try
-        {
-            $token = $this->request->query('token');
-            $cart = $this->request->query('cart');
-            $memcache = new Memcache;
-            $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
-            $has_token = $memcache->get( 'card_' . $token );
+         $token = $this->request->query('token');
+         $items = $this->request->query('items');
+         $client_name = $this->get_request_state('client_name');
+         $client_phone = $this->get_request_state('client_phone');
+         $shipping_address = $this->get_request_state('shipping_address');
+
+         $this->request->query('shipping_address', $shipping_address);
+         $this->request->query('client_name',$client_name);
+         $this->request->query('client_phone',$client_phone);
+
+
+         $has_token = MemController::getMemcacheInstance()->get( 'card_' . $token );
+         if($has_token){
+             $info = json_decode( $has_token, true );
+             $settings = MemController::initSettingsMemcache($info['host']);
+             $settingsToIntegrator = json_decode($settings);
+             if( isset($items) && !empty( $items ) ){
+                 $info['cart'] = $this->getItemsFromInsales($info['scheme'] . '://' . $info['host'], $items, $settingsToIntegrator);
+                 MemController::getMemcacheInstance()->set( 'card_' . $token, json_encode( $info ), 0, 1200  );
+             }
+             $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator, $info );
+             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+             $order = $ddeliveryUI->getOrder();
+             $order->insalesuser_id = $settingsToIntegrator->insalesuser_id;
+             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+         }
+         /*
+         $memcache = new Memcache;
+         $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
+
+         $has_token = $memcache->get( 'card_' . $token );
             if($has_token){
-                $IntegratorShop = new IntegratorShop( $this->request );
-                $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+                if( isset($_SERVER["HTTP_REFERER"]) ){
+                    $parse = parse_url( $_SERVER["HTTP_REFERER"] );
+                    if(isset( $parse['host'] )){
+                        $memcache = new Memcache;
+                        $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
+                        $settings = $memcache->get($parse['host']);
+                        if( empty ( $settings ) ){
+                            $query = DB::select( 'settings', 'shop')->from('insalesusers')->
+                                where( 'shop', '=', $parse['host'] )->as_object()->execute();
+                            if( isset( $query[0]->shop ) && !empty( $query[0]->shop ) ){
+                                $memcache->set( $query[0]->shop, $query[0]->settings );
+                                $settings = $query[0]->settings;
+                            }
+                        }
+                        $settingsToIntegrator = json_decode($settings);
+
+                        $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator,
+                                                              $parse['scheme'] . '://' . $parse['host']  );
+                        print_r($IntegratorShop);
+
+                        echo $settingsToIntegrator;
+                    }
+                }
+                */
+                /*
+                if( isset($_SERVER["HTTP_REFERER"]) ){
+                    $parse = parse_url( $_SERVER["HTTP_REFERER"] );
+                    if(isset( $parse['host'] )){
+                        $memcache = new Memcache;
+                        $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
+                        $settings = $memcache->get($parse['host']);
+                        if( empty ( $settings ) ){
+                            $query = DB::select( 'settings', 'shop')->from('insalesusers')->
+                                where( 'shop', '=', $parse['host'] )->as_object()->execute();
+                            if( isset( $query[0]->shop ) && !empty( $query[0]->shop ) ){
+                                $memcache->set( $query[0]->shop, $query[0]->settings );
+                                $settings = $query[0]->settings;
+                            }
+                        }
+                        try
+                        {
+                            $settingsToIntegrator = json_decode($settings);
+                            $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator,
+                                              $parse['scheme'] . '://' . $parse['host']  );
+                            $ddeliveryUI = new DDeliveryUI($IntegratorShop);
+                            $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+                        }
+                        catch( \DDelivery\DDeliveryException $e )
+                        {
+                            //$ddeliveryUI->logMessage($e);
+                            return;
+                        }
+                        catch ( \Exception $e ){
+                            echo $e->getMessage();
+                            //$ddeliveryUI->logMessage($e);
+                            return;
+                        }
+
+                    }
+                }
+
+
+
+            */
+        /*
             }else{
                 echo 'Fuck you';
             }
-
+        */
             /*
             $session = Session::instance();
             $pos = $session->get('card_' . $token);
@@ -332,18 +500,7 @@ class Controller_Sdk extends Controller
             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
             //echo '</pre>';
             */
-        }
-        catch( \DDelivery\DDeliveryException $e )
-        {
-            $ddeliveryUI->logMessage($e);
-            return;
-        }
-        catch ( \Exception $e ){
-            echo $e->getMessage();
-            $ddeliveryUI->logMessage($e);
-            return;
 
-        }
 
         /*
         $order->city = 151185;

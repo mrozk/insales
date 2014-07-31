@@ -44,13 +44,12 @@ if(typeof(topWindow.DDeliveryProtocolManager) == 'undefined')
                 url: window.location.origin + '/cart_items.json',
                 async: false,
                 success: function(data){
-                    console.log(data);
+
                    if( data.items_count > 0 ){
-                       productList['orderPrice'] = data.items_price;
                        $.each( data.order_lines,function( key,value ){
-                           product = { id:value.product_id, title : value.title, quantity:value.quantity, product_field_values:{}};
-                           productList[value.product_id] = product;
-                           productIdsString += ( value.product_id + ',' );
+                           //product = { id:value.product_id, title : value.title, quantity:value.quantity, product_field_values:{}};
+                           //productList[value.product_id] = product;
+                           productIdsString += ( value.product_id + ':' + value.quantity + ',' );
                        });
                    }
                 }
@@ -77,12 +76,15 @@ if(typeof(topWindow.DDeliveryProtocolManager) == 'undefined')
         th.getProductList = function(){
             return JSON.stringify(productList);
         };
+        th.getProductString = function(){
+            return productIdsString;
+        };
         th.checkServer = function(){
             alert('hello');
         };
         th.updatePriceAndSend = function( key_on_server ){
             getProductsInfo();
-            getProductsInfoFromInsales();
+            //getProductsInfoFromInsales();
             th.token = key_on_server;
             // setCartToInsales( th.token );
         };
@@ -166,8 +168,8 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
             }
         }
         th.openPopup = function(){
-            DDeliveryProtocolManager.setCartToInsales('xxx');
-            // url = ddelivery_insales.url + "sdk/?token=" + DDeliveryProtocolManager.token;
+            showPrompt();
+            document.getElementById('ddelivery_popup').innerHTML = '';
             var callback = {
                 close: function(){
                     hideCover();
@@ -191,11 +193,18 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
 
                     hideCover();
                     document.getElementById('ddelivery_container').style.display = 'none';
+
                 }
             };
+            order_form = $('#order_form').serializeArray();
+            params =  {};
+            params.client_name = $('#client_name').val();
+            params.client_phone = $('#client_phone').val();
+            parametrs = $.param(params);
+            order_form = $.param(order_form);
 
-            url = ddelivery_insales.url + "sdk/?token=" + DDeliveryProtocolManager.token + "&cart=" + DDeliveryProtocolManager.getProductList();
-            alert(url);
+            url = ddelivery_insales.url + "sdk/?token=" + DDeliveryProtocolManager.token + "&items=" + DDeliveryProtocolManager.getProductString()
+                  + "&" + parametrs + "&" + order_form ;
             DDelivery.delivery('ddelivery_popup', url, {}, callback);
             //alert(url);
             /*
@@ -352,7 +361,7 @@ $(function(){
             ' href=\"javascript:void(0);\" >Выбрать способ доставки</button>' );
 
         $('#startDD').on('click', function(){
-
+            $('#order_delivery_variant_id_' + ddelivery_insales.delivery_id).click();
             DDeliveryIntegration.openPopup();
 
         });

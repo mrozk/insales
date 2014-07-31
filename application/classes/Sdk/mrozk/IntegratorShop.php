@@ -16,13 +16,16 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 
     public $settings;
 
-    public $shop_url;
+    public $info;
 
-    public function __construct( $request, $uid )
+    public function __construct( $request, $settings, $info = null )
     {
+        if( $info != null ){
+            $this->info = $info;
+        }
         $this->request = $request;
-        $insales_user = ORM::factory('InsalesUser', array('id' => $uid));
-        $this->settings = $insales_user->usersetting;
+
+        $this->settings = $settings;
 
         if( empty($this->settings->api) )
         {
@@ -33,7 +36,6 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         }else{
             $this->settings->address = json_decode($this->settings->address, true);
         }
-        $this->shop_url = $insales_user->shop;
 
     }
 
@@ -73,6 +75,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         $resultArray['corp'] = '' ;
         $resultArray['flat'] = '' ;
         $resultArray['type'] = $order->type ;
+        $resultArray['userInfo']['toHousing'] = $order->toHousing;
         if( !empty( $this->settings->address['street'] ) ){
             $resultArray['street'] = $this->settings->address['street'];
         }
@@ -106,7 +109,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         }
         //return true;
     }
-
+    /*
     private function _parseCart( $cart )
     {
         $result_products = array();
@@ -165,12 +168,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                         $item['weight'] = $this->settings->plan_weight;
 
                     //echo $item['width'];
-                    /*
-                    20,	//	float $width длинна
-                    13,	//	float $height высота
 
-                    25,	//	float $length ширина
-                    */
                     //$item['width'] = $prods->products[$i]->variants[0]->option_values
                     $item['id'] = $prods->products[$i]->id;
                     $item['title'] = $prods->products[$i]->title;
@@ -185,6 +183,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 
         return $result_products;
     }
+    */
+    /*
     // Получаем нужное значение из массива свойств
     public function getOptionValue( $option_list, $needle )
     {
@@ -201,18 +201,38 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         return null;
 
     }
+    */
+    /*
     // Нулячие значения заменяем дефолтными
     public function getDefault( $value, $default )
     {
         return ((empty($value))?$default:$value);
     }
+    */
     /**
      * Возвращает товары находящиеся в корзине пользователя, будет вызван один раз, затем закеширован
      * @return DDeliveryProduct[]
      */
     protected function _getProductsFromCart()
     {
+        $products = array();
+        if( count( $this->info )){
+            foreach( $this->info['cart'] as $product ){
+                $products[] = new DDeliveryProduct(
+                    $product['id'],	//	int $id id товара в системе и-нет магазина
+                    $product['width'],	//	float $width длинна
+                    $product['height'],	//	float $height высота
+                    $product['length'],	//	float $length ширина
+                    $product['weight'],	//	float $weight вес кг
+                    $product['price'],	//	float $price стоимостьв рублях
+                    $product['quantity'],	//	int $quantity количество товара
+                    $product['title']	//	string $name Название вещи
+                );
+            }
+        }
 
+        return $products;
+    /*
         $pr = $this->request->query('pr');
 
         $session = Session::instance();
@@ -248,21 +268,9 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                 );
             }
         }
-        /*
-        $products[] = new DDeliveryProduct(
-            1,	//	int $id id товара в системе и-нет магазина
-            20,	//	float $width длинна
-            13,	//	float $height высота
-            25,	//	float $length ширина
-            0.5,	//	float $weight вес кг
-            1000,	//	float $price стоимостьв рублях
-            1,	//	int $quantity количество товара
-            'Веселый клоун'	//	string $name Название вещи
-        );
-        $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'Грустный клоун');
-        */
-        //print_r($products);
+
         return $products;
+    */
     }
 
     /**
@@ -331,7 +339,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     public function getPhpScriptURL()
     {
         // Тоесть до этого файла
-        return URL::base( $this->request ) . 'sdk/';
+        return URL::base( $this->request ) . 'sdk/?token=' . $this->request->query('token');
     }
 
     /**

@@ -16,8 +16,10 @@ class Controller_Orders extends Controller
     {
         if (!isset($HTTP_RAW_POST_DATA))
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
+        /*
         $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
             ->values(array($HTTP_RAW_POST_DATA, "asdsd"))->execute();
+        */
             $data = json_decode( $HTTP_RAW_POST_DATA );
 
             if( count( $data->fields_values ) )
@@ -42,9 +44,11 @@ class Controller_Orders extends Controller
                 {
                     if( $data->delivery_variant_id == $insales_user->delivery_variant_id  )
                     {
+                        $settings = json_decode($insales_user->settings );
 
-                        $IntegratorShop = new IntegratorShop( $this->request, $user_id );
+                        $IntegratorShop = new IntegratorShop( $this->request, $settings );
                         $ddeliveryUI = new DDeliveryUI( $IntegratorShop, true );
+
                         $query = DB::select('id')->from('ddelivery_orders')->
                                  where( 'insalesuser_id', '=', $user_id )->and_where('shop_refnum', '=', $data->number)->as_object()->execute();
                         if( count($query) ){
@@ -74,10 +78,9 @@ class Controller_Orders extends Controller
     {
         if (!isset($HTTP_RAW_POST_DATA))
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
-        /*
-               $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
-                   ->values(array($HTTP_RAW_POST_DATA, "asdsd"))->execute();
-        */
+
+
+
         $data = json_decode( $HTTP_RAW_POST_DATA );
 
         if( count( $data->fields_values ) )
@@ -104,8 +107,9 @@ class Controller_Orders extends Controller
                     {
                         try
                         {
+                            $settings = json_decode($insales_user->settings );
+                            $IntegratorShop = new IntegratorShop( $this->request, $settings );
 
-                            $IntegratorShop = new IntegratorShop( $this->request, $user_id );
                             $ddeliveryUI = new DDeliveryUI($IntegratorShop, true);
                             $ddeliveryUI->onCmsOrderFinish( $ddelivery_id, $data->number,
                                           $data->fulfillment_status, $data->payment_gateway_id );
@@ -199,7 +203,6 @@ class Controller_Orders extends Controller
                         $IntegratorShop = new IntegratorShop( $this->request, $user_id );
                         $ddeliveryUI = new DDeliveryUI( $IntegratorShop, true );
 
-                        $error = new \DDelivery\DDeliveryException('asd');
 
                         $query = DB::select('id')->from('ddelivery_orders')->
                             where( 'insalesuser_id', '=', $user_id )->and_where('shop_refnum', '=', $data->number)->as_object()->execute();

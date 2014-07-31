@@ -134,9 +134,11 @@ class IntegratorShop2 extends \DDelivery\Adapter\PluginFilters
      */
     public function getDbConfig()
     {
+        $config = Kohana::$config->load('database')->get('default');
         return array(
-            'pdo' => new \PDO('mysql:host=localhost;dbname=c1insales', 'c1dba', 'OH2AgbFiU', array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")),
-            'prefix' => 'ddelivery_',
+            'pdo' => new \PDO( $config['connection']['dsn'], $config['connection']['username'],
+                    $config['connection']['password'], array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")),
+            'prefix' => 'ddelivery_'
         );
     }
     /**

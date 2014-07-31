@@ -2,7 +2,76 @@
 
 class Controller_Cabinet extends  Controller_Base{
 
+    public function _extractPost(){
+        $zabor = $this->request->post('zabor');
+        if( empty( $zabor ) )
+        {
+            $this->request->post('zabor', '');
+        }
 
+        $pvz_companies = $this->request->post('pvz_companies');
+        $cur_companies = $this->request->post('cur_companies');
+        if( is_array( $pvz_companies ) )
+        {
+            $pvz_companies = implode( ',', $this->request->post('pvz_companies') );
+        }
+        else
+        {
+            $pvz_companies = '';
+        }
+
+        if( is_array( $cur_companies ) )
+        {
+            $cur_companies = implode( ',', $this->request->post('cur_companies') );
+        }
+        else
+        {
+            $cur_companies = '';
+        }
+        $this->request->post('pvz_companies', $pvz_companies);
+        $this->request->post('cur_companies', $cur_companies);
+        $address = $this->request->post('address');
+        $this->request->post('address', json_encode($address));
+
+        return json_encode(
+            array( 'api' => $this->request->post('api'),
+                   'rezhim' => $this->request->post('rezhim'),
+                   'declared' => $this->request->post('declared'),
+                   'width' => $this->request->post('width'),
+                   'height' => $this->request->post('height'),
+                   'length' => $this->request->post('length'),
+                   'weight' => $this->request->post('weight'),
+                   'status' => $this->request->post('status'),
+                   'secondname' => $this->request->post('secondname'),
+                   'firstname' => $this->request->post('firstname'),
+                   'plan_width' => $this->request->post('plan_width'),
+                   'plan_lenght' => $this->request->post('plan_lenght'),
+                   'plan_height' => $this->request->post('plan_height'),
+                   'plan_weight' => $this->request->post('plan_weight'),
+                   'type' => $this->request->post('type'),
+                   'pvz_companies' => $this->request->post('pvz_companies'),
+                   'cur_companies' => $this->request->post('cur_companies'),
+                   'from1' => $this->request->post('from1'),
+                    'to1' => $this->request->post('to1'),
+                    'val1' => $this->request->post('val1'),
+                    'sum1' => $this->request->post('sum1'),
+                    'from2' => $this->request->post('from2'),
+                    'to2' => $this->request->post('to2'),
+                    'val2' => $this->request->post('val2'),
+                    'sum2' => $this->request->post('sum2'),
+                    'from3' => $this->request->post('from3'),
+                    'to3' => $this->request->post('to3'),
+                    'val3' => $this->request->post('val3'),
+                    'sum3' => $this->request->post('sum3'),
+                    'okrugl' => $this->request->post('okrugl'),
+                    'shag' => $this->request->post('shag'),
+                    'zabor' => $this->request->post('zabor'),
+                    'payment' => $this->request->post('payment'),
+                    'address' => $this->request->post('address')
+        ));
+
+
+    }
     public function action_save()
     {
         $session = Session::instance();
@@ -12,41 +81,20 @@ class Controller_Cabinet extends  Controller_Base{
             $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
             if($insales_user->loaded())
             {
-                $this->request->post('insalesuser_id', $insales_user->id);
-                $zabor = $this->request->post('zabor');
-                if( empty( $zabor ) )
-                {
-                    $this->request->post('zabor', '');
-                }
-                $pvz_companies = $this->request->post('pvz_companies');
-                $cur_companies = $this->request->post('cur_companies');
-                if( is_array( $pvz_companies ) )
-                {
-                    $pvz_companies = implode( ',', $this->request->post('pvz_companies') );
-                }
-                else
-                {
-                    $pvz_companies = '';
-                }
-
-                if( is_array( $cur_companies ) )
-                {
-                    $cur_companies = implode( ',', $this->request->post('cur_companies') );
-                }
-                else
-                {
-                    $cur_companies = '';
-                }
-                $this->request->post('pvz_companies', $pvz_companies);
-                $this->request->post('cur_companies', $cur_companies);
-                $address = $this->request->post('address');
-                $this->request->post('address', json_encode($address));
+                $settings = $this->_extractPost();
 
 
 
-                $insales_user->usersetting->values( $this->request->post() );
+                $query = DB::update( 'insalesusers')->set( array('settings' => $settings) )
+                         ->where('insales_id','=', $insalesuser)->execute() ;
 
-                $insales_user->usersetting->save();
+                $memcache = MemController::getMemcacheInstance();
+                if( !empty( $insales_user->shop ) ){
+                    $settings = json_decode($settings);
+                    $settings->insalesuser_id = $insales_user->id;
+                    $memcache->set( $insales_user->shop, json_encode( $settings ) );
+                }
+
                 Notice::add( Notice::SUCCESS,'Успешно сохранено' );
                 $this->redirect( URL::base( $this->request ) . 'cabinet/' );
             }
@@ -55,6 +103,7 @@ class Controller_Cabinet extends  Controller_Base{
         else
         {
             Notice::add( Notice::ERROR,'Доступ только из админпанели магазина insales' );
+            $this->redirect( URL::base( $this->request ) . 'cabinet/' );
         }
     }
 
@@ -402,10 +451,12 @@ class Controller_Cabinet extends  Controller_Base{
             $payment = $this->getPaymentWays( $usersettings->passwd, $usersettings->shop );
             $fields = $this->getFields( $usersettings->passwd, $usersettings->shop );
             $addr_fields = $this->getAddressFields( $usersettings->passwd, $usersettings->shop );
+
             $this->template->set('content', View::factory('panel')->set('usersettings', $usersettings )
                            ->set('addr_fields', $addr_fields)
                            ->set('payment', $payment)->set('fields', $fields)->set('base_url', URL::base( $this->request )));
-        }
+
+            }
         else
         {
             if( !empty( $insales_id ) && !empty( $shop ) )

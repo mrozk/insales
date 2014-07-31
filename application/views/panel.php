@@ -13,12 +13,56 @@
         padding: 10px;
     }
 </style>
-
 <?php
-if(empty($usersettings->usersetting->address)){
+
+if( empty($usersettings->settings) ){
+    $settings =
+        array(
+            'api' => '',
+            'rezhim' => '',
+            'declared' => '',
+            'width' => '',
+            'height' => '',
+            'length' => '',
+            'weight' => '',
+            'status' => '',
+            'secondname' => '',
+            'firstname' => '',
+            'plan_width' => '',
+            'plan_lenght' => '',
+            'plan_height' => '',
+            'plan_weight' => '',
+            'type' => '',
+            'pvz_companies' => '',
+            'cur_companies' => '',
+            'from1' => '',
+            'to1' => '',
+            'val1' => '',
+            'sum1' => '',
+            'from2' => '',
+            'to2' => '',
+            'val2' => '',
+            'sum2' => '',
+            'from3' =>'',
+            'to3' => '',
+            'val3' => '',
+            'sum3' => '',
+            'okrugl' => '',
+            'shag' => '',
+            'zabor' => '',
+            'payment' => '',
+            'address' => ''
+        );
+}else{
+    $settings = json_decode( $usersettings->settings, true );
+}
+?>
+<?php
+
+if(empty($settings['address'])){
     $address = array('street' => '','house' => '','corp' => '','flat' => '');
 }else{
-    $address = json_decode($usersettings->usersetting->address, true);
+    $address = json_decode($settings['address'],true);
 }
 ?>
 
@@ -32,17 +76,10 @@ if(empty($usersettings->usersetting->address)){
     </div>
 </div>
 -->
-    <?php
-
-        //print_r($usersettings->usersetting);
-    $pvz_companies = explode( ',', $usersettings->usersetting->pvz_companies );
-    $cur_companies = explode( ',', $usersettings->usersetting->cur_companies );
-    /*
-    print_r($pvz_companies);
-    print_r($cur_companies);
-    */
-    //echo is_array($pvz_companies);
-    ?>
+<?php
+    $pvz_companies = explode( ',', $settings['pvz_companies'] );
+    $cur_companies = explode( ',', $settings['cur_companies'] );
+?>
             <h1>Настройки</h1>
 <div class="navbar-collapse collapse">
     <div class="navbar-form navbar-right">
@@ -84,7 +121,7 @@ if(empty($usersettings->usersetting->address)){
                                 'class' => 'form-control',
                                 'required' => ''
                             );
-                            echo Form::input('api', $usersettings->usersetting->api, $attrs);
+                            echo Form::input('api', $settings['api'], $attrs);
                         ?>
                     </div>
                 </div>
@@ -104,7 +141,7 @@ if(empty($usersettings->usersetting->address)){
                                 '1' => 'Тестирование (stage.ddelivery.ru)',
                                 '2' => 'Рабочий (cabinet.ddelivery.ru)'
                             );
-                            echo Form::select('rezhim', $options, $usersettings->usersetting->rezhim, $attrs);
+                            echo Form::select('rezhim', $options, $settings['rezhim'], $attrs);
                         ?>
                     </div>
                 </div>
@@ -121,7 +158,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Какой % от стоимости товара страхуется',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('declared', (isset($usersettings->usersetting->declared)?$usersettings->usersetting->declared:100), $attrs);
+                            echo Form::input('declared', (isset($settings['declared'])?$settings['declared']:100), $attrs);
                         ?>
                     </div>
                 </div>
@@ -141,7 +178,7 @@ if(empty($usersettings->usersetting->address)){
                                 'class' => 'form-control'
                             );
                         ///print_r($payment);
-                        echo Form::select('payment', $payment, $usersettings->usersetting->payment, $attrs);
+                        echo Form::select('payment', $payment, $settings['payment'], $attrs);
                         ?>
                     </div>
                 </div>
@@ -159,7 +196,7 @@ if(empty($usersettings->usersetting->address)){
                                 'class' => 'form-control'
                             );
 
-                            echo Form::select('width', $fields, $usersettings->usersetting->width, $attrs);
+                            echo Form::select('width', $fields, $settings['width'], $attrs);
 
                         ?>
                     </div>
@@ -177,7 +214,7 @@ if(empty($usersettings->usersetting->address)){
                                 'class' => 'form-control'
                             );
 
-                            echo Form::select('length', $fields, $usersettings->usersetting->length, $attrs);
+                            echo Form::select('length', $fields, $settings['length'], $attrs);
                         ?>
                     </div>
                 </div>
@@ -195,7 +232,7 @@ if(empty($usersettings->usersetting->address)){
                                 'class' => 'form-control'
                             );
 
-                            echo Form::select('height', $fields, $usersettings->usersetting->height, $attrs);
+                            echo Form::select('height', $fields, $settings['height'], $attrs);
 
                         ?>
                     </div>
@@ -203,26 +240,6 @@ if(empty($usersettings->usersetting->address)){
 
 
 
-                <?php /*
-                <div class="form-group" >
-                    <label for="weight" class="col-sm-10 control-label">
-                        Вес
-                        <p class="bg-success" >
-                            Выберите поле, соответствуещее "вес товара" в Вашей системе
-                        </p>
-                    </label>
-                    <div class="col-sm-10">
-                        <?php
-                           $attrs = array(
-                                'class' => 'form-control'
-                            );
-
-                            echo Form::select('weight', $fields, $usersettings->usersetting->weight, $attrs);
-
-                        ?>
-                    </div>
-                </div>
-                <?php */ ?>
                 <div class="form-group" >
                     <label for="status" class="col-sm-10 control-label">
                         Статус для отправки
@@ -245,14 +262,8 @@ if(empty($usersettings->usersetting->address)){
                                 'delivered' => 'доставлен',
                                 'declined' => 'отменен',
                             );
-                            echo Form::select('status', $options, $usersettings->usersetting->status, $attrs);
-                        /*
-                        $attrs = array(
-                            'placeholder' => 'ID статуса для отправки',
-                            'class' => 'form-control'
-                        );
-                        echo Form::input('status', $usersettings->usersetting->status, $attrs);
-                        */
+                            echo Form::select('status', $options, $settings['status'], $attrs);
+
                         ?>
                     </div>
                 </div>
@@ -339,33 +350,7 @@ if(empty($usersettings->usersetting->address)){
                 </div>
 
 
-                <?php /* ?>
-                <div class="form-group">
-                    <label for="secondname" class="col-sm-6 control-label">Фамилия</label>
-                    <div class="col-sm-10">
-                        <?php
-                            $attrs = array(
-                                'placeholder' => 'Фамилия',
-                                'class' => 'form-control'
-                            );
-                            echo Form::input('secondname', $usersettings->usersetting->secondname, $attrs);
-                        ?>
-                    </div>
-                </div>
 
-                <div class="form-group" >
-                    <label for="firstname" class="col-sm-6 control-label">Имя</label>
-                    <div class="col-sm-10">
-                        <?php
-                            $attrs = array(
-                                'placeholder' => 'Имя',
-                                'class' => 'form-control'
-                            );
-                            echo Form::input('firstname', $usersettings->usersetting->firstname, $attrs);
-                        ?>
-                    </div>
-                </div>
-                <?php */ ?>
                 <div class="form-group" >
                     <h3>Габариты по умолчанию</h3>
                     <p class="bg-success" >
@@ -383,7 +368,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Ширина, см',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('plan_width', (isset($usersettings->usersetting->plan_width)?$usersettings->usersetting->plan_width:10), $attrs);
+                            echo Form::input('plan_width', (isset($settings['plan_width'])?$settings['plan_width']:10), $attrs);
                         ?>
                     </div>
                 </div>
@@ -395,7 +380,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Длина, см',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('plan_lenght', (isset($usersettings->usersetting->plan_lenght )?$usersettings->usersetting->plan_lenght:10), $attrs);
+                            echo Form::input('plan_lenght', (isset($settings['plan_lenght'] )?$settings['plan_lenght']:10), $attrs);
                         ?>
                     </div>
                 </div>
@@ -407,7 +392,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Высота, см',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('plan_height', (isset($usersettings->usersetting->plan_height )?$usersettings->usersetting->plan_height:10), $attrs);
+                            echo Form::input('plan_height', (isset($settings['plan_height'] )?$settings['plan_height']:10), $attrs);
                         ?>
                     </div>
                 </div>
@@ -419,7 +404,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Вес, кг',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('plan_weight', (isset($usersettings->usersetting->plan_weight)?$usersettings->usersetting->plan_weight:1), $attrs);
+                            echo Form::input('plan_weight', (isset($settings['plan_weight'])?$settings['plan_weight']:1), $attrs);
                         ?>
                     </div>
                 </div>
@@ -443,7 +428,7 @@ if(empty($usersettings->usersetting->address)){
                                 '2' => 'ПВЗ',
                                 '3' => 'Курьеры'
                             );
-                            echo Form::select('type', $options, $usersettings->usersetting->type, $attrs);
+                            echo Form::select('type', $options, $settings['type'], $attrs);
                         ?>
 
                     </div>
@@ -895,7 +880,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'От',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('from1', $usersettings->usersetting->from1, $attrs);
+                            echo Form::input('from1', $settings['from1'], $attrs);
                         ?>
                     </div>
                     <div class="form-group">
@@ -904,7 +889,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'До',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('to1', $usersettings->usersetting->to1, $attrs);
+                            echo Form::input('to1', $settings['to1'], $attrs);
                         ?>
                     </div>
                     <div class="form-group">
@@ -919,7 +904,7 @@ if(empty($usersettings->usersetting->address)){
                                 '3' => 'Магазин оплачивает процент от стоимости доставки',
                                 '4' => 'Магазин оплачивает конкретную сумму от доставки. Если сумма больше, то всю доставку<'
                             );
-                            echo Form::select('val1', $options, $usersettings->usersetting->val1, $attrs);
+                            echo Form::select('val1', $options, $settings['val1'], $attrs);
                         ?>
                     </div>
                     <div class="form-group">
@@ -928,7 +913,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Сумма',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('sum1', $usersettings->usersetting->sum1, $attrs);
+                            echo Form::input('sum1', $settings['sum1'], $attrs);
                         ?>
                     </div>
                 </div>
@@ -940,7 +925,7 @@ if(empty($usersettings->usersetting->address)){
                             'placeholder' => 'От',
                             'class' => 'form-control'
                         );
-                        echo Form::input('from2', $usersettings->usersetting->from2, $attrs);
+                        echo Form::input('from2', $settings['from2'], $attrs);
                         ?>
                     </div>
                     <div class="form-group">
@@ -949,7 +934,7 @@ if(empty($usersettings->usersetting->address)){
                             'placeholder' => 'До',
                             'class' => 'form-control'
                         );
-                        echo Form::input('to2', $usersettings->usersetting->to2, $attrs);
+                        echo Form::input('to2', $settings['to2'], $attrs);
                         ?>
                     </div>
                     <div class="form-group">
@@ -964,7 +949,7 @@ if(empty($usersettings->usersetting->address)){
                             '3' => 'Магазин оплачивает процент от стоимости доставки',
                             '4' => 'Магазин оплачивает конкретную сумму от доставки. Если сумма больше, то всю доставку<'
                         );
-                        echo Form::select('val2', $options, $usersettings->usersetting->val2, $attrs);
+                        echo Form::select('val2', $options, $settings['val2'], $attrs);
                         ?>
                     </div>
 
@@ -975,7 +960,7 @@ if(empty($usersettings->usersetting->address)){
                             'placeholder' => 'Сумма',
                             'class' => 'form-control'
                         );
-                        echo Form::input('sum2', $usersettings->usersetting->sum2, $attrs);
+                        echo Form::input('sum2', $settings['sum2'], $attrs);
                         ?>
                     </div>
                 </div>
@@ -987,7 +972,7 @@ if(empty($usersettings->usersetting->address)){
                             'placeholder' => 'От',
                             'class' => 'form-control'
                         );
-                        echo Form::input('from3', $usersettings->usersetting->from3, $attrs);
+                        echo Form::input('from3', $settings['from3'], $attrs);
                         ?>
                     </div>
                     <div class="form-group">
@@ -996,7 +981,7 @@ if(empty($usersettings->usersetting->address)){
                             'placeholder' => 'До',
                             'class' => 'form-control'
                         );
-                        echo Form::input('to3', $usersettings->usersetting->to3, $attrs);
+                        echo Form::input('to3', $settings['to3'], $attrs);
                         ?>
                     </div>
                     <div class="form-group">
@@ -1011,7 +996,7 @@ if(empty($usersettings->usersetting->address)){
                                 '3' => 'Магазин оплачивает процент от стоимости доставки',
                                 '4' => 'Магазин оплачивает конкретную сумму от доставки. Если сумма больше, то всю доставку<'
                             );
-                            echo Form::select('val3', $options, $usersettings->usersetting->val2, $attrs);
+                            echo Form::select('val3', $options, $settings['val2'], $attrs);
                         ?>
                     </div>
 
@@ -1022,7 +1007,7 @@ if(empty($usersettings->usersetting->address)){
                             'placeholder' => 'Сумма',
                             'class' => 'form-control'
                         );
-                        echo Form::input('sum3', $usersettings->usersetting->sum2, $attrs);
+                        echo Form::input('sum3', $settings['sum2'], $attrs);
                         ?>
                     </div>
                 </div>
@@ -1045,7 +1030,7 @@ if(empty($usersettings->usersetting->address)){
                                 '2' => 'Округлять в большую сторону',
                                 '3' => 'Округлять цену в математически',
                             );
-                            echo Form::select('okrugl', $options, $usersettings->usersetting->okrugl, $attrs);
+                            echo Form::select('okrugl', $options, $settings['okrugl'], $attrs);
                         ?>
                     </div>
 
@@ -1059,7 +1044,7 @@ if(empty($usersettings->usersetting->address)){
                                 'placeholder' => 'Шаг',
                                 'class' => 'form-control'
                             );
-                            echo Form::input('shag', $usersettings->usersetting->shag, $attrs);
+                            echo Form::input('shag', $settings['shag'], $attrs);
                         ?>
                     </div>
 
@@ -1069,7 +1054,7 @@ if(empty($usersettings->usersetting->address)){
                         </p>
                         <label class="checkbox-inline">
                             <?php
-                                echo Form::checkbox('zabor', '1', ( $usersettings->usersetting->zabor )? true : false );
+                                echo Form::checkbox('zabor', '1', ( $settings['zabor'] )? true : false );
                             ?>
                             Выводить стоимость забора в цене доставки
                         </label>

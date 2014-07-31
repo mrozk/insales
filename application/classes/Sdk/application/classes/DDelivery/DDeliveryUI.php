@@ -518,7 +518,7 @@ class DDeliveryUI
         if(!count($ids))
         	throw new DDeliveryException('Пустой массив для инициализации заказа');
         $orders = $orderDB->getOrderList($ids);
-       
+
         if(count($orders))
         {
             foreach ( $orders as $item)
@@ -1792,8 +1792,11 @@ class DDeliveryUI
      */
     protected function renderCourier()
     {
+
         $this->getOrder()->type = DDeliverySDK::TYPE_COURIER;
+
         $this->saveFullOrder($this->getOrder());
+        //print_r($this->getOrder());
         $cityId = $this->order->city;
         $cityList = $this->getCityByDisplay($cityId);
         $companies = $this->getCompanySubInfo();
@@ -1839,6 +1842,7 @@ class DDeliveryUI
             $displayCityName.=' '. $point->address;
             $requiredFieldMask = $this->shop->getSelfRequiredFields();
         }else{
+
             return '';
         }
         if($requiredFieldMask == 0){
@@ -1958,6 +1962,7 @@ class DDeliveryUI
         $currentOrder->toEmail = $item->to_email;
         $currentOrder->comment = $item->comment;
         $currentOrder->insalesuser_id = $item->insalesuser_id;
+        $currentOrder->toHousing = $item->to_housing;
     }
 
     /**
