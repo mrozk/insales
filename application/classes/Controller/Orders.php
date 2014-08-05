@@ -116,6 +116,7 @@ class Controller_Orders extends Controller
                         }
                         catch( \DDelivery\DDeliveryException $e )
                         {
+
                             $ddeliveryUI->logMessage($e);
                             return;
                         }

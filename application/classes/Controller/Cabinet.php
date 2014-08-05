@@ -406,7 +406,6 @@ class Controller_Cabinet extends  Controller_Base{
                                      "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ',
                                      "url": "' . URL::base( $this->request ) . '"
                                        };
-                                CheckoutDelivery.find( ddelivery_insales.delivery_id ).toExternal().setPrice(200);
                                        &lt;/script&gt;
                                     &lt;script type="text/javascript" src="' . URL::base( $this->request ) . 'html/action.js"&gt;&lt;/script&gt;
                               </javascript>

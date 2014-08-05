@@ -28,7 +28,7 @@ class Controller_Hello extends Controller
                 }else{
                     $result .= 'updatePriceAndSend(null);';
                 }
-
+                $result .= 'enableDDButton();';
                 echo $result;
                 return;
             }

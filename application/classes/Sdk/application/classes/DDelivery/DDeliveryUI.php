@@ -605,7 +605,7 @@ class DDeliveryUI
     	if( $this->shop->preGoToFindPoints( $this->order ))
     	{
             $response = $this->getCourierDeliveryInfoForCity($order);
-
+            $this->record_sort($response, 'total_price');
             if( count( $response ) )
             {
                 foreach ($response as $p)
@@ -970,6 +970,7 @@ class DDeliveryUI
         {
             throw new DDeliveryException(implode(', ', $errors));
         }
+        return true;
     }
 
     /**
@@ -1283,7 +1284,26 @@ class DDeliveryUI
     {
     	$this->order->toPhone = trim( strip_tags( $phone ) );
     }
+    function record_sort($records, $field, $reverse=false)
+    {
+        $hash = array();
 
+        foreach($records as $record)
+        {
+            $hash[$record[$field]] = $record;
+        }
+
+        ($reverse)? krsort($hash) : ksort($hash);
+
+        $records = array();
+
+        foreach($hash as $record)
+        {
+            $records []= $record;
+        }
+
+        return $records;
+    }
     /**
      * Назначить ФИО доставки
      *
@@ -1661,6 +1681,9 @@ class DDeliveryUI
         }
         $staticURL = $this->shop->getStaticPath();
         $selfCompanyList = $this->getSelfDeliveryInfoForCity( $this->order );
+
+        $selfCompanyList = $this->record_sort($selfCompanyList, "total_price");
+
         $selfCompanyList = $this->_getOrderedDeliveryInfo( $selfCompanyList );
         $selfCompanyList = $this->shop->filterSelfInfo($selfCompanyList);
 
