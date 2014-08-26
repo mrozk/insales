@@ -168,8 +168,12 @@ class DDeliveryOrder
 
     public $comment;
 
-    public $insalesuser_id = 0;
+    /**
+     * @var String - символическое представление города
+     */
+    public $cityName = null;
 
+    public $insalesuser_id = 0;
     /**
      * @param DDeliveryProduct[] $productList
      * @throws DDeliveryOrderException
@@ -188,7 +192,7 @@ class DDeliveryOrder
         
         // Получаем параметры для товаров в заказе
         $this->getProductParams();
-		
+
     }
 
     /**

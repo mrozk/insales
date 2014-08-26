@@ -66,16 +66,6 @@ class DDeliveryUI
     private $messager;
 
     /**
-     * Логирование
-     * @var bool
-     */
-    private $loggin = true;
-
-    /**
-     *
-     */
-    private $logginUrl = 'http://devphpshop.ddelivery.ru/loggin.php';
-    /**
      *  Кэш
      *  @var DCache
      */
@@ -103,27 +93,8 @@ class DDeliveryUI
 
         $this->sdk = new Sdk\DDeliverySDK($dShopAdapter->getApiKey(), $this->shop->isTestMode());
 
-        $dbConfig = $dShopAdapter->getDbConfig();
-        if(isset($dbConfig['pdo']) && $dbConfig['pdo'] instanceof \PDO) {
-            $this->pdo = $dbConfig['pdo'];
-        }elseif($dbConfig['type'] == DShopAdapter::DB_SQLITE) {
-            if(!$dbConfig['dbPath'])
-                throw new DDeliveryException('SQLite db is empty');
-
-            $dbDir = dirname($dbConfig['dbPath']);
-            if(  (!is_writable( $dbDir )) || ( !is_writable( $dbConfig['dbPath'] ) ) || (!is_dir( $dbDir )) ) {
-                throw new DDeliveryException('SQLite database does not exist or is not writable');
-            }
-
-            $this->pdo = new \PDO('sqlite:'.$dbConfig['dbPath']);
-            $this->pdo->exec('PRAGMA journal_mode=WAL;');
-        } elseif($dbConfig['type'] == DShopAdapter::DB_MYSQL) {
-            $this->pdo = new \PDO($dbConfig['dsn'], $dbConfig['user'], $dbConfig['pass']);
-            $this->pdo->exec('SET NAMES utf8');
-        }else{
-            throw new DDeliveryException('Not support database type');
-        }
-        $this->pdoTablePrefix = isset($dbConfig['prefix']) ? $dbConfig['prefix'] : '';
+        // Инициализируем работу с БД
+        $this->_initDb($dShopAdapter);
 
         // Формируем объект заказа
         if(!$skipOrder)
@@ -133,14 +104,23 @@ class DDeliveryUI
             $this->order->amount = $this->shop->getAmount();
         }
         $this->cache = new DCache( $this, $this->shop->getCacheExpired(), $this->shop->isCacheEnabled(), $this->pdo, $this->pdoTablePrefix );
+
     }
+
+    /**
+     *
+     * Залоггировать ошибку
+     *
+     * @param \Exception $e
+     * @return mixed
+     */
     public function logMessage( \Exception $e ){
-        if( $this->loggin ){
+        $logginUrl = $this->shop->getLogginServer();
+        if( !is_null( $logginUrl ) ){
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_setopt($curl, CURLOPT_ENCODING, 'UTF-8');
             curl_setopt($curl, CURLOPT_HEADER, 0);
-            curl_setopt($curl, CURLOPT_URL, $this->logginUrl);
+            curl_setopt($curl, CURLOPT_URL, $logginUrl);
             curl_setopt($curl, CURLOPT_POST, true);
             $params = array('message' => $e->getMessage() . ', версия SDK -' . DShopAdapter::SDK_VERSION . ', '
                             . $e->getFile() . ', '
@@ -149,7 +129,7 @@ class DDeliveryUI
                             'testmode' => (int)$this->shop->isTestMode());
             $urlSuffix = '';
             foreach($params as $key => $value) {
-                $urlSuffix .= $key . '='. $value  . '&';
+                $urlSuffix .= urlencode($key).'='.urlencode($value) . '&';
             }
             curl_setopt($curl, CURLOPT_POSTFIELDS, $urlSuffix);
             $answer = curl_exec($curl);
@@ -212,7 +192,6 @@ class DDeliveryUI
 
     /**
      * Функция вызывается при изменении статуса внутри cms для отправки
-     * @deprecated Не работает.
      *
      * @param $cmsID
      * @param $cmsStatus
@@ -518,7 +497,7 @@ class DDeliveryUI
         if(!count($ids))
         	throw new DDeliveryException('Пустой массив для инициализации заказа');
         $orders = $orderDB->getOrderList($ids);
-
+       
         if(count($orders))
         {
             foreach ( $orders as $item)
@@ -605,7 +584,7 @@ class DDeliveryUI
     	if( $this->shop->preGoToFindPoints( $this->order ))
     	{
             $response = $this->getCourierDeliveryInfoForCity($order);
-            $this->record_sort($response, 'total_price');
+            $this->record_sort($response, 'delivery_price');
             if( count( $response ) )
             {
                 foreach ($response as $p)
@@ -755,7 +734,10 @@ class DDeliveryUI
     {
         if(!$this->_validateOrderToGetPoints( $order))
             throw new DDeliveryException('Not valid order');
-        $points = $this->cache->render( 'getSelfPointsDetail', array( $order->city ) );
+        //$points = $this->cache->render( 'getSelfPointsDetail', array( $order->city ) );
+
+        $points = $this->getSelfPointsDetail( $order->city );
+
         $selfPoint = null;
         if(count($points))
         {
@@ -794,8 +776,8 @@ class DDeliveryUI
         $result_points = array();
         if( $this->shop->preGoToFindPoints( $order ))
         {
-            $points = $this->cache->render( 'getSelfPointsDetail', array( $order->city ) ); /** cache **/
-            //$points = $this->getSelfPointsDetail( $order->city ); /** cache **/
+            // $points = $this->cache->render( 'getSelfPointsDetail', array( $order->city ) ); /** cache **/
+            $points = $this->getSelfPointsDetail( $order->city ); /** cache **/
 
             $companyInfo = $this->getSelfDeliveryInfoForCity( $order );
 
@@ -815,6 +797,7 @@ class DDeliveryUI
                     }
                 }
             }
+
         }
         $points = $this->shop->filterPointsSelf( $result_points , $order, $order->city );
 
@@ -1284,26 +1267,7 @@ class DDeliveryUI
     {
     	$this->order->toPhone = trim( strip_tags( $phone ) );
     }
-    function record_sort($records, $field, $reverse=false)
-    {
-        $hash = array();
 
-        foreach($records as $record)
-        {
-            $hash[$record[$field]] = $record;
-        }
-
-        ($reverse)? krsort($hash) : ksort($hash);
-
-        $records = array();
-
-        foreach($hash as $record)
-        {
-            $records []= $record;
-        }
-
-        return $records;
-    }
     /**
      * Назначить ФИО доставки
      *
@@ -1365,6 +1329,10 @@ class DDeliveryUI
         return $cityId;
     }
 
+
+
+
+
     /**
      * Вызывается для рендера текущей странички
      * @param array $request
@@ -1376,12 +1344,15 @@ class DDeliveryUI
             $orders =  $this->initOrder( array($request['order_id']) );
             $this->order = $orders[0];
         }
-
+        if(!empty($request['city_alias'])) {
+            $this->order->cityName = strip_tags( $request['city_alias'] );
+        }
         if(isset($request['action'])) {
             switch($request['action']) {
                 case 'searchCity':
                 case 'searchCityMap':
                     if(isset($request['name']) && mb_strlen($request['name']) >= 3){
+
                         $cityList = $this->sdk->getAutoCompleteCity($request['name']);
 
                         $cityList = $cityList->response;
@@ -1464,23 +1435,18 @@ class DDeliveryUI
             }
         }
 
-
         if(isset($request['iframe'])) {
             $staticURL = $this->shop->getStaticPath();
             $scriptURL = $this->shop->getPhpScriptURL();
-
-            $version = include(__DIR__ . '/../../version.php');
-
+            $version = DShopAdapter::SDK_VERSION;
             include(__DIR__ . '/../../templates/iframe.php');
-
-
             return;
-
         }
 
         if(!empty($request['city_id'])) {
             $this->order->city = $request['city_id'];
         }
+
         if(!$this->order->city ) {
             $this->order->city = $this->getCityId();
         }
@@ -1643,9 +1609,8 @@ class DDeliveryUI
             $cityData = $cityList[$cityId];
             unset($cityList[$cityId]);
             array_unshift($cityList, $cityData);
-        }else{
-            array_unshift($cityList, $cityDB->getCityById($cityId));
         }
+        $avalibleCities = array();
         foreach($cityList as &$cityData){
             // Костыль, на сервере города начинаются с маленькой буквы
             $cityData['name'] = Utils::firstWordLiterUppercase($cityData['name']);
@@ -1657,10 +1622,37 @@ class DDeliveryUI
             }
 
             $cityData['display_name'] = $displayCityName;
+            $avalibleCities[] = $cityData['_id'];
         }
+        if( !in_array($cityId, $avalibleCities) ){
+           $topCity = array('_id' => $cityId, 'display_name' => $this->order->cityName );
+           array_unshift($cityList, $topCity);
+        }
+
         return $cityList;
     }
 
+
+    function record_sort($records, $field, $reverse=false)
+    {
+        $hash = array();
+
+        foreach($records as $record)
+        {
+            $hash[$record[$field]] = $record;
+        }
+
+        ($reverse)? krsort($hash) : ksort($hash);
+
+        $records = array();
+
+        foreach($hash as $record)
+        {
+            $records []= $record;
+        }
+
+        return $records;
+    }
     /**
      * Страница с картой
      *
@@ -1674,18 +1666,67 @@ class DDeliveryUI
 
         $points = $this->getSelfPoints($this->order);
         $this->saveFullOrder($this->getOrder());
+
+
+        $staticURL = $this->shop->getStaticPath();
+
+        $selfCompanyList = $this->getSelfDeliveryInfoForCity( $this->order );
+        $selfCompanyList = $this->record_sort($selfCompanyList, "delivery_price");
+
+        $selfCompanyList = $this->_getOrderedDeliveryInfo( $selfCompanyList );
+        $selfCompanyList = $this->shop->filterSelfInfo($selfCompanyList);
+
         $pointsJs = array();
 
         foreach($points as $point) {
             $pointsJs[] = $point->toJson();
         }
-        $staticURL = $this->shop->getStaticPath();
+        /*
         $selfCompanyList = $this->getSelfDeliveryInfoForCity( $this->order );
+        //print_r($selfCompanyList);
+        //$selfCompanyList = $this->record_sort($selfCompanyList, "total_price");
+        $deliveryInfo = $this->_getOrderedDeliveryInfo( $selfCompanyList );
 
-        $selfCompanyList = $this->record_sort($selfCompanyList, "total_price");
+        if( count( $points ) )
+        {
+            foreach ( $points as $item )
+            {
+                $companyID = $item->get('company_id');
 
-        $selfCompanyList = $this->_getOrderedDeliveryInfo( $selfCompanyList );
-        $selfCompanyList = $this->shop->filterSelfInfo($selfCompanyList);
+                if( array_key_exists( $companyID, $deliveryInfo ) )
+                {
+                    $item->setDeliveryInfo( $deliveryInfo[$companyID] );
+                    $item->pointID = $item->get('_id');
+                    $result_points[] = $item;
+                }
+            }
+        }
+        */
+        //print_r($selfCompanyList);
+        /*
+        $companyInfo = $this->getSelfDeliveryInfoForCity( $this->order );
+
+        $deliveryInfo = $this->_getOrderedDeliveryInfo( $companyInfo );
+        */
+        /*
+        if( count( $points ) )
+        {
+            foreach ( $points as $item )
+            {
+                $companyID = $item->get('company_id');
+
+                if( array_key_exists( $companyID, $deliveryInfo ) )
+                {
+                    $item->setDeliveryInfo( $deliveryInfo[$companyID] );
+                    $item->pointID = $item->get('_id');
+                    $result_points[] = $item;
+                }
+            }
+        }
+        */
+        //$selfCompanyList = $this->_getOrderedDeliveryInfo( $selfCompanyList );
+
+        //$selfCompanyList = $this->shop->filterSelfInfo($selfCompanyList);
 
         if($dataOnly) {
             ob_start();
@@ -1815,11 +1856,8 @@ class DDeliveryUI
      */
     protected function renderCourier()
     {
-
         $this->getOrder()->type = DDeliverySDK::TYPE_COURIER;
-
         $this->saveFullOrder($this->getOrder());
-        //print_r($this->getOrder());
         $cityId = $this->order->city;
         $cityList = $this->getCityByDisplay($cityId);
         $companies = $this->getCompanySubInfo();
@@ -1850,13 +1888,16 @@ class DDeliveryUI
         }
 
         $cityDB = new City($this->pdo, $this->pdoTablePrefix);
-        $currentCity = $cityDB->getCityById($this->getOrder()->city);
+        // $currentCity = $cityDB->getCityById($this->getOrder()->city);
 
         //Собирает строчку с названием города для отображения
+        /*
         $displayCityName = $currentCity['type'].'. '.$currentCity['name'];
         if($currentCity['region'] != $currentCity['name']) {
             $displayCityName .= ', '.$currentCity['region'].' обл.';
         }
+        */
+        $displayCityName = $this->order->cityName;
         $type = $this->getOrder()->type;
         if($this->getOrder()->type == DDeliverySDK::TYPE_COURIER) {
             $displayCityName.=', '.$point->getDeliveryInfo()->delivery_company_name;
@@ -1865,7 +1906,6 @@ class DDeliveryUI
             $displayCityName.=' '. $point->address;
             $requiredFieldMask = $this->shop->getSelfRequiredFields();
         }else{
-
             return '';
         }
         if($requiredFieldMask == 0){
@@ -1944,7 +1984,20 @@ class DDeliveryUI
             28 => array('name' => 'DPD Express', 'ico' => 'dpd'),
             29 => array('name' => 'DPD Classic', 'ico' => 'dpd'),
             30 => array('name' => 'EMS', 'ico' => 'ems'),
-            31 => array('name' => 'Grastin', 'ico' => 'pack'),
+            31 => array('name' => 'Grastin', 'ico' => 'grastin'),
+            33 => array('name' => 'Aplix', 'ico' => 'aplix'),
+            35 => array('name' => 'Aplix DPD Consumer', 'ico' => 'aplix_dpd_black'),
+            36 => array('name' => 'Aplix DPD parcel', 'ico' => 'aplix_dpd_black'),
+            37 => array('name' => 'Aplix IML самовывоз', 'ico' => 'aplix_imlogistics'),
+            38 => array('name' => 'Aplix PickPoint', 'ico' => 'aplix_pickpoint'),
+            39 => array('name' => 'Aplix Qiwi', 'ico' => 'aplix_qiwi'),
+            40 => array('name' => 'Aplix СДЭК', 'ico' => 'aplix_cdek'),
+            41 => array('name' => 'Кит', 'ico' => 'kit'),
+            42 => array('name' => 'Imlogistics', 'ico' => 'imlogistics'),
+            43 => array('name' => 'Imlogistics', 'ico' => 'imlogistics'),
+            44 => array('name' => 'Почта России', 'ico' => 'russianpost'),
+            45 => array('name' => 'Aplix курьерская доставка', 'ico' => 'aplix'),
+            48 => array('name' => 'Aplix IML курьерская доставка', 'ico' => 'aplix_imlogistics'),
         );
     }
 
@@ -1984,8 +2037,9 @@ class DDeliveryUI
         $currentOrder->toFlat = $item->to_flat;
         $currentOrder->toEmail = $item->to_email;
         $currentOrder->comment = $item->comment;
-        $currentOrder->insalesuser_id = $item->insalesuser_id;
+        $currentOrder->cityName = $item->city_name;
         $currentOrder->toHousing = $item->to_housing;
+        $currentOrder->insalesuser_id = $item->insalesuser_id;
     }
 
     /**
@@ -2009,6 +2063,35 @@ class DDeliveryUI
     {
        $statusProvider = new DDStatusProvider();
        return $statusProvider->getOrderDescription( $ddStatus );
+    }
+
+    /**
+     * @param DShopAdapter $dShopAdapter
+     * @throws DDeliveryException
+     */
+    public function _initDb(DShopAdapter $dShopAdapter)
+    {
+        $dbConfig = $dShopAdapter->getDbConfig();
+        if (isset($dbConfig['pdo']) && $dbConfig['pdo'] instanceof \PDO) {
+            $this->pdo = $dbConfig['pdo'];
+        } elseif ($dbConfig['type'] == DShopAdapter::DB_SQLITE) {
+            if (!$dbConfig['dbPath'])
+                throw new DDeliveryException('SQLite db is empty');
+
+            $dbDir = dirname($dbConfig['dbPath']);
+            if ((!is_writable($dbDir)) || (!is_writable($dbConfig['dbPath'])) || (!is_dir($dbDir))) {
+                throw new DDeliveryException('SQLite database does not exist or is not writable');
+            }
+
+            $this->pdo = new \PDO('sqlite:' . $dbConfig['dbPath']);
+            $this->pdo->exec('PRAGMA journal_mode=WAL;');
+        } elseif ($dbConfig['type'] == DShopAdapter::DB_MYSQL) {
+            $this->pdo = new \PDO($dbConfig['dsn'], $dbConfig['user'], $dbConfig['pass']);
+            $this->pdo->exec('SET NAMES utf8');
+        } else {
+            throw new DDeliveryException('Not support database type');
+        }
+        $this->pdoTablePrefix = isset($dbConfig['prefix']) ? $dbConfig['prefix'] : '';
     }
 
 

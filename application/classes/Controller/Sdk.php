@@ -363,19 +363,29 @@ class Controller_Sdk extends Controller
 
 
          $has_token = MemController::getMemcacheInstance()->get( 'card_' . $token );
+
          if($has_token){
+
              $info = json_decode( $has_token, true );
+
              $settings = MemController::initSettingsMemcache($info['host']);
              $settingsToIntegrator = json_decode($settings);
              if( isset($items) && !empty( $items ) ){
                  $info['cart'] = $this->getItemsFromInsales($info['scheme'] . '://' . $info['host'], $items, $settingsToIntegrator);
                  MemController::getMemcacheInstance()->set( 'card_' . $token, json_encode( $info ), 0, 1200  );
              }
-             $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator, $info );
-             $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-             $order = $ddeliveryUI->getOrder();
-             $order->insalesuser_id = $settingsToIntegrator->insalesuser_id;
-             $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+
+             try
+             {
+                 $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator, $info );
+                 $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
+                 $order = $ddeliveryUI->getOrder();
+                 $order->insalesuser_id = $settingsToIntegrator->insalesuser_id;
+                 $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+             }
+             catch( \DDelivery\DDeliveryException $e ){
+                 $ddeliveryUI->logMessage($e);
+             }
          }
          /*
          $memcache = new Memcache;

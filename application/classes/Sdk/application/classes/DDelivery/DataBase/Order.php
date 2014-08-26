@@ -8,6 +8,7 @@
 namespace DDelivery\DataBase;
 
 use DDelivery\Adapter\DShopAdapter;
+use DDelivery\DDeliveryException;
 use DDelivery\Order\DDStatusProvider;
 use DDelivery\Order\DDeliveryOrder;
 use PDO;
@@ -105,9 +106,10 @@ class Order {
                 `to_email` varchar(255) DEFAULT NULL,
                 `first_name` varchar(255) DEFAULT NULL,
                 `second_name` varchar(255) DEFAULT NULL,
-                `serilize` text DEFAULT NULL,
                 `point` text DEFAULT NULL,
                 `comment` varchar(255) DEFAULT NULL,
+                `city_name` varchar(255) DEFAULT NULL,
+                `to_housing` varchar(255) DEFAULT NULL
                 PRIMARY KEY (`id`)
               ) ENGINE=InnoDB DEFAULT CHARSET=utf8";
             $this->pdo->exec($query);
@@ -142,9 +144,10 @@ class Order {
                 to_email TEXT,
                 first_name TEXT,
                 second_name TEXT,
-                serilize TEXT,
                 point TEXT,
-                comment TEXT
+                comment TEXT,
+                city_name TEXT,
+                to_housing TEXT
               )");
         }
 	}
@@ -210,6 +213,7 @@ class Order {
         $query = "SELECT * FROM {$this->prefix}orders WHERE id IN({$idWhere})";
         $sth = $this->pdo->query( $query );
         $result = $sth->fetchAll(PDO::FETCH_OBJ);
+
         return $result;
 	}
 
@@ -305,13 +309,14 @@ class Order {
 	    $toFlat = $order->toFlat;
 	    $type = $order->type;
         $comment = $order->comment;
+        $city_name = $order->cityName;
         $toHousing = $order->toHousing;
-
         $insalesuser_id = $order->insalesuser_id;
-	    //$this->pdo->beginTransaction();
+
 	    if( $this->isRecordExist($localId) )
 	    {
-	    	$query = "UPDATE {$this->prefix}orders SET to_housing = :to_housing, insalesuser_id = :insalesuser_id, comment = :comment, payment_variant = :payment_variant, type = :type, amount =:amount,
+	    	$query = "UPDATE {$this->prefix}orders SET insalesuser_id = :insalesuser_id, to_housing = :to_housing,  city_name = :city_name, comment = :comment,
+                      payment_variant = :payment_variant, type = :type, amount =:amount,
 	    			  to_city = :to_city,
 	    			  ddeliveryorder_id = :ddeliveryorder_id, delivery_company = :delivery_company,
 	    			  dimension_side1 = :dimension_side1, dimension_side2 = :dimension_side2,
@@ -328,13 +333,13 @@ class Order {
 	    }
 	    else 
 	    {
-	    	$query = "INSERT INTO {$this->prefix}orders ( to_housing, insalesuser_id,comment, payment_variant, type, amount, to_city, ddeliveryorder_id,
+	    	$query = "INSERT INTO {$this->prefix}orders ( insalesuser_id, to_housing, city_name, comment, payment_variant, type, amount, to_city, ddeliveryorder_id,
 	    			  delivery_company, dimension_side1,
                       dimension_side2, dimension_side3, confirmed, weight, declared_price,
 	    			  payment_price, to_name, to_phone, goods_description, to_flat, to_house,
 	    			  to_street, date, shop_refnum, products, local_status, dd_status,
 	    			  first_name, second_name, point)
-	                  VALUES( :to_housing, :insalesuser_id,:comment, :payment_variant, :type, :amount, :to_city, :ddeliveryorder_id, :delivery_company,
+	                  VALUES( :insalesuser_id, :to_housing, :city_name, :comment, :payment_variant, :type, :amount, :to_city, :ddeliveryorder_id, :delivery_company,
 	    			  :dimension_side1, :dimension_side2, :dimension_side3, :confirmed, :weight,
 	    			  :declared_price, :payment_price, :to_name, :to_phone, :goods_description,
 	    			  :to_flat, :to_house, :to_street,  :date, :shop_refnum, :products,
@@ -342,8 +347,9 @@ class Order {
 	    	$stmt = $this->pdo->prepare($query);
 	    }
 
-        $stmt->bindParam( ':to_housing', $toHousing  );
-        $stmt->bindParam( ':insalesuser_id', $insalesuser_id  );
+        $stmt->bindParam( ':insalesuser_id', $insalesuser_id );
+        $stmt->bindParam( ':to_housing', $toHousing );
+        $stmt->bindParam( ':city_name', $city_name  );
         $stmt->bindParam( ':comment', $comment  );
 	    $stmt->bindParam( ':payment_variant', $payment_variant  );
 	    $stmt->bindParam( ':type', $type );
@@ -373,18 +379,22 @@ class Order {
 	    $stmt->bindParam( ':first_name', $firstName );
 	    $stmt->bindParam( ':second_name', $secondName );
 	    $stmt->bindParam( ':point', $pointDB );
-	    $stmt->execute();
-	    //$this->pdo->commit();
-	    if( $wasUpdate )
-	    {
-	    	return $localId;
-	    }
-	    else
-	    {
-	    	return $this->pdo->lastInsertId();
-	    }
-	    
-	    
+
+	    if( $stmt->execute() ){
+            if( $wasUpdate )
+            {
+                return $localId;
+            }
+            else
+            {
+
+                return $this->pdo->lastInsertId();
+            }
+        }else{
+
+            throw  new DDeliveryException('Order not saved');
+        }
+
 	    
 	}
 	/**

@@ -16,6 +16,7 @@ try{
     $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
 }catch ( \DDelivery\DDeliveryException $e ){
     echo $e->getMessage();
+    $ddeliveryUI->logMessage($e);
 }
 
 

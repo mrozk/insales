@@ -45,26 +45,30 @@ class Controller_Orders extends Controller
                     if( $data->delivery_variant_id == $insales_user->delivery_variant_id  )
                     {
                         $settings = json_decode($insales_user->settings );
+                        try
+                        {
+                            $IntegratorShop = new IntegratorShop( $this->request, $settings );
+                            $ddeliveryUI = new DDeliveryUI( $IntegratorShop, true );
 
-                        $IntegratorShop = new IntegratorShop( $this->request, $settings );
-                        $ddeliveryUI = new DDeliveryUI( $IntegratorShop, true );
-
-                        $query = DB::select('id')->from('ddelivery_orders')->
-                                 where( 'insalesuser_id', '=', $user_id )->and_where('shop_refnum', '=', $data->number)->as_object()->execute();
-                        if( count($query) ){
-                            $orders = $ddeliveryUI->initOrder( array($query[0]->id) );
-                            if( count( $orders ) ){
-                                if( $IntegratorShop->isStatusToSendOrder( $data->fulfillment_status ) && $orders[0]->ddeliveryID == 0 ){
-                                    if($orders[0]->type == \DDelivery\Sdk\DDeliverySDK::TYPE_SELF)
-                                    {
-                                        $ddeliveryUI->createSelfOrder($orders[0]);
-                                    }
-                                    elseif( $orders[0]->type ==  \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER )
-                                    {
-                                        $ddeliveryUI->createCourierOrder($orders[0]);
+                            $query = DB::select('id')->from('ddelivery_orders')->
+                                     where( 'insalesuser_id', '=', $user_id )->and_where('shop_refnum', '=', $data->number)->as_object()->execute();
+                            if( count($query) ){
+                                $orders = $ddeliveryUI->initOrder( array($query[0]->id) );
+                                if( count( $orders ) ){
+                                    if( $IntegratorShop->isStatusToSendOrder( $data->fulfillment_status ) && $orders[0]->ddeliveryID == 0 ){
+                                        if($orders[0]->type == \DDelivery\Sdk\DDeliverySDK::TYPE_SELF)
+                                        {
+                                            $ddeliveryUI->createSelfOrder($orders[0]);
+                                        }
+                                        elseif( $orders[0]->type ==  \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER )
+                                        {
+                                            $ddeliveryUI->createCourierOrder($orders[0]);
+                                        }
                                     }
                                 }
                             }
+                        }catch (\DDelivery\DDeliveryException $e){
+                            $ddeliveryUI->logMessage($e);
                         }
                         //$ddeliveryUI->onCmsChangeStatus( $data->number, $data->fulfillment_status );
                     }

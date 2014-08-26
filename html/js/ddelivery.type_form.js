@@ -57,6 +57,7 @@ var TypeForm = (function () {
                 if (radio) {
                     DDeliveryIframe.ajaxPage({
                         type: radio,
+                        city_alias: $('.delivery-place__title input').val(),
                         city_id: $('input[name=ddelivery_city]').val()
                     });
                 }
@@ -67,7 +68,7 @@ var TypeForm = (function () {
                 $('.col4 span', table).css('visibility', 'hidden');
                 $('.col5 span', table).css('visibility', 'hidden');
                 $('.col4 img', table).show();
-                DDeliveryIframe.ajaxData({action: 'typeFormDataOnly', city_id: data.id}, function (data) {
+                DDeliveryIframe.ajaxData({action: 'typeFormDataOnly', city_id: data.id, city_alias: data.title}, function (data) {
                     $('.col4 span', table).css('visibility', 'inherit');
                     $('.col5 span', table).css('visibility', 'inherit');
                     $('.col4 img', table).hide();

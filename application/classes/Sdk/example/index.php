@@ -2,16 +2,11 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-        <script type="text/javascript" src="assets/jquery.the-modal.js"></script>
-        <link rel="stylesheet" type="text/css" href="assets/the-modal.css" media="all">
-        <link rel="stylesheet" type="text/css" href="assets/demo-modals.css" media="all">
     </head>
     <body>
         <script src="../html/js/ddelivery.js"></script>
 
-        <a href="javascript:void(0)" id="select_way" class="trigger">Выбрать способ доставки</a>
+        <a href="javascript:void(0)" id="select_way" class="trigger">Выбрать точку доставки</a>
 
         <script>
 
@@ -33,6 +28,7 @@
                     };
 
                     function hideCover() {
+
                         document.body.removeChild(document.getElementById('ddelivery_cover'));
                     }
 
@@ -50,9 +46,11 @@
                         var params = {
                             formData: {}
                         };
+                        /*
                         $($('#ORDER_FORM').serializeArray()).each(function(){
                             params.formData[this.name] = this.value;
                         });
+                        */
 
                         var callback = {
                             close: function(){
@@ -62,12 +60,10 @@
                             change: function(data) {
                                 status = data.comment;
                                 console.log(data);
-                                document.getElementById('ddelivery').getElementsByTagName('SPAN').innerHTML = data.comment;
-
                                 hideCover();
                                 document.getElementById('ddelivery_container').style.display = 'none';
 
-                                $('#ID_DELIVERY_ddelivery_all').click();
+                                //$('#ID_DELIVERY_ddelivery_all').click();
                             }
                         };
 
@@ -85,7 +81,7 @@
                     var body = document.getElementsByTagName('body')[0];
                     body.appendChild(style);
                     var div = document.createElement('div');
-                    div.innerHTML = '<div id="ddelivery_popup"></div>';
+                    div.innerHTML = '<div id="ddelivery_popup">xxxx</div>';
                     div.id = 'ddelivery_container';
                     body.appendChild(div);
 
@@ -100,5 +96,6 @@
              courierChange: function(data) {}
              */
         </script>
+
     </body>
 </html>
