@@ -40,9 +40,7 @@ if(typeof(topWindow.DDeliveryProtocolManager) == 'undefined')
 
                    if( data.items_count > 0 ){
                        $.each( data.order_lines,function( key,value ){
-                           //product = { id:value.product_id, title : value.title, quantity:value.quantity, product_field_values:{}};
-                           //productList[value.product_id] = product;
-                           productIdsString += ( value.product_id + ':' + value.quantity + ',' );
+                           productIdsString += ( value.product_id + ':' + value.quantity + '(_)' + value.sku  +',' );
                        });
                    }
                 }
@@ -156,6 +154,7 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
                 }
             };
             order_form = $('#order_form').serializeArray();
+            console.log(order_form);
             params =  {};
             params.client_name = $('#client_name').val();
             params.client_phone = $('#client_phone').val();
@@ -164,6 +163,7 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
 
             url = ddelivery_insales.url + "sdk/?token=" + DDeliveryProtocolManager.token + "&items=" + DDeliveryProtocolManager.getProductString()
                   + "&" + parametrs + "&" + order_form ;
+            console.log(DDeliveryProtocolManager.getProductString());
             DDelivery.delivery('ddelivery_popup', url, {}, callback);
 
         };

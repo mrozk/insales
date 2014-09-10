@@ -46,9 +46,7 @@ class Controller_Control extends Controller {
         $insales_user = ORM::factory('InsalesUser', array( 'insales_id' => $insales_id, 'passwd' => $token ));
         if( $insales_user->loaded() )
         {
-            $insales_user->usersetting->delete();
             $insales_user->delete();
-
         }
     }
 } 

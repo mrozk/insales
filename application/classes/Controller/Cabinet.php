@@ -67,7 +67,8 @@ class Controller_Cabinet extends  Controller_Base{
                     'shag' => $this->request->post('shag'),
                     'zabor' => $this->request->post('zabor'),
                     'payment' => $this->request->post('payment'),
-                    'address' => $this->request->post('address')
+                    'address' => $this->request->post('address'),
+                    'theme' => $this->request->post('theme')
         ));
 
 
@@ -497,8 +498,7 @@ class Controller_Cabinet extends  Controller_Base{
         return $options;
     }
 
-    public function getFields( $passwd, $shop )
-    {
+    public function getFields( $passwd, $shop ){
         $options = array();
         $insales_api =  new InsalesApi($passwd, $shop );
         /*
@@ -529,20 +529,15 @@ class Controller_Cabinet extends  Controller_Base{
         echo $insales_id;
 
         $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insales_id));
-        if( $insales_user->loaded() )
-        {
-            if( $insales_token == md5( $token . $insales_user->passwd ) )
-            {
+        if( $insales_user->loaded() ){
+            if( $insales_token == md5( $token . $insales_user->passwd ) ){
                 $session->set('insalesuser', $insales_id);
                 $this->redirect( URL::base( $this->request ) . 'cabinet/' );
             }
-            else
-            {
+            else{
                 echo 'Invalid token';
             }
-        }
-        else
-        {
+        }else{
             echo 'shop no found';
         }
 

@@ -55,9 +55,10 @@ class IntegratorShop2 extends \DDelivery\Adapter\PluginFilters
             0.5,	//	float $weight вес кг
             1000,	//	float $price стоимостьв рублях
             1,	//	int $quantity количество товара
-            'Веселый клоун'	//	string $name Название вещи
+            'Веселый клоун',	//	string $name Название вещи,
+            'xxxx'
         );
-        $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'Грустный клоун');
+        $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'Грустный клоун', 'xxx');
         return $products;
     }
 
@@ -119,15 +120,7 @@ class IntegratorShop2 extends \DDelivery\Adapter\PluginFilters
      * @param bool $customPoint Если true, то заказ обрабатывается магазином
      * @return void
      */
-    public function onFinishChange($orderId, \DDelivery\Order\DDeliveryOrder $order, $customPoint)
-    {
-        if($customPoint){
-            // Это условие говорит о том что нужно обрабатывать заказ средствами CMS
-        }else{
-            // Запомни id заказа
-        }
-
-    }
+    public function onFinishChange($order){}
     /**
      * Настройки базы данных
      * @return array
@@ -313,9 +306,7 @@ class IntegratorShop2 extends \DDelivery\Adapter\PluginFilters
     /**
      * Если необходимо фильтрует пункты самовывоза и добавляет новые
      *
-     * @param \DDelivery\Point\DDeliveryPointSelf[] $selfPoints
      * @param DDeliveryOrder $order
-     * @return \DDelivery\Point\DDeliveryPointSelf[]
      */
     public function filterPointsSelf($selfPoints, DDeliveryOrder $order)
     {

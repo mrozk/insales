@@ -104,7 +104,7 @@ if (isset($_SERVER['KOHANA_ENV']))
  */
 Kohana::init(array(
     'base_url'   => '/',
-    'errors'=>true,
+    'errors'=>false,
 ));
 /*
 Kohana::init(array(

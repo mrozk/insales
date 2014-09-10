@@ -8,9 +8,6 @@ include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop2.php');
 
 class Controller_Sdk extends Controller
 {
-
-
-
     public function get_request_state( $name )
     {
         $session = Session::instance();
@@ -78,17 +75,17 @@ class Controller_Sdk extends Controller
                             </delivery-variant>';
     }
     public function action_orderinfo(){
-        $order = $this->request->query('order');
+        $order = (int)$this->request->query('order');
 
         try{
             $IntegratorShop = new IntegratorShop2();
             $ddeliveryUI = new DDeliveryUI($IntegratorShop,true);
 
-            $orders = $ddeliveryUI->initOrder(array($order));
+            $order = $ddeliveryUI->initOrder($order);
 
-            if( count($orders) ){
-                $answer = (($orders[0]->ddeliveryID == 0)?'Заявка на DDelivery не отправлена':'Номер заявки на DDelivery - ' . $orders[0]->ddeliveryID );
-                echo "set_data({'ID заказа -" . $orders[0]->shopRefnum . "':'" . $answer . "'});";
+            if( $order->localId ){
+                $answer = (($order->ddeliveryID == 0)?'Заявка на DDelivery не отправлена':'Номер заявки на DDelivery - ' . $order->ddeliveryID );
+                echo "set_data({'ID заказа -" . $order->shopRefnum . "':'" . $answer . "'});";
             }
         }catch (\DDeliveryException $e){
             $ddeliveryUI->logMessage($e);
@@ -295,15 +292,20 @@ class Controller_Sdk extends Controller
     public function getItemsFromInsales( $url, $ids, $settings ){
         $idsArray = array();
         $quantArray = array();
+        $skuArray = array();
         $result_products = array();
+
         $ids = explode( ',', $ids );
+
         if( count( $ids ) ){
             foreach( $ids as $oneItem ){
                 if( !empty($oneItem) ){
                     $tempStr = explode(':', $oneItem);
 
                     $idsArray[] = $tempStr[0];
-                    $quantArray[$tempStr[0]] = $tempStr[1];
+                    $skuAndQa = explode('(_)', $tempStr[1]);
+                    $quantArray[$tempStr[0]] = (int)$skuAndQa[0];
+                    $skuArray[$tempStr[0]] = $skuAndQa[1];
                 }
             }
 
@@ -341,7 +343,7 @@ class Controller_Sdk extends Controller
                     $item['title'] = $items->products[$i]->title;
                     $item['price'] = $items->products[$i]->variants[0]->price;
                     $item['quantity'] = $quantArray[$item['id']];
-
+                    $item['sku'] = $skuArray[$item['id']];
                     $result_products[] = $item;
 
                 }
@@ -349,10 +351,15 @@ class Controller_Sdk extends Controller
         }
         return $result_products;
     }
-    public function action_index()
-    {
+    public function action_index(){
          $token = $this->request->query('token');
          $items = $this->request->query('items');
+
+        /*
+        echo $this->request->query('client_name');
+        print_r($this->request);
+        exit();
+
          $client_name = $this->get_request_state('client_name');
          $client_phone = $this->get_request_state('client_phone');
          $shipping_address = $this->get_request_state('shipping_address');
@@ -360,7 +367,7 @@ class Controller_Sdk extends Controller
          $this->request->query('shipping_address', $shipping_address);
          $this->request->query('client_name',$client_name);
          $this->request->query('client_phone',$client_phone);
-
+            */
 
          $has_token = MemController::getMemcacheInstance()->get( 'card_' . $token );
 
@@ -375,159 +382,16 @@ class Controller_Sdk extends Controller
                  MemController::getMemcacheInstance()->set( 'card_' . $token, json_encode( $info ), 0, 1200  );
              }
 
-             try
-             {
+             try{
                  $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator, $info );
                  $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
                  $order = $ddeliveryUI->getOrder();
-                 $order->insalesuser_id = $settingsToIntegrator->insalesuser_id;
+                 $order->addField1 = $settingsToIntegrator->insalesuser_id;
                  $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
              }
              catch( \DDelivery\DDeliveryException $e ){
                  $ddeliveryUI->logMessage($e);
              }
          }
-         /*
-         $memcache = new Memcache;
-         $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
-
-         $has_token = $memcache->get( 'card_' . $token );
-            if($has_token){
-                if( isset($_SERVER["HTTP_REFERER"]) ){
-                    $parse = parse_url( $_SERVER["HTTP_REFERER"] );
-                    if(isset( $parse['host'] )){
-                        $memcache = new Memcache;
-                        $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
-                        $settings = $memcache->get($parse['host']);
-                        if( empty ( $settings ) ){
-                            $query = DB::select( 'settings', 'shop')->from('insalesusers')->
-                                where( 'shop', '=', $parse['host'] )->as_object()->execute();
-                            if( isset( $query[0]->shop ) && !empty( $query[0]->shop ) ){
-                                $memcache->set( $query[0]->shop, $query[0]->settings );
-                                $settings = $query[0]->settings;
-                            }
-                        }
-                        $settingsToIntegrator = json_decode($settings);
-
-                        $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator,
-                                                              $parse['scheme'] . '://' . $parse['host']  );
-                        print_r($IntegratorShop);
-
-                        echo $settingsToIntegrator;
-                    }
-                }
-                */
-                /*
-                if( isset($_SERVER["HTTP_REFERER"]) ){
-                    $parse = parse_url( $_SERVER["HTTP_REFERER"] );
-                    if(isset( $parse['host'] )){
-                        $memcache = new Memcache;
-                        $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
-                        $settings = $memcache->get($parse['host']);
-                        if( empty ( $settings ) ){
-                            $query = DB::select( 'settings', 'shop')->from('insalesusers')->
-                                where( 'shop', '=', $parse['host'] )->as_object()->execute();
-                            if( isset( $query[0]->shop ) && !empty( $query[0]->shop ) ){
-                                $memcache->set( $query[0]->shop, $query[0]->settings );
-                                $settings = $query[0]->settings;
-                            }
-                        }
-                        try
-                        {
-                            $settingsToIntegrator = json_decode($settings);
-                            $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator,
-                                              $parse['scheme'] . '://' . $parse['host']  );
-                            $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-                            $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
-                        }
-                        catch( \DDelivery\DDeliveryException $e )
-                        {
-                            //$ddeliveryUI->logMessage($e);
-                            return;
-                        }
-                        catch ( \Exception $e ){
-                            echo $e->getMessage();
-                            //$ddeliveryUI->logMessage($e);
-                            return;
-                        }
-
-                    }
-                }
-
-
-
-            */
-        /*
-            }else{
-                echo 'Fuck you';
-            }
-        */
-            /*
-            $session = Session::instance();
-            $pos = $session->get('card_' . $token);
-            $IntegratorShop = new IntegratorShop2(  );
-            $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-            $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
-            */
-            /*
-            $uid = (int)$this->get_request_state('insales_id');
-            //$uid = 28;
-            if( !$uid )
-            {
-                echo 'bad request';
-                return;
-                $IntegratorShop = new IntegratorShop2();
-                $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-                echo 'bad request';
-            }
-            else
-            {
-                if( $this->request->query('insales_id')){
-                    $session = Session::instance();
-                    $session->set('client_name', '');
-                    $session->set('client_phone', '');
-                    $session->set('shipping_address', '');
-                }
-
-                $client_name = $this->get_request_state('client_name');
-                $client_phone = $this->get_request_state('client_phone');
-                $shipping_address = $this->get_request_state('shipping_address');
-
-                $this->request->query('shipping_address', $shipping_address);
-                $this->request->query('client_name',$client_name);
-                $this->request->query('client_phone',$client_phone);
-
-                $IntegratorShop = new IntegratorShop( $this->request, $uid );
-                $ddeliveryUI = new DDeliveryUI($IntegratorShop);
-                //$this->request->query('pr', '27913632_2%2C-25200');
-
-                $order = $ddeliveryUI->getOrder();
-                $order->insalesuser_id = $uid;
-
-            }
-
-
-            $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
-            //echo '</pre>';
-            */
-
-
-        /*
-        $order->city = 151185;
-        $session = Session::instance();
-        $cart = $session->get('cart');
-        print_r( $cart );
-        */
-        //print_r( $ddeliveryUI->getCourierPointsForCity($order) );
-        //print_r($ddeliveryUI->getSelfPoints( $order ));
-
-        //$ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
-        //$order = $ddeliveryUI->getOrder();
-        //$order->city =
-        //$ddeliveryUI->getSelfPoints();
-        //echo json_encode(array('komoro'));
-        // В зависимости от параметров может выводить полноценный html или json
-        //$ddelivery    UI->render(isset($_REQUEST) ? $_REQUEST : array());
-        //echo strlen('{"comment":"","delivery_date":null,"delivery_description":"DDelivery (DDelivery)","delivery_from_hour":null,"delivery_price":0.0,"delivery_title":"DDelivery","delivery_to_hour":null,"number":null,"payment_description":null,"payment_title":null,"items_count":1,"items_price":12600.0,"order_lines":[{"added_at":1,"product_id":27913632,"quantity":1,"sku":null,"title":"Samsung Galaxy Tab 2 7.0 P3100 8Gb","variant_id":42474764,"weight":null,"image_url":"http://static2.insales.ru/images/products/1/5271/32822423/thumb_i_2_.jpg","sale_price":12600.0}],"discounts":[],"total_price":12600.0}') ;
     }
 }

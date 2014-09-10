@@ -7,13 +7,11 @@ include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop.php');
 
 class Controller_Orders extends Controller
 {
-    public function action_index()
-    {
+    public function action_index(){
         echo Kohana::VERSION ;
     }
 
-    public function action_update()
-    {
+    public function action_update(){
         if (!isset($HTTP_RAW_POST_DATA))
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
         /*
@@ -22,47 +20,37 @@ class Controller_Orders extends Controller
         */
             $data = json_decode( $HTTP_RAW_POST_DATA );
 
-            if( count( $data->fields_values ) )
-            {
-                foreach( $data->fields_values as $item )
-                {
-                    if ( $item->name == 'ddelivery_id' && !empty( $item->value ))
-                    {
+            if( count( $data->fields_values ) ){
+                foreach( $data->fields_values as $item ){
+                    if ( $item->name == 'ddelivery_id' && !empty( $item->value )){
                         $ddelivery_id = (int) $item->value;
                     }
-                    if ( $item->name == 'ddelivery_insales' && !empty( $item->value ))
-                    {
+                    if ( $item->name == 'ddelivery_insales' && !empty( $item->value )){
                         $user_id = (int)$item->value;
                     }
                 }
             }
 
-            if( $ddelivery_id && $user_id )
-            {
+            if( $ddelivery_id && $user_id ){
                 $insales_user = ORM::factory('InsalesUser', array('id' => $user_id));
-                if($insales_user->loaded())
-                {
-                    if( $data->delivery_variant_id == $insales_user->delivery_variant_id  )
-                    {
+                if($insales_user->loaded()){
+                    if( $data->delivery_variant_id == $insales_user->delivery_variant_id  ){
                         $settings = json_decode($insales_user->settings );
-                        try
-                        {
+                        try{
                             $IntegratorShop = new IntegratorShop( $this->request, $settings );
                             $ddeliveryUI = new DDeliveryUI( $IntegratorShop, true );
 
                             $query = DB::select('id')->from('ddelivery_orders')->
-                                     where( 'insalesuser_id', '=', $user_id )->and_where('shop_refnum', '=', $data->number)->as_object()->execute();
+                                     where( 'add_field1', '=', $user_id )->and_where('shop_refnum', '=', $data->number)->as_object()->execute();
                             if( count($query) ){
-                                $orders = $ddeliveryUI->initOrder( array($query[0]->id) );
-                                if( count( $orders ) ){
-                                    if( $IntegratorShop->isStatusToSendOrder( $data->fulfillment_status ) && $orders[0]->ddeliveryID == 0 ){
-                                        if($orders[0]->type == \DDelivery\Sdk\DDeliverySDK::TYPE_SELF)
-                                        {
-                                            $ddeliveryUI->createSelfOrder($orders[0]);
+                                $order = $ddeliveryUI->initOrder( $query[0]->id );
+                                if( $order->localId ){
+                                    if( $IntegratorShop->isStatusToSendOrder( $data->fulfillment_status ) && $order->ddeliveryID == 0 ){
+                                        if($order->type == \DDelivery\Sdk\DDeliverySDK::TYPE_SELF){
+                                            $ddeliveryUI->createSelfOrder($order);
                                         }
-                                        elseif( $orders[0]->type ==  \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER )
-                                        {
-                                            $ddeliveryUI->createCourierOrder($orders[0]);
+                                        elseif( $order->type ==  \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER ){
+                                            $ddeliveryUI->createCourierOrder($order);
                                         }
                                     }
                                 }
@@ -70,7 +58,6 @@ class Controller_Orders extends Controller
                         }catch (\DDelivery\DDeliveryException $e){
                             $ddeliveryUI->logMessage($e);
                         }
-                        //$ddeliveryUI->onCmsChangeStatus( $data->number, $data->fulfillment_status );
                     }
                 }
             }
@@ -78,8 +65,7 @@ class Controller_Orders extends Controller
 
     }
 
-    public function action_create()
-    {
+    public function action_create(){
         if (!isset($HTTP_RAW_POST_DATA))
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
 
@@ -87,30 +73,22 @@ class Controller_Orders extends Controller
 
         $data = json_decode( $HTTP_RAW_POST_DATA );
 
-        if( count( $data->fields_values ) )
-        {
+        if( count( $data->fields_values ) ){
 
-            foreach( $data->fields_values as $item )
-            {
-                if ( $item->name == 'ddelivery_id' && !empty( $item->value ))
-                {
+            foreach( $data->fields_values as $item ){
+                if ( $item->name == 'ddelivery_id' && !empty( $item->value )){
                     $ddelivery_id = (int) $item->value;
                 }
-                if ( $item->name == 'ddelivery_insales' && !empty( $item->value ))
-                {
+                if ( $item->name == 'ddelivery_insales' && !empty( $item->value )){
                     $user_id = (int)$item->value;
                 }
             }
 
-            if( $ddelivery_id && $user_id )
-            {
+            if( $ddelivery_id && $user_id ){
                 $insales_user = ORM::factory('InsalesUser', array('id' => $user_id));
-                if($insales_user->loaded())
-                {
-                    if( $data->delivery_variant_id == $insales_user->delivery_variant_id )
-                    {
-                        try
-                        {
+                if($insales_user->loaded()){
+                    if( $data->delivery_variant_id == $insales_user->delivery_variant_id ){
+                        try{
                             $settings = json_decode($insales_user->settings );
                             $IntegratorShop = new IntegratorShop( $this->request, $settings );
 
@@ -118,8 +96,7 @@ class Controller_Orders extends Controller
                             $ddeliveryUI->onCmsOrderFinish( $ddelivery_id, $data->number,
                                           $data->fulfillment_status, $data->payment_gateway_id );
                         }
-                        catch( \DDelivery\DDeliveryException $e )
-                        {
+                        catch( \DDelivery\DDeliveryException $e ){
 
                             $ddeliveryUI->logMessage($e);
                             return;
@@ -129,51 +106,12 @@ class Controller_Orders extends Controller
 
             }
         }
-        /*
-        $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
-            ->values( array( $HTTP_RAW_POST_DATA, "asdsd") )->execute();
 
-
-
-        if( $data->delivery_variant_id == 221842 )
-        {
-            foreach( $data->fields_values as $item )
-            {
-                if ( $item->name == 'ddelivery_id' && !empty( $item->value ))
-                {
-                    try
-                    {
-                        $IntegratorShop = new IntegratorShop( $this->request, 136789 );
-                        $ddeliveryUI = new DDeliveryUI($IntegratorShop, true);
-                        $ddeliveryUI->onCmsOrderFinish( $item->value, $data->order_lines[0]->order_id,
-                                                        $data->fulfillment_status, $data->payment_gateway_id );
-                    }
-                    catch( \DDelivery\DDeliveryException $e )
-                    {
-                        echo $e->getMessage();
-                        return;
-                    }
-                    $mag_id = (int)$this->request->query('mag_id');
-                    $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
-                            ->values( array( $mag_id, "asdsd") )->execute();
-
-                }
-            }
-        }
-        */
-        /*
-        $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
-            ->values(array($HTTP_RAW_POST_DATA, "asdsd"))->execute();
-        */
         return $HTTP_RAW_POST_DATA;
 
     }
 
-    public function action_get()
-    {
-        //$query = DB::select()->from('ordddd')->as_object()->execute();
-        //print_r($query);
-
+    public function action_get(){
         $query = DB::query(Database::SELECT, 'SELECT * FROM ordddd WHERE id =451');
         //$query->param(':user', 'john');
         $query->as_object();

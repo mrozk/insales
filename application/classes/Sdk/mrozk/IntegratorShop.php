@@ -91,6 +91,11 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         if( !empty( $this->settings->address['flat'] ) ){
             $resultArray['flat'] = $this->settings->address['flat'];
         }
+        if( !empty( $order->cityName ) ){
+            $resultArray['city_name'] = $order->cityName;
+        }else{
+            $resultArray['city_name'] = $order->cityName;
+        }
         return $resultArray;
     }
     /**
@@ -109,106 +114,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         }
         //return true;
     }
-    /*
-    private function _parseCart( $cart )
-    {
-        $result_products = array();
-        $products = array();
-        $product_count = array();
-        // Раскрываем строку с продуктами и общей стоимостью
-        $pieces = explode('-', $cart);
-        $pieces[0] = substr($pieces[0], 0, strlen($pieces[0]) - 1);
-        // Раскрываем строку с продуктами и количеством
-        $parts = explode(',', trim( $pieces[0] ));
-        //print_r($parts);
-        if( count($parts) )
-        {
-            /// print_r($parts);
-            foreach($parts as $item)
-            {
-                $elems = explode('_', $item);
-                $product_count[] = $elems[1];
-                $products[] = $elems[0];
-            }
 
-            $prods = implode(',', $products);
-            $prod_detail = file_get_contents('http://' . $this->shop_url . '/products_by_id/'.
-                                             $prods .'.json');
-
-            $prods = json_decode($prod_detail);
-            //print_r($prods);
-            if( count( $prods->products) )
-            {
-                for( $i = 0; $i < count( $prods->products); $i++ )
-                {
-
-                    $item = array();
-
-                    $item['width'] = $this->getOptionValue($prods->products[$i]->product_field_values,
-                                                           $this->settings->width);
-                    $item['height'] = $this->getOptionValue($prods->products[$i]->product_field_values,
-                                                            $this->settings->height);
-                    $item['length'] = $this->getOptionValue($prods->products[$i]->product_field_values,
-                                                            $this->settings->length);
-
-                    $item['weight'] = $prods->products[$i]->variants[0]->weight;
-
-                    $item['width'] =  (int) $this->getDefault($item['width'], $this->settings->plan_width);
-                    $item['height'] = (int) $this->getDefault($item['height'], $this->settings->plan_height);
-                    $item['length'] = (int) $this->getDefault($item['length'], $this->settings->plan_lenght);
-                    $item['weight'] = (float) $this->getDefault($item['weight'], $this->settings->plan_weight);
-
-                    if( !$item['width'] )
-                        $item['width'] = $this->settings->plan_width;
-                    if( !$item['height'] )
-                        $item['height'] = $this->settings->plan_height;
-                    if( !$item['length'] )
-                        $item['length'] = $this->settings->plan_lenght;
-                    if( !$item['weight'] )
-                        $item['weight'] = $this->settings->plan_weight;
-
-                    //echo $item['width'];
-
-                    //$item['width'] = $prods->products[$i]->variants[0]->option_values
-                    $item['id'] = $prods->products[$i]->id;
-                    $item['title'] = $prods->products[$i]->title;
-                    $item['price'] = $prods->products[$i]->variants[0]->price;
-                    $item['quantity'] = $product_count[$i];
-
-                    $result_products[] = $item;
-                }
-            }
-
-        }
-
-        return $result_products;
-    }
-    */
-    /*
-    // Получаем нужное значение из массива свойств
-    public function getOptionValue( $option_list, $needle )
-    {
-        if( count($option_list) )
-        {
-            foreach( $option_list as $item )
-            {
-                if( $needle == $item->product_field_id  )
-                {
-                    return $item->value;
-                }
-            }
-        }
-        return null;
-
-    }
-    */
-    /*
-    // Нулячие значения заменяем дефолтными
-    public function getDefault( $value, $default )
-    {
-        return ((empty($value))?$default:$value);
-    }
-    */
     /**
      * Возвращает товары находящиеся в корзине пользователя, будет вызван один раз, затем закеширован
      * @return DDeliveryProduct[]
@@ -226,51 +132,14 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                     $product['weight'],	//	float $weight вес кг
                     $product['price'],	//	float $price стоимостьв рублях
                     $product['quantity'],	//	int $quantity количество товара
-                    $product['title']	//	string $name Название вещи
+                    $product['title'],
+                    $product['sku']	//	string $name Название вещи
                 );
             }
         }
 
         return $products;
-    /*
-        $pr = $this->request->query('pr');
 
-        $session = Session::instance();
-        $cart = $session->get('cart');
-
-        if( empty( $pr ) && !empty( $cart ) )
-        {
-            $cart_content = unserialize( $cart );
-        }
-        else if( ! empty( $pr ) )
-        {
-            $cart_content = $this->_parseCart( $pr );
-            $session->set('cart', serialize( $cart_content ) );
-        }
-        else
-        {
-            return array();
-        }
-        $products = array();
-        if( count($cart_content) )
-        {
-            foreach( $cart_content as $item )
-            {
-                $products[] = new DDeliveryProduct(
-                    $item['id'],	//	int $id id товара в системе и-нет магазина
-                    $item['width'],	//	float $width длинна
-                    $item['height'],	//	float $height высота
-                    $item['length'],	//	float $length ширина
-                    $item['weight'],	//	float $weight вес кг
-                    $item['price'],	//	float $price стоимостьв рублях
-                    $item['quantity'],	//	int $quantity количество товара
-                    $item['title']	//	string $name Название вещи
-                );
-            }
-        }
-
-        return $products;
-    */
     }
 
     /**
@@ -336,10 +205,14 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * URL до скрипта где вызывается DDelivery::render
      * @return string
      */
-    public function getPhpScriptURL()
-    {
+    public function getPhpScriptURL(){
+        $url = array();
+        $url['client_name'] = $this->request->query('client_name');
+        $url['client_phone'] = $this->request->query('client_phone');
+        $url['token'] = $this->request->query('token');
+        $url['shipping_address'] = $this->request->query('shipping_address');
         // Тоесть до этого файла
-        return URL::base( $this->request ) . 'sdk/?token=' . $this->request->query('token');
+        return URL::base( $this->request ) . 'sdk/?' . http_build_query($url);
     }
 
     /**
@@ -354,18 +227,11 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     /**
      * Метод будет вызван когда пользователь закончит выбор способа доставки
      *
-     * @param int $orderId
      * @param \DDelivery\Order\DDeliveryOrder $order
-     * @param bool $customPoint Если true, то заказ обрабатывается магазином
      * @return void
      */
-    public function onFinishChange($orderId, \DDelivery\Order\DDeliveryOrder $order, $customPoint)
+    public function onFinishChange($order)
     {
-        if($customPoint){
-            // Это условие говорит о том что нужно обрабатывать заказ средствами CMS
-        }else{
-            // Запомни id заказа
-        }
 
     }
 
@@ -490,14 +356,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                                'type' => (int)$this->settings->val3, 'amount' => $this->settings->sum3);
         }
         return array($interval1, $interval2, $interval3);
-        /*
-        return array(
-            array('min' => 0, 'max'=>100, 'type'=>self::INTERVAL_RULES_MARKET_AMOUNT, 'amount'=>30),
-            array('min' => 100, 'max'=>200, 'type'=>self::INTERVAL_RULES_CLIENT_ALL, 'amount'=>60),
-            array('min' => 300, 'max'=>400, 'type'=>self::INTERVAL_RULES_MARKET_PERCENT, 'amount'=>3),
-            array('min' => 1000, 'max'=>null, 'type'=>self::INTERVAL_RULES_MARKET_ALL),
-        );
-        */
+
     }
 
     /**
@@ -526,8 +385,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     {
         //return 0.5;
 
-        if( !empty ( $this->settings->shag ) )
-        {
+        if( !empty ( $this->settings->shag ) ){
             return $this->settings->shag; // До 50 копеек
         }
         else
@@ -654,6 +512,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getCourierRequiredFields()
     {
+        return 0;
+        /*
         // ВВести все обязательно, кроме корпуса
         return self::FIELD_EDIT_FIRST_NAME | self::FIELD_REQUIRED_FIRST_NAME
         | self::FIELD_EDIT_PHONE | self::FIELD_REQUIRED_PHONE
@@ -661,6 +521,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         | self::FIELD_EDIT_ADDRESS_HOUSE | self::FIELD_REQUIRED_ADDRESS_HOUSE
         | self::FIELD_EDIT_ADDRESS_HOUSING
         | self::FIELD_EDIT_ADDRESS_FLAT | self::FIELD_REQUIRED_ADDRESS_FLAT;
+        */
     }
 
     /**
@@ -671,9 +532,12 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getSelfRequiredFields()
     {
+        return 0;
+        /*
         // Имя, фамилия, мобилка
         return self::FIELD_EDIT_FIRST_NAME | self::FIELD_REQUIRED_FIRST_NAME
         | self::FIELD_EDIT_PHONE | self::FIELD_REQUIRED_PHONE;
+        */
     }
 
     /**
@@ -710,6 +574,48 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
             );
         */
 
+    }
+
+
+    /**
+     *
+     * Тип кеширования, для централизированого подхода и для индивидуального решения
+     * разные
+     *
+     * @return string
+     */
+    public function getCachingFormat(){
+        // return DShopAdapter::CACHING_TYPE_CENTRAL;
+        return \DDelivery\Adapter\DShopAdapter::CACHING_TYPE_CENTRAL;
+        return DShopAdapter::CACHING_TYPE_CENTRAL;
+    }
+
+    /**
+     * Получить доступные способы оплаты для Самовывоза ( можно анализировать содержимое order )
+     * @param $order DDeliveryOrder
+     * @return array
+     */
+    public function getSelfPaymentVariants( $order ){
+        return array();
+    }
+
+    /**
+     * Получить доступные способы оплаты для курьера ( можно анализировать содержимое order )
+     * @param $order DDeliveryOrder
+     * @return array
+     */
+    public function getCourierPaymentVariants( $order ){
+        return array();
+    }
+
+
+    /**
+     * Получить название шаблона для сдк ( разные цветовые схемы )
+     *
+     * @return string
+     */
+    public function getTemplate(){
+        return $this->settings->theme;
     }
 
 
