@@ -9,17 +9,13 @@ class Controller_Admin_Auth extends Controller_Base
     /**
      * User Login Action
      */
+    public function action_login(){
 
-
-
-    public function action_login()
-    {
         // init errors array
         $errors = array();
         $this->template->set('content', View::factory('admin/login') );
         // check request method
-        if ($this->request->method() == Request::POST)
-        {
+        if ( $this->request->method() == Request::POST ){
             // validate user data
             $post = Validation::factory($this->request->post())
                     ->rule('login', 'not_empty')
@@ -29,8 +25,7 @@ class Controller_Admin_Auth extends Controller_Base
                             'password' => 'Password',
                             ));
             // if data valid
-            if ($post->check())
-            {
+            if ($post->check()){
                 // try login user
                 if (Auth::instance()->login($post['login'], $post['password'], false))
                 {
@@ -50,34 +45,30 @@ class Controller_Admin_Auth extends Controller_Base
         Auth::instance()->logout(TRUE, TRUE);
 
         // redirect
-        $this->redirect('/');
+        $this->redirect('/admin');
     }
 
     /**
      * User Initialize Action
      */
-    public function action_init()
-    {
+    public function action_init(){
         // find current admin user
         $user = ORM::factory('User', array('username' => 'admin'));
 
         // if user not founded
-        if ($user->loaded() === FALSE)
-        {
+        if ($user->loaded() === FALSE){
             // create new admin user
             $user->values(array(
                     'username' => 'admin',
-                    'password' => 'admin',
-                    'email' => 'admin@cyberapp.ru',
+                    'password' => 'bandura2013',
+                    'email' => 'mrozk2012@gmail.com',
                 ))->save();
 
             // add roles for admin user
             $user->add('roles', ORM::factory('Role', array('name' => 'login')));
             $user->add('roles', ORM::factory('Role', array('name' => 'admin')));
-
             // user message
             $this->template->set('content', '<h1>Done!</h1>');
-
             // exit
             return ;
         }

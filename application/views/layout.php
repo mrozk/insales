@@ -38,7 +38,6 @@
 
 <body>
 
-
 <?php echo isset($content) ? $content : '' ?>
 
 <!-- JS Code -->

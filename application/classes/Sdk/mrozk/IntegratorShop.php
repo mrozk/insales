@@ -211,6 +211,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         $url['client_phone'] = $this->request->query('client_phone');
         $url['token'] = $this->request->query('token');
         $url['shipping_address'] = $this->request->query('shipping_address');
+        $url['type_of_window'] = $this->request->query('type_of_window');
+
         // Тоесть до этого файла
         return URL::base( $this->request ) . 'sdk/?' . http_build_query($url);
     }
@@ -338,19 +340,19 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         $interval2 = array();
         $interval3 = array();
         //$interval4 = array();
-        if( ( isset( $this->settings->from1 ) ) && ( isset( $this->settings->to1 ) ) && ( isset( $this->settings->sum1 ) ) )
+        if( ( isset( $this->settings->from1 ) && !empty($this->settings->from1) ) && ( isset( $this->settings->to1 ) && !empty($this->settings->to1)  ) && ( isset( $this->settings->sum1 ) ) )
         {
             $interval1 = array('min' => $this->settings->from1, 'max' => $this->settings->to1,
                                'type' => (int)$this->settings->val1, 'amount' => $this->settings->sum1);
         }
 
-        if( ( isset( $this->settings->from2 ) ) && ( isset( $this->settings->to2 ) ) && ( isset( $this->settings->sum2 ) ) )
+        if( ( isset( $this->settings->from2 ) && !empty($this->settings->from2) ) && ( isset( $this->settings->to2 ) && !empty($this->settings->to2) ) && ( isset( $this->settings->sum2 ) ) )
         {
             $interval2 = array('min' => $this->settings->from2, 'max' => $this->settings->to2,
                                'type' => (int)$this->settings->val2, 'amount' => $this->settings->sum2);
         }
 
-        if( ( isset( $this->settings->from3 ) ) && ( isset( $this->settings->to3 ) ) && ( isset( $this->settings->sum3 ) ) )
+        if( ( isset( $this->settings->from3 ) && !empty($this->settings->from3) ) && ( isset( $this->settings->to3 ) && !empty($this->settings->to3) ) && ( isset( $this->settings->sum3 ) ) )
         {
             $interval3 = array('min' => $this->settings->from3, 'max' => $this->settings->to3,
                                'type' => (int)$this->settings->val3, 'amount' => $this->settings->sum3);
@@ -512,7 +514,17 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getCourierRequiredFields()
     {
-        return 0;
+        if( $this->settings->form == '0'){
+            return    self::FIELD_EDIT_FIRST_NAME | self::FIELD_REQUIRED_FIRST_NAME
+                    | self::FIELD_EDIT_PHONE | self::FIELD_REQUIRED_PHONE
+                    | self::FIELD_EDIT_ADDRESS | self::FIELD_REQUIRED_ADDRESS
+                    | self::FIELD_EDIT_ADDRESS_HOUSE | self::FIELD_REQUIRED_ADDRESS_HOUSE
+                    | self::FIELD_EDIT_ADDRESS_HOUSING
+                    | self::FIELD_EDIT_ADDRESS_FLAT | self::FIELD_REQUIRED_ADDRESS_FLAT;
+        }else{
+            return 0;
+        }
+
         /*
         // ВВести все обязательно, кроме корпуса
         return self::FIELD_EDIT_FIRST_NAME | self::FIELD_REQUIRED_FIRST_NAME
@@ -532,7 +544,12 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getSelfRequiredFields()
     {
-        return 0;
+        if($this->settings->form == '0'){
+            return self::FIELD_EDIT_FIRST_NAME | self::FIELD_REQUIRED_FIRST_NAME
+                   | self::FIELD_EDIT_PHONE | self::FIELD_REQUIRED_PHONE;
+        }else{
+            return 0;
+        }
         /*
         // Имя, фамилия, мобилка
         return self::FIELD_EDIT_FIRST_NAME | self::FIELD_REQUIRED_FIRST_NAME
@@ -544,36 +561,37 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * Возвращает поддерживаемые магазином способы доставки
      * @return array
      */
-    public function getSupportedType()
-    {
+    public function getSupportedType(){
 
-        if( $this->settings->type == '1' )
-        {
-            return array(
-                \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER,
-                \DDelivery\Sdk\DDeliverySDK::TYPE_SELF
-            );
-        }
-        elseif($this->settings->type == '2')
-        {
-            return array(
-                \DDelivery\Sdk\DDeliverySDK::TYPE_SELF
-            );
-        }
-        elseif($this->settings->type == '3')
-        {
-            return array(
-                \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER,
-            );
-        }
+        $type_of_window = $this->request->query('type_of_window');
 
-        /*
-            return array(
-                \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER,
-                \DDelivery\Sdk\DDeliverySDK::TYPE_SELF
-            );
-        */
-
+        switch ($type_of_window ){
+            case 'onlyMap' :
+                    return array(
+                        \DDelivery\Sdk\DDeliverySDK::TYPE_SELF
+                    );
+                    break;
+            case 'onlyCourier' :
+                    return array(
+                        \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER
+                    );
+                    break;
+            default:
+                    if( $this->settings->type == '1' ){
+                        return array(
+                            \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER,
+                            \DDelivery\Sdk\DDeliverySDK::TYPE_SELF
+                        );
+                    }elseif($this->settings->type == '2'){
+                        return array(
+                            \DDelivery\Sdk\DDeliverySDK::TYPE_SELF
+                        );
+                    }elseif($this->settings->type == '3'){
+                        return array(
+                            \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER,
+                        );
+                    }
+        }
     }
 
 

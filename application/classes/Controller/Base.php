@@ -23,8 +23,7 @@ abstract class Controller_Base extends Controller_Template
 
     public $template = "layout";
 
-    public function _proccessMessages()
-    {
+    public function _proccessMessages(){
         $result = array();
         $succ  = array();
         $err   = array();
@@ -63,8 +62,7 @@ abstract class Controller_Base extends Controller_Template
         return $result;
     }
 
-    public function before()
-    {
+    public function before(){
         parent::before();
         $this->template->system_msg = $this->_proccessMessages();
         $this->template->content = '';

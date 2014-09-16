@@ -1,7 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-abstract class Controller_Admin_Layout extends Controller_Base
-{
+abstract class Controller_Admin_Layout extends Controller_Base{
     /**
      * @var Kohana_Auth_ORM
      */
@@ -27,24 +26,21 @@ abstract class Controller_Admin_Layout extends Controller_Base
     public $roles = array('login', 'admin');
 
 
+    public $template = "layout";
+
     public function before()
     {
         parent::before();
-
         // auth
         $this->auth = Auth::instance();
-
         // user
         $this->user = $this->auth->get_user();
-
         // check access
-        if (is_array($this->roles) AND !(empty($this->roles)) AND ! $this->auth->logged_in($this->roles) )
-        {
+        if (is_array($this->roles) AND !(empty($this->roles)) AND ! $this->auth->logged_in($this->roles) ){
             $this->redirect( URL::base( $this->request ) .  $this->login_url);
-            //$this->request->redirect($this->login_url);
         }
-
         // set template variables
         $this->template->set_global('user', $this->user);
+        $this->template->content = '';
     }
 }

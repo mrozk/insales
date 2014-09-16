@@ -92,105 +92,7 @@ class Controller_Sdk extends Controller
             //echo $e->getMessage();
         }
     }
-    public function action_test()
-    {
-            $session = Session::instance();
-            $insalesuser = (int)$session->get('insalesuser');
-            echo $insalesuser;
 
-            if( !$insalesuser )
-            {
-                return;
-            }
-
-            $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
-
-            if ( $insales_user->loaded() )
-            {
-
-                $insales_api =  new InsalesApi(  $insales_user->passwd,  $insales_user->shop );
-               // print_r( $insales_api->api('GET','/admin/delivery_variants.xml') );
-                $pulet = "<application-widget>
-<code>
-  &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
-  &lt;head&gt;
-    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;/&gt;
-    &lt;style&gt;
-      table#statuses {
-        border-collapse: collapse;
-        border-right: 1px solid black;
-        border-left: 1px solid black;
-      }
-      table#statuses td, table#statuses th {
-        border: 1px solid black;
-      }
-    &lt;/style&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-
-    &lt;table id='statuses' style='border: 1px solid black;'&gt;
-
-    &lt;/table&gt;
-
-    &lt;script&gt;
-      var data = {};
-      // функция которая вызывается во внешнем js файле и устанавливает значение переменной data
-      function set_data(input_object) {
-        data = input_object;
-      }
-      var table = document.getElementById('statuses');
-
-      // устанавливаем номер заказа, используя id из переменной window.order_info
-      var order_number_field = document.getElementById('order_number');
-      // order_number_field.innerHTML = window.order_info.id;
-      fields = window.order_info.fields_values;
-      size = fields.length;
-      var i = 0;
-      var green_lite = 0;
-      while(size != 0){
-        if( fields[size - 1].name == 'ddelivery_id' ){
-            if(fields[size - 1].value != 0){
-                green_lite = 1;
-            }
-        }
-
-        size--;
-      };
-      if( green_lite != 0 ){
-                // подключаем скрипт который передаёт нам данные через JSONP
-          var script = document.createElement('script');
-
-          script.src = '" . URL::base( $this->request ) . "sdk/orderinfo/?order=' + window.order_info.id;
-          document.documentElement.appendChild(script);
-
-          // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
-          script.onload = function() {
-              for (var key in data) {
-                  var new_tr = document.createElement('tr');
-                  new_tr.innerHTML= '&lt;td&gt;'+ key +'&lt;/td&gt;&lt;td&gt;'+ data[key] +'&lt;/td&gt;';
-              table.appendChild(new_tr);
-            }
-          }
-      }
-    &lt;/script&gt;
-  &lt;/body&gt;
-  &lt;/html&gt;
-</code>
-<height>200</height>
-</application-widget>";
-                /*
-                console.log(window.order_info.fields_values);
-                for( var i = 0; i< window.order_info.fields_values.length; i++ ){
-                console.log(window.order_info.fields_values[i]);
-      }*/
-                 $result =  $insales_api->api('POST','/admin/application_widgets.xml', $pulet);
-                // $result =  $insales_api->api('GET','/admin/application_widgets.xml', $pulet);
-                //  $result =  $insales_api->api('DELETE','/admin/application_widgets/7006.xml', $pulet);
-                echo '<pre>';
-                    print_r($result);
-                echo '</pre>';
-            }
-    }
 
     public function setInsalesOrderStatus($cmsOrderID, $status, $clientID)
     {
@@ -205,8 +107,6 @@ class Controller_Sdk extends Controller
                             <id type="integer">' . $cmsOrderID . '</id>
                             <fulfillment-status>' . $status . '</fulfillment-status>
                       </order>';
-            //echo strlen($pulet);
-            //echo $cmsOrderID;
             $result = json_decode( $insales_api->api('PUT','/admin/orders/' . $cmsOrderID . '.json', $pulet) );
             return $result->id;
         }
@@ -300,22 +200,17 @@ class Controller_Sdk extends Controller
         if( count( $ids ) ){
             foreach( $ids as $oneItem ){
                 if( !empty($oneItem) ){
-                    $tempStr = explode(':', $oneItem);
+                    $tempStr = explode('(_)', $oneItem);
+                    $idsArray[] = (int)$tempStr[0];
+                    $quantArray[$tempStr[0]] = (int)$tempStr[1];
 
-                    $idsArray[] = $tempStr[0];
-                    $skuAndQa = explode('(_)', $tempStr[1]);
-                    $quantArray[$tempStr[0]] = (int)$skuAndQa[0];
-                    $skuArray[$tempStr[0]] = $skuAndQa[1];
                 }
             }
-
             $prod_detail = file_get_contents( $url . '/products_by_id/' . implode(',', $idsArray) . '.json');
             $items = json_decode( $prod_detail );
+            if( count( $items->products) ){
 
-            if( count( $items->products) )
-            {
-                for( $i = 0; $i < count( $items->products); $i++ )
-                {
+                for( $i = 0; $i < count( $items->products); $i++ ){
                     $item = array();
                     $item['width'] = $this->getOptionValue($items->products[$i]->product_field_values, $settings->width );
                     $item['height'] = $this->getOptionValue($items->products[$i]->product_field_values,
@@ -324,6 +219,7 @@ class Controller_Sdk extends Controller
                                                             $settings->length);
 
                     $item['weight'] = $items->products[$i]->variants[0]->weight;
+
 
                     $item['width'] =  (int) $this->getDefault($item['width'], $settings->plan_width);
                     $item['height'] = (int) $this->getDefault($item['height'], $settings->plan_height);
@@ -343,9 +239,8 @@ class Controller_Sdk extends Controller
                     $item['title'] = $items->products[$i]->title;
                     $item['price'] = $items->products[$i]->variants[0]->price;
                     $item['quantity'] = $quantArray[$item['id']];
-                    $item['sku'] = $skuArray[$item['id']];
+                    $item['sku'] = $items->products[$i]->variants[0]->sku;
                     $result_products[] = $item;
-
                 }
             }
         }
@@ -355,20 +250,6 @@ class Controller_Sdk extends Controller
          $token = $this->request->query('token');
          $items = $this->request->query('items');
 
-        /*
-        echo $this->request->query('client_name');
-        print_r($this->request);
-        exit();
-
-         $client_name = $this->get_request_state('client_name');
-         $client_phone = $this->get_request_state('client_phone');
-         $shipping_address = $this->get_request_state('shipping_address');
-
-         $this->request->query('shipping_address', $shipping_address);
-         $this->request->query('client_name',$client_name);
-         $this->request->query('client_phone',$client_phone);
-            */
-
          $has_token = MemController::getMemcacheInstance()->get( 'card_' . $token );
 
          if($has_token){
@@ -377,6 +258,7 @@ class Controller_Sdk extends Controller
 
              $settings = MemController::initSettingsMemcache($info['host']);
              $settingsToIntegrator = json_decode($settings);
+
              if( isset($items) && !empty( $items ) ){
                  $info['cart'] = $this->getItemsFromInsales($info['scheme'] . '://' . $info['host'], $items, $settingsToIntegrator);
                  MemController::getMemcacheInstance()->set( 'card_' . $token, json_encode( $info ), 0, 1200  );
@@ -384,6 +266,7 @@ class Controller_Sdk extends Controller
 
              try{
                  $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator, $info );
+                 //echo $IntegratorShop->getApiKey();
                  $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
                  $order = $ddeliveryUI->getOrder();
                  $order->addField1 = $settingsToIntegrator->insalesuser_id;
@@ -392,6 +275,113 @@ class Controller_Sdk extends Controller
              catch( \DDelivery\DDeliveryException $e ){
                  $ddeliveryUI->logMessage($e);
              }
+         }else{
+             echo 'Перезагрузите страницу браузера для продолжения';
          }
+    }
+
+
+    public function action_test()
+    {
+        $IntegratorShop = new IntegratorShop2( );
+        $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
+        echo '<pre>';
+        print_r($ddeliveryUI->initOrder(360));
+        echo '</pre>';
+
+        echo 'xxx';
+        /*
+        $session = Session::instance();
+        $insalesuser = (int)$session->get('insalesuser');
+        echo $insalesuser;
+
+        if( !$insalesuser )
+        {
+            return;
+        }
+
+        $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
+
+        if ( $insales_user->loaded() )
+        {
+
+            $insales_api =  new InsalesApi(  $insales_user->passwd,  $insales_user->shop );
+            // print_r( $insales_api->api('GET','/admin/delivery_variants.xml') );
+            $pulet = "<application-widget>
+<code>
+  &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+  &lt;head&gt;
+    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;/&gt;
+    &lt;style&gt;
+      table#statuses {
+        border-collapse: collapse;
+        border-right: 1px solid black;
+        border-left: 1px solid black;
+      }
+      table#statuses td, table#statuses th {
+        border: 1px solid black;
+      }
+    &lt;/style&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+
+    &lt;table id='statuses' style='border: 1px solid black;'&gt;
+
+    &lt;/table&gt;
+
+    &lt;script&gt;
+      var data = {};
+      // функция которая вызывается во внешнем js файле и устанавливает значение переменной data
+      function set_data(input_object) {
+        data = input_object;
+      }
+      var table = document.getElementById('statuses');
+
+      // устанавливаем номер заказа, используя id из переменной window.order_info
+      var order_number_field = document.getElementById('order_number');
+      // order_number_field.innerHTML = window.order_info.id;
+      fields = window.order_info.fields_values;
+      size = fields.length;
+      var i = 0;
+      var green_lite = 0;
+      while(size != 0){
+        if( fields[size - 1].name == 'ddelivery_id' ){
+            if(fields[size - 1].value != 0){
+                green_lite = 1;
+            }
+        }
+
+        size--;
+      };
+      if( green_lite != 0 ){
+                // подключаем скрипт который передаёт нам данные через JSONP
+          var script = document.createElement('script');
+
+          script.src = '" . URL::base( $this->request ) . "sdk/orderinfo/?order=' + window.order_info.id;
+          document.documentElement.appendChild(script);
+
+          // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
+          script.onload = function() {
+              for (var key in data) {
+                  var new_tr = document.createElement('tr');
+                  new_tr.innerHTML= '&lt;td&gt;'+ key +'&lt;/td&gt;&lt;td&gt;'+ data[key] +'&lt;/td&gt;';
+              table.appendChild(new_tr);
+            }
+          }
+      }
+    &lt;/script&gt;
+  &lt;/body&gt;
+  &lt;/html&gt;
+</code>
+<height>200</height>
+</application-widget>";
+
+            $result =  $insales_api->api('POST','/admin/application_widgets.xml', $pulet);
+            // $result =  $insales_api->api('GET','/admin/application_widgets.xml', $pulet);
+            //  $result =  $insales_api->api('DELETE','/admin/application_widgets/7006.xml', $pulet);
+            echo '<pre>';
+            print_r($result);
+            echo '</pre>';
+        } */
     }
 }

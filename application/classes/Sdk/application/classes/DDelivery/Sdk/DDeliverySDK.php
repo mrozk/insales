@@ -342,7 +342,7 @@ class DDeliverySDK {
             'weight' => $weight,
         	'declared_price' => $declaredPrice
         );
-		
+
         if($paymentPrice !== null)
             $params['payment_price']  = $paymentPrice;
         $response = $this->requestProvider->request('calculator', $params);

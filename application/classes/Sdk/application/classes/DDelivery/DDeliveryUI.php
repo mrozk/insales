@@ -866,7 +866,7 @@ use DDelivery\Sdk\Messager;
                 $price = $companyArray['delivery_price'];
             }
             // интервалы
-            $this->shop->preDisplayPointCalc($price);
+            $price = $this->shop->preDisplayPointCalc($price);
             // Ручное редактирование
             $price = $this->shop->processClientPrice( $order, $price );
 
@@ -1637,6 +1637,7 @@ use DDelivery\Sdk\Messager;
 
             }
             if(in_array(Sdk\DDeliverySDK::TYPE_COURIER, $this->supportedTypes)) {
+
                 $courierCompanies = $this->cachedCalculateCourierPrices( $this->order );
 
                 if(count( $courierCompanies )){

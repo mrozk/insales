@@ -8,51 +8,75 @@
  * @copyright  Copyrights (c) 2012 Novichkov Sergey
  */
 ?>
-Привет админка
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a  class="navbar-brand active" style="color: #fff" href="javascript:void(0)">Админка DDelivery Insales</a>
+            </div>
+
+            <div style="margin-top: 5px;">
+                <?php
+                /*
+                <a  class="btn btn-warning"  href="#>">Вернуться в кабинет</a>
+                <a class="btn btn-success" href="#">Добавить способ доставки в Insales</a>
+                <?php */
+                ?>
+                <div style="text-align: right">
+                    <a class="btn btn-success" onclick="" href="/admin/auth/logout/">Выход</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+<div class="container theme-showcase" style="margin-top: 50px;">
 <?php
-    /*
-    foreach($usr_ins as $user)
-    {
-
-        $insales_api =  new InsalesApi('ddelivery', $user['passwd'], $user['shop'] );
-       // print_r($xmlstring );
-        /*
-        $xml = simplexml_load_string($xmlstring);
-        $json = json_encode($xml);
-        $array = json_decode($json,TRUE);
-        print_r($array);
-        */
-        //var_dump(array_map('ini_get', array('safe_mode', 'open_basedir')));
-/*
-        try
-        {
-           $result = $insales_api->api('DELETE', '/admin/js_tags/7223.xml');
-        }
-        catch( InsalesApiException $e)
-        {
-           echo 'error';
-
-        }
-        */
-        //print_r($result);
-        /*
-        InsalesApi::insales_api_client();
-
-       /// echo 'ozk';
-       $xml = simplexml_load_string($xmlstring);
-       $json = json_encode($xml);
-       $array = json_decode($json,TRUE);
-       //print_r($insales_api);
-       // $array = json_decode($json,TRUE);
-           $orders = $insales_api('POST', '/admin/delivery_variants.xml', $array);
-        //var_dump($orders);
-        //open_basedir is set
-
-    }
-*/
+if( !empty($message['success'])){
+    ?>
+    <p class="bg-success" style="text-align: center" >
+        <?php echo  $message['success']; ?>
+    </p>
+<?php
+}
 ?>
 
+    <div class="page-header">
+        <h3>Список пользователей</h3>
+    </div>
 
-<style type="text/css">
-    .jumbotron{ padding-top: 40px; }
-</style>
+    <div class="row marketing">
+        <div class="row" style="text-align: center">
+            <div class="col-md-1"><h4>ID</h4></div>
+            <div class="col-md-4"><h4>Магазин</h4></div>
+            <div class="col-md-1"><h4>Insales ID</h4></div>
+            <div class="col-md-4"><h4>API ключ DDelivery</h4></div>
+        </div>
+            <?php
+            if( count($insalesusers) > 0 ){
+                foreach( $insalesusers as $item ){
+                    $settings = json_decode($item->settings);
+            ?>
+                    <div class="row" style="text-align: center">
+                            <div class="col-md-1"><?php echo $item->id;?></div>
+                            <div class="col-md-4"><a href="/admin/main/user/?id=<?php echo $item->id; ?>" class=""><?php echo $item->shop;?></a></div>
+                            <div class="col-md-1"><?php echo $item->insales_id;?></div>
+                            <div class="col-md-4"><?php echo $settings->api;?></div>
+                    </div>
+            <?php
+                }
+            }
+            ?>
+
+
+
+    </div>
+</div>
