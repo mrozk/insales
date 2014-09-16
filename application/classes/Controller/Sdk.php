@@ -167,8 +167,7 @@ class Controller_Sdk extends Controller
     }
 
 
-    public function getOptionValue( $option_list, $needle )
-    {
+    public function getOptionValue( $option_list, $needle ){
         if( count($option_list) )
         {
             foreach( $option_list as $item )
@@ -176,6 +175,21 @@ class Controller_Sdk extends Controller
                 if( $needle == $item->product_field_id  )
                 {
                     return $item->value;
+                }
+            }
+        }
+        return null;
+
+    }
+
+    public function getCaracteristicValue( $option_list, $needle ){
+        if( count($option_list) )
+        {
+            foreach( $option_list as $item )
+            {
+                if( $needle == $item->property_id  )
+                {
+                    return $item->title;
                 }
             }
         }
@@ -211,15 +225,23 @@ class Controller_Sdk extends Controller
             if( count( $items->products) ){
 
                 for( $i = 0; $i < count( $items->products); $i++ ){
+
                     $item = array();
-                    $item['width'] = $this->getOptionValue($items->products[$i]->product_field_values, $settings->width );
-                    $item['height'] = $this->getOptionValue($items->products[$i]->product_field_values,
-                                                            $settings->height);
-                    $item['length'] = $this->getOptionValue($items->products[$i]->product_field_values,
-                                                            $settings->length);
+
+                    if( $settings->source_params != '1' ){
+                        $item['width'] = $this->getOptionValue($items->products[$i]->product_field_values, $settings->width );
+                        $item['height'] = $this->getOptionValue($items->products[$i]->product_field_values,
+                            $settings->height);
+                        $item['length'] = $this->getOptionValue($items->products[$i]->product_field_values,
+                            $settings->length);
+                    }else{
+                        $item['width'] = $this->getCaracteristicValue($items->products[$i]->characteristics, $settings->params_width );
+                        $item['height'] = $this->getCaracteristicValue($items->products[$i]->characteristics, $settings->params_height);
+                        $item['length'] = $this->getCaracteristicValue($items->products[$i]->characteristics, $settings->params_length);
+
+                    }
 
                     $item['weight'] = $items->products[$i]->variants[0]->weight;
-
 
                     $item['width'] =  (int) $this->getDefault($item['width'], $settings->plan_width);
                     $item['height'] = (int) $this->getDefault($item['height'], $settings->plan_height);

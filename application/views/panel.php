@@ -6,7 +6,7 @@
         border: 2px solid #D12121;
     }
 </style>
-<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
 <script type="text/javascript">
     $(document).ready(function(){
         $('#insales-form').submit(function(){
@@ -95,15 +95,21 @@ if( empty($usersettings->settings) ){
             'courier_caption',
             'common_description' => '',
             'self_description' => '',
-            'courier_description'
+            'courier_description' => '',
+            'source_params'  => '',
+
+            'params_width' => '',
+            'params_length' => '',
+            'params_height'  => ''
+
         );
 }else{
     $settings = json_decode( $usersettings->settings, true );
 }
 ?>
 
-<?php
 
+<?php
 if(empty($settings['address'])){
     $address = array('street' => '','house' => '','corp' => '','flat' => '');
 }else{
@@ -337,6 +343,7 @@ if( !empty($message['success'])){
             <h3>Специализированные настройки</h3>
         </div>
         <div class="col-lg-6">
+
             <h4>Подпись способа доставки </h4>
             <p>
                 <?php
@@ -427,9 +434,6 @@ if( !empty($message['success'])){
         <div class="col-lg-6">
 
 
-
-
-
             <h4>Ширина по умолчанию, см</h4>
             <p>
                 <?php
@@ -485,6 +489,21 @@ if( !empty($message['success'])){
     </div>
     <div class="row marketing">
         <div class="col-lg-6">
+            <h4>Источник габаритов товара</h4>
+            <p class="bg-success">Откудова будут братся габариты товара</p>
+            <p>
+                <?php
+                $source_params = array();
+                $source_params['0'] = 'Дополнительные поля';
+                $source_params['1'] = 'Параметры  товаров';
+                $attrs = array(
+                    'class' => 'form-control'
+                );
+
+                echo Form::select('source_params',  $source_params, $settings['source_params'], $attrs);
+
+                ?>
+            </p>
             <?php /*
             <h4>Источник информации</h4>
             <p>
@@ -499,7 +518,7 @@ if( !empty($message['success'])){
                 ?>
             </p>
             */ ?>
-            <h4>Ширина</h4>
+            <h4>Ширина "Дополнительные поля"</h4>
             <p class="bg-success"> Выберите поле, соответствуещее "ширина товара" в Вашей системе</p>
             <p>
                 <?php
@@ -512,7 +531,7 @@ if( !empty($message['success'])){
 
                 ?>
             </p>
-            <h4>Длина</h4>
+            <h4>Длина "Дополнительные поля"</h4>
             <p class="bg-success"> Выберите поле, соответствуещее "длина товара" в Вашей системе</p>
             <p>
                 <?php
@@ -525,7 +544,7 @@ if( !empty($message['success'])){
                 ?>
             </p>
 
-            <h4>Высота</h4>
+            <h4>Высота "Дополнительные поля"</h4>
             <p class="bg-success">Выберите поле, соответствуещее "высота товара" в Вашей системе</p>
             <p>
                 <?php
@@ -535,34 +554,51 @@ if( !empty($message['success'])){
                 echo Form::select('height', $fields, $settings['height'], $attrs);
                 ?>
             </p>
-            <h4>Оплата на месте</h4>
-            <p class="bg-success">Выберите поле соответствующее способу оплаты "оплата на месте".
-                Например "оплата курьеру". У вас в системе может быть только 1 такой способ</p>
+
+
+            <h4>Ширина "Параметры  товаров"</h4>
+            <p class="bg-success"> Выберите поле, соответствуещее "ширина товара" в Вашей системе</p>
+            <p>
+                <?php
+
+                $attrs = array(
+                    'class' => 'form-control'
+                );
+
+                echo Form::select('params_width', $characteristics, $settings['params_width'], $attrs);
+
+                ?>
+            </p>
+            <h4>Длина "Параметры  товаров"</h4>
+            <p class="bg-success"> Выберите поле, соответствуещее "длина товара" в Вашей системе</p>
+            <p>
+                <?php
+
+                $attrs = array(
+                    'class' => 'form-control'
+                );
+
+                echo Form::select('params_length', $characteristics, $settings['params_length'], $attrs);
+                ?>
+            </p>
+
+            <h4>Высота "Параметры  товаров"</h4>
+            <p class="bg-success">Выберите поле, соответствуещее "высота товара" в Вашей системе</p>
             <p>
                 <?php
                 $attrs = array(
                     'class' => 'form-control'
                 );
-                ///print_r($payment);
-                echo Form::select('payment', $payment, $settings['payment'], $attrs);
+                echo Form::select('params_height', $characteristics, $settings['params_height'], $attrs);
                 ?>
             </p>
+
+
+
+
         </div>
         <div class="col-lg-6">
-            <h4>Номер дома</h4>
-            <p class="bg-success">Выберите поле, соответствуещее "Номер дома" в Вашей системе</p>
-            <p>
-                <?php
 
-
-                $attrs = array(
-                    'class' => 'form-control'
-                );
-
-                echo Form::select('address[house]', $addr_fields, $address['house'], $attrs);
-
-                ?>
-            </p>
             <h4>Улица</h4>
             <p class="bg-success">Выберите поле, соответствуещее "Улица" в Вашей системе</p>
             <p>
@@ -577,6 +613,22 @@ if( !empty($message['success'])){
 
                 ?>
             </p>
+
+            <h4>Номер дома</h4>
+            <p class="bg-success">Выберите поле, соответствуещее "Номер дома" в Вашей системе</p>
+            <p>
+                <?php
+
+
+                $attrs = array(
+                    'class' => 'form-control'
+                );
+
+                echo Form::select('address[house]', $addr_fields, $address['house'], $attrs);
+
+                ?>
+            </p>
+
 
             <h4>Квартира</h4>
             <p class="bg-success">Выберите поле, соответствуещее "Квартира" в Вашей системе</p>
@@ -610,7 +662,18 @@ if( !empty($message['success'])){
                 ?>
             </p>
 
-
+            <h4>Оплата на месте</h4>
+            <p class="bg-success">Выберите поле соответствующее способу оплаты "оплата на месте".
+                Например "оплата курьеру". У вас в системе может быть только 1 такой способ</p>
+            <p>
+                <?php
+                $attrs = array(
+                    'class' => 'form-control'
+                );
+                ///print_r($payment);
+                echo Form::select('payment', $payment, $settings['payment'], $attrs);
+                ?>
+            </p>
         </div>
 
 

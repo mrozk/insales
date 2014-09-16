@@ -72,10 +72,14 @@ class Controller_Cabinet extends  Controller_Base{
                     'common_caption' => $this->request->post('common_caption'),
                     'self_caption' => $this->request->post('self_caption'),
                     'courier_caption' => $this->request->post('courier_caption'),
-
                     'common_description' => $this->request->post('common_description'),
                     'self_description' => $this->request->post('self_description'),
-                    'courier_description' => $this->request->post('courier_description')
+                    'courier_description' => $this->request->post('courier_description'),
+                    'source_params' => $this->request->post('source_params'),
+
+                    'params_width' => $this->request->post('params_width'),
+                    'params_length' => $this->request->post('params_length'),
+                    'params_height'  => $this->request->post('params_height')
         );
 
 
@@ -356,12 +360,15 @@ class Controller_Cabinet extends  Controller_Base{
 
             $payment = self::getPaymentWays($insales_api);
             $fields = self::getFields( $insales_api);
-            // $characteristics = $this->getOptionFields( $insales_api );
+
+            $characteristics = self::getOptionFields( $insales_api );
+
             $addr_fields = self::getAddressFields( $insales_api );
 
             $this->template->set('content', View::factory('panel')->set('usersettings', $usersettings )
                            ->set('addr_fields', $addr_fields)->set('message', $this->template->system_msg)
-                           ->set('payment', $payment)->set('fields', $fields)->set('base_url', URL::base( $this->request )));
+                           ->set('payment', $payment)->set('characteristics', $characteristics)->set('fields', $fields)
+                           ->set('base_url', URL::base( $this->request )));
 
             }else{
                 if( !empty( $insales_id ) && !empty( $shop ) ){
@@ -397,9 +404,9 @@ class Controller_Cabinet extends  Controller_Base{
     }
 
 
-    public function getOptionFields( $insales_api ){
+    public static  function getOptionFields( $insales_api ){
         $options = array();
-        $payment_gateways = json_decode( $insales_api->api('GET', '/admin/properties_names.json') );
+        $payment_gateways = json_decode( $insales_api->api('GET', '/admin/properties.json') );
 
         $options[0] = 'Выберитите поле';
         if( count( $payment_gateways ) )
