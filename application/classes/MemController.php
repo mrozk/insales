@@ -23,9 +23,11 @@ class MemController{
 
         if( !empty( $url ) ){
             $settings = $memcache->get($url);
+
             if( !$settings ){
+
                 $query = DB::select( 'settings', 'shop', 'id')->from('insalesusers')->
-                             where( 'shop', '=', $url )->as_object()->execute();
+                             where( 'shop', '=', $url )->or_where('add_url', '=', $url)->as_object()->execute();
 
                 if( isset( $query[0]->shop ) && !empty( $query[0]->shop ) ){
                     $settings = json_decode( $query[0]->settings );

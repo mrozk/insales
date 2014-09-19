@@ -285,11 +285,16 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 
     /**
      * Возвращаем способ оплаты константой PluginFilters::PAYMENT_, предоплата или оплата на месте. Курьер
+     * @param $order DDeliveryOrder
      * @return int
      */
-    public function filterPointByPaymentTypeCourier()
+    public function filterPointByPaymentTypeCourier( $order )
     {
-        return $this->settings->payment;
+        if( $order->paymentVariant == $this->settings->payment ){
+            return self::PAYMENT_POST_PAYMENT;
+        }
+        return self::PAYMENT_PREPAYMENT;
+
         return self::PAYMENT_POST_PAYMENT;
         // выбираем один из 3 вариантов(см документацию или комменты к констатам)
         return self::PAYMENT_POST_PAYMENT;
@@ -300,12 +305,19 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 
     /**
      * Возвращаем способ оплаты константой PluginFilters::PAYMENT_, предоплата или оплата на месте. Самовывоз
+     * @param $order DDeliveryOrder
      * @return int
      */
-    public function filterPointByPaymentTypeSelf()
+    public function filterPointByPaymentTypeSelf( $order )
     {
-        return $this->settings->payment;
-        return self::PAYMENT_POST_PAYMENT;
+        if( $order->paymentVariant == $this->settings->payment ){
+            return self::PAYMENT_POST_PAYMENT;
+        }
+        return self::PAYMENT_PREPAYMENT;
+
+
+        //return $this->settings->payment;
+
         // выбираем один из 3 вариантов(см документацию или комменты к констатам)
         return self::PAYMENT_POST_PAYMENT;
         return self::PAYMENT_PREPAYMENT;
@@ -317,15 +329,12 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * Если true, то не учитывает цену забора
      * @return bool
      */
-    public function isPayPickup()
-    {
-
+    public function isPayPickup(){
         $zabor = (int)$this->settings->zabor;
         if( $zabor )
             return true;
         else
             return false;
-
     }
 
     /**
@@ -339,7 +348,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         $interval1 = array();
         $interval2 = array();
         $interval3 = array();
-        //$interval4 = array();
+
         if( ( isset( $this->settings->from1 ) && !empty($this->settings->from1) ) && ( isset( $this->settings->to1 ) && !empty($this->settings->to1)  ) && ( isset( $this->settings->sum1 ) ) )
         {
             $interval1 = array('min' => $this->settings->from1, 'max' => $this->settings->to1,
@@ -636,5 +645,70 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         return $this->settings->theme;
     }
 
+
+    /**
+     *
+     * Перед возвратом точек самовывоза фильтровать их по определенным правилам
+     *
+     * @param $companyArray
+     * @param DDeliveryOrder $order
+     * @return mixed
+     */
+    public function finalFilterSelfCompanies( $companyArray, $order ){
+
+        if ( $order->addField1 == 52){
+            if( count($companyArray) > 0 ){
+                foreach( $companyArray as $key=>$item ){
+                    $companyArray[$key]['delivery_time_min'] = $item['delivery_time_min'] + 2;
+                }
+            }
+        }
+        return $companyArray;
+    }
+
+    /**
+     *
+     *  Перед возвратом компаний курьерок фильтровать их по определенным правилам
+     *
+     * @param $companyArray
+     * @param DDeliveryOrder $order
+     * @return mixed
+     */
+    public function finalFilterCourierCompanies( $companyArray, $order ){
+        if ( $order->addField1 == 52){
+            if( count($companyArray) > 0 ){
+                foreach( $companyArray as $key=>$item ){
+                    $companyArray[$key]['delivery_time_min'] = $item['delivery_time_min'] + 2;
+                }
+            }
+        }
+        return $companyArray;
+    }
+
+
+    /**
+     * Обработка цены перед отдачей в методе getClientPrice
+     *
+     * @param DDeliveryOrder $order
+     * @param $price
+     * @param $orderType
+     * @param $companyArray
+     *
+     * @return mixed
+     */
+    public function  processClientPrice(  $order, $price, $orderType, $companyArray  ){
+        $price = parent::processClientPrice( $order, $price, $orderType, $companyArray  );
+        if ( $order->addField1 == 52 ){
+           if( $orderType == \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER ){
+
+               if( $this->isPayPickup() ){
+                   return $this->aroundPrice( $companyArray['total_price'] );
+               }else{
+                   return $this->aroundPrice( $companyArray['delivery_price'] );
+               }
+           }
+        }
+        return $price;
+    }
 
 }

@@ -131,6 +131,20 @@ class Controller_Cabinet extends  Controller_Base{
                         </field>';
     }
 
+    public static  function getXmlInfoField( $name ){
+        return $pulet = '<field>
+                          <type>Field::TextField</type>
+                          <for-buyer type="boolean">false</for-buyer>
+                          <office-title>' . $name . '</office-title>
+                          <obligatory type="boolean">false</obligatory>
+                          <title>' . $name . '</title>
+                          <destiny type="integer">3</destiny>
+                          <for-buyer type="boolean">true</for-buyer>
+                          <show-in-checkout type="boolean">true</show-in-checkout>
+                          <show-in-result type="boolean">true</show-in-result>
+                        </field>';
+    }
+
 
     public function action_addway(){
         $session = Session::instance();
@@ -215,12 +229,22 @@ class Controller_Cabinet extends  Controller_Base{
                 }else{
                     $data2 = $field;
                 }
+
+                $field = self::isFieldExists($insales_api, 'Информация о доставке');
+                if( $field === false ){
+                    $payload = self::getXmlInfoField( 'Информация о доставке' );
+                    $data3 =  $insales_api->api('POST', '/admin/fields.xml', $payload );
+                    $data3 = new SimpleXMLElement( $data3 );
+                }else{
+                    $data3 = $field;
+                }
+
                 // $delivery = new SimpleXMLElement($delivery);
                 // Добавляем Способ доставки
                 $payload = self::getWidgetXml();
                 $w = $insales_api->api('POST', '/admin/application_widgets.xml  ', $payload);
                 // Добавляем JS
-                $payload = self::getXmlJsToInsales( $insales_user->id, $data->id, $data2->id, $delivery);
+                $payload = self::getXmlJsToInsales( $insales_user->id, $data->id, $data2->id, $delivery, $data3->id);
                 // json_decode( $insales_api->api('PUT', '/admin/delivery_variants/' . $delivery->id . '.json', $payload) );
                 $insales_api->api('PUT', '/admin/delivery_variants/' . $delivery_variants->id . '.xml', $payload);
                 // Добавляем JS
@@ -310,7 +334,7 @@ class Controller_Cabinet extends  Controller_Base{
                                <format type="integer">1</format>
                            </webhook>';
     }
-    public static  function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id, $deliveryID)
+    public static  function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id, $deliveryID, $field3_id)
     {
 
         return $payload = '<?xml version="1.0" encoding="UTF-8"?>
@@ -319,8 +343,9 @@ class Controller_Cabinet extends  Controller_Base{
                               <javascript>&lt;script type="text/javascript" src="' . URL::base(TRUE, FALSE) . 'html/js/ddelivery.js"&gt;&lt;/script&gt;
                                      &lt;script type="text/javascript"&gt;var ddelivery_insales={
                                      "delivery_id" : [ ' . $deliveryID . '],
-                                     "field_id":' . $field_id . ',
+                                     "field_id":' .  $field_id . ',
                                      "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ',
+                                     "field3_id":' . $field3_id . ',
                                      "url": "' . URL::base(TRUE, FALSE) . '"
                                        };
                                        &lt;/script&gt;
@@ -450,6 +475,7 @@ class Controller_Cabinet extends  Controller_Base{
             if( $insales_token == md5( $token . $insales_user->passwd ) ){
 
                 if( $insales_user->shop != $session->get('insalesshop') ){
+                    $insales_user->add_url = $insales_user->shop;
                     $insales_user->shop = $session->get('insalesshop');
                     $insales_user->save();
                 }

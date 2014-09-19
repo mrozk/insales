@@ -124,6 +124,8 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
                 $('#shipping_address_field_' + data.corp).val(data.userInfo.toHousing);
             }
         }
+
+
         th.typeOfWindow = null;
         th.openPopup = function(){
             showPrompt();
@@ -139,12 +141,12 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
                     $( '.moto_moto').empty();
 
 
-                    var variant_id;
+
                     var activeBtn;
+
                     if(  ddelivery_insales.delivery_id.length == 2  ){
                         if( DDeliveryIntegration.typeOfWindow == 'onlyMap' ){
                             variant_id = ddelivery_insales.delivery_id[0];
-                            console.log('onlyMap');
                             activeBtn = 'dd_start1';
                         }else if( DDeliveryIntegration.typeOfWindow == 'onlyCourier' ){
                             console.log('onlyCourier');
@@ -162,8 +164,10 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
 
                     //var variant_id = ddelivery_insales.delivery_id;
                     CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
-                    //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
 
+                    //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
+                    CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field3_id, value: data.comment }] );
+                    console.log(CheckoutDelivery);
                     CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: data.orderId }] );
                     CheckoutDelivery.find( variant_id ).toExternal().setPrice(data.clientPrice);
                     $('.dd_last_check').val(data.orderId);
@@ -238,12 +242,12 @@ $(function(){
 
         var buttonCode1 = '<div class=\"dd_asset_conteiner\" style=\"position: relative\">' +
                             '<input type=\"hidden\" class=\"dd_last_check\" value=\"\">' +
-                            '<button id="dd_start1" disabled="disabled" onclick=\"return false\" class=\"startDD button\" style=\"max-height:18px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;position: absolute;top: -32px; left:225px;min-width: 150px\" ' +
+                            '<button id="dd_start1" disabled="disabled" onclick=\"return false\" class=\"startDD button\" style=\"max-height:18px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;min-width: 150px\" ' +
                             ' href=\"javascript:void(0);\" >Выбрать</button></div>';
 
         var buttonCode2 =    '<div class=\"dd_asset_conteiner\" style=\"position: relative\">' +
                              '<input type=\"hidden\" class=\"dd_last_check\" value=\"\">' +
-                             '<button id="dd_start2" disabled="disabled" onclick=\"return false\" class=\"startDD button\" style=\"max-height:18px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;position: absolute;top: -32px; left:225px;min-width: 150px\" ' +
+                             '<button id="dd_start2" disabled="disabled" onclick=\"return false\" class=\"startDD button\" style=\"max-height:18px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;min-width: 150px\" ' +
                              ' href=\"javascript:void(0);\" >Выбрать</button></div>';
 
 

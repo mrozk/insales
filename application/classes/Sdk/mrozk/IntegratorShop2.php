@@ -75,6 +75,46 @@ class IntegratorShop2 extends \DDelivery\Adapter\PluginFilters
         // TODO: Implement setCmsOrderStatus() method.
     }
 
+
+    /**
+     *
+     * Перед возвратом точек самовывоза фильтровать их по определенным правилам
+     *
+     * @param $companyArray
+     * @param DDeliveryOrder $order
+     * @return mixed
+     */
+    public function finalFilterSelfCompanies( $companyArray, $order ){
+
+        if ( $order->addField1 == 52){
+            if( count($companyArray) > 0 ){
+                foreach( $companyArray as $key=>$item ){
+                    $companyArray[$key]['delivery_time_min'] = $item['delivery_time_min'] + 2;
+                }
+            }
+        }
+        return $companyArray;
+    }
+
+    /**
+     *
+     *  Перед возвратом компаний курьерок фильтровать их по определенным правилам
+     *
+     * @param $companyArray
+     * @param DDeliveryOrder $order
+     * @return mixed
+     */
+    public function finalFilterCourierCompanies( $companyArray, $order ){
+        if ( $order->addField1 == 52){
+            if( count($companyArray) > 0 ){
+                foreach( $companyArray as $key=>$item ){
+                    $companyArray[$key]['delivery_time_min'] = $item['delivery_time_min'] + 2;
+                }
+            }
+        }
+        return $companyArray;
+    }
+
     /**
      * Возвращает API ключ, вы можете получить его для Вашего приложения в личном кабинете
      * @return string
@@ -171,7 +211,7 @@ class IntegratorShop2 extends \DDelivery\Adapter\PluginFilters
      * Возвращаем способ оплаты константой PluginFilters::PAYMENT_, предоплата или оплата на месте. Курьер
      * @return int
      */
-    public function filterPointByPaymentTypeCourier()
+    public function filterPointByPaymentTypeCourier( $order )
     {
         return self::PAYMENT_POST_PAYMENT;
         // выбираем один из 3 вариантов(см документацию или комменты к констатам)
@@ -185,7 +225,7 @@ class IntegratorShop2 extends \DDelivery\Adapter\PluginFilters
      * Возвращаем способ оплаты константой PluginFilters::PAYMENT_, предоплата или оплата на месте. Самовывоз
      * @return int
      */
-    public function filterPointByPaymentTypeSelf()
+    public function filterPointByPaymentTypeSelf( $order )
     {
         return self::PAYMENT_POST_PAYMENT;
         // выбираем один из 3 вариантов(см документацию или комменты к констатам)

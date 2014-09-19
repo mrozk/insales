@@ -72,7 +72,7 @@
                         </p>
                     </td>
                     <td class="col4">
-                        <strong><?=$this->getClientPrice($courierCompany, $this->order)?> <i class="icon-rub">&nbsp;</i></strong>
+                        <strong><?=$this->getClientPrice($courierCompany, $this->order, \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER)?> <i class="icon-rub">&nbsp;</i></strong>
                     </td>
                     <td class="col5">
                         <strong><?=$courierCompany['delivery_time_min']?></strong> <?=\DDelivery\Utils::plural($courierCompany['delivery_time_min'], 'день', 'дня', 'дней', 'дней', false);?>
@@ -84,17 +84,31 @@
             </script>
             <?php
             }else{ ?>
+                <tr>
+                    <td class="col1">
+                        <div style="text-align: center">
+                            Извините, этот способ доставки не доступен для выбранного города.
+                        </div>
+                    </td>
+                </tr>
                 <script type="application/javascript">
-                    DDeliveryIframe.ajaxPage({});
+                    // var data = {city: }
+                    //DDeliveryIframe.ajaxPage({  });
                 </script>
             <?php
             }
             ?>
         </table>
     </div>
-    <div class="map-popup__main__delivery__next">
-        <a href="#">Далее<i>&nbsp;</i></a>
-    </div>
+
+    <?if( count($courierCompanyList) ):?>
+        <div class="map-popup__main__delivery__next">
+            <a href="#">Далее<i>&nbsp;</i></a>
+        </div>
+    <?endif?>
+
+
+
 </div>
     <div class="map-popup__bott">
         <a href="http://ddelivery.ru" target="blank">Сервис доставки DDelivery.ru</a>

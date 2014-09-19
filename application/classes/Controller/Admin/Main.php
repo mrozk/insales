@@ -184,12 +184,23 @@ class Controller_Admin_Main extends Controller_Admin_Layout{
             }else{
                 $data2 = $field;
             }
+
+
+            $field = Controller_Cabinet::isFieldExists($insales_api, 'Информация о доставке');
+            if( $field === false ){
+                $payload = Controller_Cabinet::getXmlInfoField( 'Информация о доставке' );
+                $data3 =  $insales_api->api('POST', '/admin/fields.xml', $payload );
+                $data3 = new SimpleXMLElement( $data3 );
+            }else{
+                $data3 = $field;
+            }
+
             // $delivery = new SimpleXMLElement($delivery);
             // Добавляем Способ доставки
             $payload =  Controller_Cabinet::getWidgetXml();
             $w = $insales_api->api('POST', '/admin/application_widgets.xml  ', $payload);
             // Добавляем JS
-            $payload =  Controller_Cabinet::getXmlJsToInsales( $insales_user->id, $data->id, $data2->id, $delivery);
+            $payload =  Controller_Cabinet::getXmlJsToInsales( $insales_user->id, $data->id, $data2->id, $delivery, $data3->id);
             // json_decode( $insales_api->api('PUT', '/admin/delivery_variants/' . $delivery->id . '.json', $payload) );
             $insales_api->api('PUT', '/admin/delivery_variants/' . $delivery_variants->id . '.xml', $payload);
             // Добавляем JS

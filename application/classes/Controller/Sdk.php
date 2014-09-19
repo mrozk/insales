@@ -84,12 +84,24 @@ class Controller_Sdk extends Controller
             $order = $ddeliveryUI->initOrder($order);
 
             if( $order->localId ){
+                $errorMsg = '';
+                try{
+                    if( $order->type == \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER ){
+                        $ddeliveryUI->checkOrderCourierValues( $order );
+                    }else{
+                        $ddeliveryUI->checkOrderSelfValues( $order );
+                    }
+                }catch (\DDelivery\DDeliveryException $e){
+                    //$errorMsg = $e->getMessage(); $errorMsg .= $ddeliveryUI->formatPhone($order->toPhone);
+                    $errorMsg = $e->getMessage();
+                }
+
+                //
                 $answer = (($order->ddeliveryID == 0)?'Заявка на DDelivery не отправлена':'Номер заявки на DDelivery - ' . $order->ddeliveryID );
-                echo "set_data({'ID заказа -" . $order->shopRefnum . "':'" . $answer . "'});";
+                echo "set_data({'" . (($errorMsg == '')?'':'<span style="color: #ff0000">Ошибка ввода информациии ' . $errorMsg . '</span> <br /> ') . ' ' . "ID заказа -" . $order->shopRefnum . "':'" . $answer . "'});";
             }
         }catch (\DDeliveryException $e){
             $ddeliveryUI->logMessage($e);
-            //echo $e->getMessage();
         }
     }
 
@@ -112,8 +124,7 @@ class Controller_Sdk extends Controller
         }
     }
 
-    public function changeInsalesOrderStatus( $order, $ui )
-    {
+    public function changeInsalesOrderStatus( $order, $ui ){
         if( $order )
         {
             if( $order->ddeliveryID == 0 )
@@ -275,17 +286,13 @@ class Controller_Sdk extends Controller
          $has_token = MemController::getMemcacheInstance()->get( 'card_' . $token );
 
          if($has_token){
-
              $info = json_decode( $has_token, true );
-
              $settings = MemController::initSettingsMemcache($info['host']);
              $settingsToIntegrator = json_decode($settings);
-
              if( isset($items) && !empty( $items ) ){
                  $info['cart'] = $this->getItemsFromInsales($info['scheme'] . '://' . $info['host'], $items, $settingsToIntegrator);
                  MemController::getMemcacheInstance()->set( 'card_' . $token, json_encode( $info ), 0, 1200  );
              }
-
              try{
                  $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator, $info );
                  //echo $IntegratorShop->getApiKey();
@@ -295,6 +302,7 @@ class Controller_Sdk extends Controller
                  $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
              }
              catch( \DDelivery\DDeliveryException $e ){
+                 echo $e->getMessage();
                  $ddeliveryUI->logMessage($e);
              }
          }else{
@@ -308,10 +316,31 @@ class Controller_Sdk extends Controller
         $IntegratorShop = new IntegratorShop2( );
         $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
         echo '<pre>';
+        print_r($ddeliveryUI->initOrder(902));
+        echo '</pre>';
+        /*
+        $insales_user = ORM::factory('InsalesUser', array('id' => 52));
+        $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
+        print_r($insales_api->api('DELETE', '/admin/delivery_variants/239921.xml') );
+        print_r($insales_api->api('DELETE', '/admin/delivery_variants/239920.xml') );
+        */
+        /*
+        $insales_user = ORM::factory('InsalesUser', array('id' => 29));
+
+        if ( $insales_user->loaded() )
+        {
+            echo $insales_user->id;
+        }
+        */
+        /*
+        $IntegratorShop = new IntegratorShop2( );
+        $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
+        echo '<pre>';
         print_r($ddeliveryUI->initOrder(360));
         echo '</pre>';
 
         echo 'xxx';
+        */
         /*
         $session = Session::instance();
         $insalesuser = (int)$session->get('insalesuser');

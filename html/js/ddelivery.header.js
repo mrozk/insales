@@ -22,6 +22,7 @@ var Header = (function () {
 
     return {
         init: function () {
+            console.log('xxx');
             if ($('.delivery-place').length > 0) {
                 this.renderPlace();
                 this.event();
