@@ -52,13 +52,15 @@ class Controller_Sdk extends Controller
         return $statusReport;
 
     }
+
+    /*
     public function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id)
     {
         return $payload = '<?xml version="1.0" encoding="UTF-8"?>
                             <delivery-variant>
                               <title>DDelivery</title>
                               <position type="integer">1</position>
-                              <url>' . URL::base( $this->request ) . 'hello/gus/</url>
+                              <url>' . URL::base( $this->request ) . 'hello/gus/' . $insalesuser_id . '/</url>
                               <description>DDelivery</description>
                               <type>DeliveryVariant::External</type>
                               <delivery-locations type="array"/>
@@ -74,6 +76,8 @@ class Controller_Sdk extends Controller
                               <add-payment-gateways>true</add-payment-gateways>
                             </delivery-variant>';
     }
+    */
+
     public function action_orderinfo(){
         $order = (int)$this->request->query('order');
 
@@ -163,19 +167,7 @@ class Controller_Sdk extends Controller
         echo ');';
     }
 
-    public function action_putcart(){
-        header('Content-Type: text/javascript; charset=UTF-8');
-        $token = $this->request->post('token');
-        $cart = $this->request->query('data');
-        $memcache = new Memcache;
-        $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
-        $has_token = $memcache->get( 'card_' . $token );
-        if($has_token){
-            $memcache->set( 'card_' . $token, $cart );
-        }
-        echo '{}';
-        exit();
-    }
+
 
 
     public function getOptionValue( $option_list, $needle ){
@@ -214,7 +206,7 @@ class Controller_Sdk extends Controller
         return ((empty($value))?$default:$value);
     }
 
-    public function getItemsFromInsales( $url, $ids, $settings ){
+    public function getItemsFromInsales( $ids, $settings, $url ){
         $idsArray = array();
         $quantArray = array();
         $skuArray = array();
@@ -279,7 +271,73 @@ class Controller_Sdk extends Controller
         }
         return $result_products;
     }
+
+    public function action_putcart(){
+        header('Content-Type: text/javascript; charset=UTF-8');
+        $token = $this->request->query('tokenBody');
+        if( isset( $token ) && !empty($token) ){
+            $has_token = MemController::instance()->get('token_' . $token);
+            if( !empty($has_token) ){
+                $token = true;
+            }else{
+                $token = false;
+            }
+        }else{
+            $id = (int)$this->request->param('id');
+            $productIdsString = $this->request->query('product_id');
+
+            $token = md5( microtime() . mt_rand(1,20) . $id );
+            $cart = array('cart' => $productIdsString, 'id' => $id);
+            MemController::instance()->set('token_' . $token, json_encode($cart) );
+
+        }
+        $result = 'jsonCallback("' . $token . '");';
+        echo $result;
+        exit();
+        //return;
+        /*
+        $token = $this->request->post('token');
+        $cart = $this->request->query('data');
+        $memcache = new Memcache;
+        $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
+        $has_token = $memcache->get( 'card_' . $token );
+        if($has_token){
+            $memcache->set( 'card_' . $token, $cart );
+        }
+        echo '{}';
+        exit();
+        */
+    }
+
     public function action_index(){
+        $token = $this->request->query('token');
+        $has_token = MemController::instance()->get('token_' . $token);
+        try{
+            if(!empty($has_token)){
+                $info = json_decode( $has_token, true );
+                if( isset($info['id']) ){
+                    $settings = MemController::initSettingsMemcache($info['id']);
+                    if( !isset( $info['cart_full'] ) && isset($info['cart'])){
+                        $info['cart_full'] = $this->getItemsFromInsales( $info['cart'], $settings, 'http://' . $settings->url);
+                        MemController::instance()->set('token_' . $token, json_encode($info));
+                    }
+
+                    $IntegratorShop = new IntegratorShop( $this->request, $settings, $info['cart_full'] );
+                    $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
+                    $order = $ddeliveryUI->getOrder();
+                    $order->addField1 = $settings->id;
+                    $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
+
+                }else{
+                    throw new Exception('Магазин не идентифицирован');
+                }
+            }else{
+                throw new Exception('Пустой токен');
+            }
+        }catch (Exception $e){
+            echo  $e->getMessage();
+        }
+        /*
          $token = $this->request->query('token');
          $items = $this->request->query('items');
 
@@ -308,16 +366,51 @@ class Controller_Sdk extends Controller
          }else{
              echo 'Перезагрузите страницу браузера для продолжения';
          }
+        */
     }
 
 
-    public function action_test()
-    {
-        $IntegratorShop = new IntegratorShop2( );
-        $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
+    public function action_test(){
+
+        $insales_user = ORM::factory('InsalesUser', array('id' => 29));
+        $settings = json_decode($insales_user->settings );
+
+        //$IntegratorShop = new IntegratorShop( $this->request, $settings );
+        //$IntegratorShop = new IntegratorShop2( );
+        //$ddeliveryUI = new DDeliveryUI( $IntegratorShop,true );
+
+        $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
+
+        $xml = "<js-tag>
+                    <type type=\"string\">JsTag::TextTag</type>
+                    <content>
+                        window.onload = function(){
+                           CheckoutDelivery.find( 242743 ).setFieldsValues( [{fieldId: 1723622, value: 'xxxx' }] );
+                           //console.log( CheckoutDelivery.find( 242743 ));
+                           //console.log( CheckoutPaymentGateway );
+                           //console.log( CheckoutDelivery.find( 242743 ) );
+                           console.log(window.ORDER);
+                           console.log(CheckoutDelivery.find( 242743 ));
+                        }
+                    </content>
+                </js-tag>";
+
+
+        $xml = "<js-tag>
+                    <type type=\"string\">JsTag::FileTag</type>
+                    <content>http://devinsales.ddelivery.ru/html/values.js</content>
+                </js-tag>";
+
+        //print_r( $insales_api->api('POST', '/admin/js_tags.xml', $xml) );
+        //echo '<pre>';
+        /*
+       $order = $ddeliveryUI->initOrder( 1035 );
         echo '<pre>';
-        print_r($ddeliveryUI->initOrder(902));
-        echo '</pre>';
+        //print_r($order);
+        echo $ddeliveryUI->createSelfOrder($order);
+        echo '<pre>';
+        */
+        //echo '</pre>';
         /*
         $insales_user = ORM::factory('InsalesUser', array('id' => 52));
         $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );

@@ -67,6 +67,46 @@ abstract class PluginFilters extends DShopAdapter
      */
     const AROUND_CEIL = 3;
 
+
+    public  function  getErrorMsg( \Exception $e, $extraParams = array() ){
+        return $e->getMessage();
+    }
+    /**
+     *
+     * Залоггировать ошибку
+     *
+     * @param \Exception $e
+     * @param array $extraParams
+     *
+     * @return mixed
+     */
+    public function logMessage( \Exception $e, $extraParams = array() ){
+        $logginUrl = $this->getLogginServer();
+        if( !is_null( $logginUrl ) ){
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+            curl_setopt($curl, CURLOPT_HEADER, 0);
+            curl_setopt($curl, CURLOPT_URL, $logginUrl);
+            curl_setopt($curl, CURLOPT_POST, true);
+
+            $message = $this->getErrorMsg($e, $extraParams);
+
+            $params = array('message' => $message . ', версия SDK -' . DShopAdapter::SDK_VERSION . ', '
+                . $e->getFile() . ', '
+                . $e->getLine() . ', ' . date("Y-m-d H:i:s"), 'url' => $_SERVER['SERVER_NAME'],
+                'apikey' => $this->getApiKey(),
+                'testmode' => (int)$this->isTestMode());
+            $urlSuffix = '';
+            foreach($params as $key => $value) {
+                $urlSuffix .= urlencode($key).'='.urlencode($value) . '&';
+            }
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $urlSuffix);
+            $answer = curl_exec($curl);
+            curl_close($curl);
+            return $answer;
+        }
+    }
+
     /**
      *
      * Сумма к оплате на точке или курьеру
@@ -91,6 +131,7 @@ abstract class PluginFilters extends DShopAdapter
         }
         return 0;
     }
+
 
 
     /**
@@ -183,13 +224,29 @@ abstract class PluginFilters extends DShopAdapter
     }
 
     /**
+     *
+     * Есть ли необходимость отправлять заказ на сервер ddelivery
+     *
+     * @param \DDelivery\Order\DDeliveryOrder $order
+     *
+     * @return bool
+     *
+     */
+    public function sendOrderToDDeliveryServer( $order ){
+        $point = $order->getPoint();
+        if( array_key_exists( $point['delivery_company'], $this->getCustomCourierCompanies() ) ||
+            array_key_exists( $point['delivery_company'], $this->getCustomSelfCompanies() )){
+
+            return false;
+        }
+        return true;
+    }
+    /**
      * @param $price
      * @param $orderSum
-     *
      * @return bool|int
      */
-    public function preDisplayPointCalc($price, $orderSum)
-    {
+    public function preDisplayPointCalc($price, $orderSum){
         $intervals = $this->getIntervalsByPoint();
 
         $priceReturn = $price;
@@ -288,4 +345,120 @@ abstract class PluginFilters extends DShopAdapter
     public abstract function getCustomPointsString();
 
 
+    /**
+     *
+     * Перед возвратом точек самовывоза фильтровать их по определенным правилам
+     *
+     * @param $companyArray
+     * @param DDeliveryOrder $order
+     * @return mixed
+     */
+    public function finalFilterSelfCompanies( $companyArray, $order ){
+        if( count($this->getCustomSelfCompanies()) ){
+            foreach( $this->getCustomSelfCompanies() as $key => $item ){
+                if( $item['city'] == $order->city ){
+
+                    $companyArray[] = $item;
+                }
+            }
+        }
+
+        return $companyArray;
+    }
+
+    /**
+     *
+     *  Перед возвратом компаний курьерок фильтровать их по определенным правилам
+     *
+     * @param $companyArray
+     * @param DDeliveryOrder $order
+     * @return mixed
+     */
+    public function finalFilterCourierCompanies( $companyArray, $order ){
+        if( count($this->getCustomCourierCompanies()) ){
+            foreach( $this->getCustomCourierCompanies() as $key => $item ){
+                if( $item['city'] == $order->city ){
+                    $companyArray[] = $item;
+                }
+            }
+        }
+        return $companyArray;
+    }
+
+    /**
+     *
+     * Перед получение списка точек
+     *
+     * @param $resultPoints array
+     * @param $order DDeliveryOrder
+     * @param $resultCompanies array
+     *
+     * @return array
+     */
+    public function prePointListReturn( $resultPoints, $order, $resultCompanies ){
+        if( count( $this->getCustomSelfPoints() ) ){
+            foreach( $this->getCustomSelfPoints() as $key => $item ){
+                if( ($item['city_id'] == $order->city) && isset($item['company_id']) ){
+                        $resultPoints[] = $item;
+                }
+            }
+        }
+        return $resultPoints;
+    }
+
+
+    public function preGoToFindPoints( $order, $pointId = 0 ){
+        if( array_key_exists( $pointId, $this->getCustomSelfPoints() ) ){
+            return false;
+        }
+        return true;
+    }
+
+    public function getClientCityId(){
+        if(isset($_COOKIE['ddCityId'])){
+            return $_COOKIE['ddCityId'];
+        }
+        return 0;
+    }
+
+    /**
+     *
+     * Получить массив с кастомными курьерскими компаниями
+     *
+     * @return array
+     */
+    public function getCustomCourierCompanies(){
+        return array();
+    }
+
+    /**
+     *
+     * Получить массив с кастомными компаниями самовывоза
+     *
+     * @return array
+     */
+    public function getCustomSelfCompanies(){
+        return array();
+    }
+
+    /**
+     *
+     * Получить массив с кастомными точками самовывоза
+     *
+     * @return array
+     */
+    public function getCustomSelfPoints(){
+        return array();
+    }
+
+    /**
+     *
+     * Текст когда компании не найдены
+     *
+     * @param DDeliveryOrder $order
+     * @return mixed
+     */
+    public function getEmptyCompanyError( $order ){
+        return 'Извините, этот способ доставки не доступен для выбранного города.';
+    }
 }

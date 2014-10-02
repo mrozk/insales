@@ -10,7 +10,9 @@ class MemController{
 
     private static $memcacheInstance = null;
 
-    public static function getMemcacheInstance(){
+    private function __construct(){}
+
+    public static function instance(){
         if( self::$memcacheInstance == null ){
             self::$memcacheInstance = new Memcache;
             self::$memcacheInstance->connect('localhost', 11211) or die ("Could not connect to Memcache");
@@ -18,7 +20,30 @@ class MemController{
         return self::$memcacheInstance;
     }
 
-    public static function initSettingsMemcache( $url ){
+    public function __destruct(){
+        if( self::$memcacheInstance != null ){
+            self::$memcacheInstance->close();
+        }
+    }
+
+    public static function initSettingsMemcache( $id ){
+        $memcache = self::instance();
+        $settings = $memcache->get('insales_' . $id);
+        if( empty( $settings ) ){
+            $query = DB::select( 'settings', 'shop', 'id')->from('insalesusers')->where( 'id', '=', $id )
+                     ->as_object()->execute();
+            if( isset( $query[0]->id )){
+                $settings = json_decode($query[0]->settings);
+                $settings->url = $query[0]->shop;
+                $settings->id = $query[0]->id;
+                $settings = json_encode($settings);
+                $memcache->set( 'insales_' . $id, $settings );
+            }else{
+                throw new Exception('Не найден магазин');
+            }
+        }
+        return json_decode($settings);
+        /*
         $memcache = self::getMemcacheInstance();
 
         if( !empty( $url ) ){
@@ -43,5 +68,6 @@ class MemController{
             return $settings;
         }
         return false;
+        */
     }
 }

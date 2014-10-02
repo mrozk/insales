@@ -1,4 +1,4 @@
-if(typeof(DDelivery) == 'undefined')
+    if(typeof(DDelivery) == 'undefined')
 var DDelivery = {
     delivery: function (objectId, componentUrl, params, callbacks) {
         var iframe = document.createElement('iframe');
@@ -19,9 +19,7 @@ var DDelivery = {
         object.style.height = '650px';
         object.innerHTML = '';
         object.appendChild(iframe);
-
-
-       // iframe.contentWindow.params = params;
+        iframe.contentWindow.params = params;
 
         if(typeof(callbacks)!='object'){
             callbacks = false;

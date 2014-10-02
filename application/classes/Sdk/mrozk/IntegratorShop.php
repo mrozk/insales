@@ -39,6 +39,16 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 
     }
 
+
+    public  function  getErrorMsg( \Exception $e, $extraParams = array() ){
+        if( isset( $extraParams['order'] ) ){
+            return 'ID заказа - ' . $extraParams['order']->locaId . ', ID Insales - ' . $extraParams['order']->add_field1
+                    . ', ' . $e->getMessage();
+        }
+        return $e->getMessage();
+    }
+
+
     /**
      * Синхронизация локальных статусов
      * @var array
@@ -70,6 +80,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         );
     }
     public function onFinishResultReturn( $order, $resultArray ){
+        //$point = $order->getPoint();
+
         $resultArray['street'] = '' ;
         $resultArray['house'] = '' ;
         $resultArray['corp'] = '' ;
@@ -123,7 +135,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     {
         $products = array();
         if( count( $this->info )){
-            foreach( $this->info['cart'] as $product ){
+            foreach( $this->info as $product ){
                 $products[] = new DDeliveryProduct(
                     $product['id'],	//	int $id id товара в системе и-нет магазина
                     $product['width'],	//	float $width длинна
@@ -710,5 +722,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         }
         return $price;
     }
+
+
+
 
 }

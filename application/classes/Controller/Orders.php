@@ -85,7 +85,7 @@ class Controller_Orders extends Controller
                                 }
                             }
                         }catch (\DDelivery\DDeliveryException $e){
-                            $ddeliveryUI->logMessage($e);
+                            $IntegratorShop->logMessage($e, array('order' => $order));
                         }
                     }
                 }
@@ -146,10 +146,8 @@ class Controller_Orders extends Controller
                                    $order->toStreet = (($toStreet != '')?$toStreet:$order->toStreet);
                             }
                             $ddeliveryUI->saveFullOrder($order);
-                        }
-                        catch( \DDelivery\DDeliveryException $e ){
-
-                            $ddeliveryUI->logMessage($e);
+                        }catch( \DDelivery\DDeliveryException $e ){
+                            $IntegratorShop->logMessage($e, array('order' => $order));
                             return;
                         }
                     }

@@ -5,6 +5,27 @@ while(topWindow != topWindow.parent) {
     topWindow = topWindow.parent;
 }
 
+/*
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = "expires="+d.toUTCString();
+    document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+*/
+/*
+
+$(document).ready(function(){
+    setCookie("token", "xxxxx", {expires:365});
+    alert(getCookie("token"));
+
+    console.log( document.cookie );
+    $('.startDD').on('click', function(){
+
+    });
+});
+*/
+
 if(typeof(topWindow.DDeliveryProtocolManager) == 'undefined')
     topWindow.DDeliveryProtocolManager = (function(){
         var th = {};
@@ -12,6 +33,9 @@ if(typeof(topWindow.DDeliveryProtocolManager) == 'undefined')
         var productIdsString = '';
         var orderPrice;
         th.token = '';
+
+
+        /*
         if (!window.location.origin)
             window.location.origin = window.location.protocol+"//"+window.location.host;
 
@@ -64,6 +88,7 @@ if(typeof(topWindow.DDeliveryProtocolManager) == 'undefined')
                 }
             });
         };
+
         th.getProductList = function(){
             return JSON.stringify(productList);
         };
@@ -80,11 +105,13 @@ if(typeof(topWindow.DDeliveryProtocolManager) == 'undefined')
             th.token = key_on_server;
             // setCartToInsales( th.token );
         };
+         */
         return th;
 })();
 var DDeliveryProtocolManager = topWindow.DDeliveryProtocolManager;
 
 function updatePriceAndSend( key_on_server ){
+    // alert(key_on_server);
     DDeliveryProtocolManager.updatePriceAndSend( key_on_server );
 }
 function enableDDButton(){
@@ -110,6 +137,58 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
             document.getElementById('ddelivery_container').style.display = 'block';
         }
 
+        var callback = {
+            close: function(){
+                hideCover();
+                document.getElementById('ddelivery_container').style.display = 'none';
+            },
+            change: function(data) {
+                console.log(data);
+                /*
+                fillFeields(data);
+                $( '.moto_moto').empty();
+
+                var activeBtn;
+
+                if(  ddelivery_insales.delivery_id.length == 2  ){
+                    if( DDeliveryIntegration.typeOfWindow == 'onlyMap' ){
+                        variant_id = ddelivery_insales.delivery_id[0];
+                        activeBtn = 'dd_start1';
+                    }else if( DDeliveryIntegration.typeOfWindow == 'onlyCourier' ){
+                        console.log('onlyCourier');
+                        variant_id = ddelivery_insales.delivery_id[1];
+                        activeBtn = 'dd_start2';
+                    }
+                }else{
+                    console.log('onlyBoth');
+                    variant_id = ddelivery_insales.delivery_id[0];
+                    activeBtn = 'dd_start1';
+                }
+
+                $( '#' + activeBtn).parent().append( '<div class="moto_moto" style="' +
+                    'margin-top: 0px; color:#E98B73" >' + data.comment + '</div>' );
+
+                //var variant_id = ddelivery_insales.delivery_id;
+                CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
+
+                //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
+                CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field3_id, value: data.comment }] );
+                console.log(CheckoutDelivery);
+                CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: data.orderId }] );
+                CheckoutDelivery.find( variant_id ).toExternal().setPrice(data.clientPrice);
+                $('.dd_last_check').val(data.orderId);
+                $('#price_' + variant_id).css('display','block');
+                status = data.comment;
+
+                hideCover();
+                document.getElementById('ddelivery_container').style.display = 'none';
+
+                $('#shipping_address_city').attr('disabled','disabled');
+                $('#shipping_address_zip').attr('disabled','disabled');
+                 */
+            }
+
+        }
 
         function fillFeields(data)
         {
@@ -127,81 +206,32 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
 
 
         th.typeOfWindow = null;
+
         th.openPopup = function(){
             showPrompt();
             document.getElementById('ddelivery_popup').innerHTML = '';
-            var callback = {
-                close: function(){
-                    hideCover();
-                    document.getElementById('ddelivery_container').style.display = 'none';
-                },
-                change: function(data) {
 
-                    fillFeields(data);
-                    $( '.moto_moto').empty();
+            // console.log( DDeliveryTokenManager.getToken() );
+            // console.log( window.ORDER );
+            // Назначаем параметры
+            var param = {};
+            param.client = window.ORDER.client;
+            param.address = window.ORDER.shipping_address;
+            param.token = DDeliveryTokenManager.getToken();
 
-
-
-                    var activeBtn;
-
-                    if(  ddelivery_insales.delivery_id.length == 2  ){
-                        if( DDeliveryIntegration.typeOfWindow == 'onlyMap' ){
-                            variant_id = ddelivery_insales.delivery_id[0];
-                            activeBtn = 'dd_start1';
-                        }else if( DDeliveryIntegration.typeOfWindow == 'onlyCourier' ){
-                            console.log('onlyCourier');
-                            variant_id = ddelivery_insales.delivery_id[1];
-                            activeBtn = 'dd_start2';
-                        }
-                    }else{
-                        console.log('onlyBoth');
-                        variant_id = ddelivery_insales.delivery_id[0];
-                        activeBtn = 'dd_start1';
-                    }
-
-                    $( '#' + activeBtn).parent().append( '<div class="moto_moto" style="' +
-                        'margin-top: 0px; color:#E98B73" >' + data.comment + '</div>' );
-
-                    //var variant_id = ddelivery_insales.delivery_id;
-                    CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field2_id, value: ddelivery_insales._id}] );
-
-                    //alert(data.comment+ ' интернет магазину нужно взять с пользователя за доставку '+data.clientPrice+' руб. OrderId: '+data.orderId);
-                    CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field3_id, value: data.comment }] );
-                    console.log(CheckoutDelivery);
-                    CheckoutDelivery.find( variant_id ).setFieldsValues( [{fieldId: ddelivery_insales.field_id, value: data.orderId }] );
-                    CheckoutDelivery.find( variant_id ).toExternal().setPrice(data.clientPrice);
-                    $('.dd_last_check').val(data.orderId);
-                    $('#price_' + variant_id).css('display','block');
-                    status = data.comment;
-
-                    hideCover();
-                    document.getElementById('ddelivery_container').style.display = 'none';
-
-                    $('#shipping_address_city').attr('disabled','disabled');
-                    $('#shipping_address_zip').attr('disabled','disabled');
-                }
-            };
-            order_form = $('#order_form').serializeArray();
-
-            var params =  {};
             if( DDeliveryIntegration.typeOfWindow != null ){
-                params.type_of_window = DDeliveryIntegration.typeOfWindow;
+                param.type_of_window = DDeliveryIntegration.typeOfWindow;
             }
-
-            params.client_name = $('#client_name').val();
-            params.client_phone = $('#client_phone').val();
-            parametrs = $.param(params);
-            order_form = $.param(order_form);
-
-            url = ddelivery_insales.url + "sdk/?token=" + DDeliveryProtocolManager.token + "&items=" + DDeliveryProtocolManager.getProductString()
-                  + "&" + parametrs + "&" + order_form ;
-
+            // Назначаем параметры
+            var url =  ddConfig.sdkPath + '?' + $.param(param);
+            console.log(url);
+            console.log( ddConfig.wayId );
             DDelivery.delivery('ddelivery_popup', url, {}, callback);
+            //return;
 
         };
         var style = document.createElement('STYLE');
-        style.innerHTML = // Скрываем ненужную кнопку
-            ' #delivery_info_ddelivery_all a{display: none;} ' +
+        style.innerHTML = ' #delivery_info_ddelivery_all a{display: none;} ' +
                 ' #ddelivery_popup { display: inline-block; position:relative; vertical-align: middle; margin: 10px auto; width: 1000px; height: 650px;} ' +
                 ' #ddelivery_container { position: fixed; top: 0; left: 0; z-index: 9999;display: none; width: 100%; height: 100%; text-align: center;  } ' +
                 ' #ddelivery_container:before { display: inline-block; height: 100%; content: \'\'; vertical-align: middle;} ' +
@@ -213,83 +243,107 @@ if(typeof(topWindow.DDeliveryIntegration) == 'undefined')
         div.id = 'ddelivery_container';
         body.appendChild(div);
 
+        $(document).ready(function(){
+            /*
+             $(".button" ).on('click',function(){
+             var activeBtn = 0;
+             $('input[name="order[delivery_variant_id]"]').each(function(){
+             if( $(this).attr('checked') == 'checked' ){
+             activeBtn = $(this).val();
+             }
+             });
+
+             if( ddelivery_insales.delivery_id.indexOf(parseInt(activeBtn)) != -1){
+             if( $('.dd_last_check').val() != '' ){
+             $('#order_form').submit();
+             return true;
+             }else{
+             alert('Уточните выбор текущего способа доставки доставки ');
+             return false;
+             }
+             }
+             });
+             */
+
+
+            var buttonCode1 = '<div class=\"dd_asset_conteiner\" style=\"position: relative\">' +
+                '<input type=\"hidden\" class=\"dd_last_check\" value=\"\">' +
+                '<button id="dd_start1" ' + //disabled="disabled" ' +
+                ' class=\"startDD button\" style=\"max-height:18px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;min-width: 150px\" ' +
+                ' href=\"javascript:void(0);\" >Выбрать</button></div>';
+
+            var buttonCode2 =    '<div class=\"dd_asset_conteiner\" style=\"position: relative\">' +
+                '<input type=\"hidden\" class=\"dd_last_check\" value=\"\">' +
+                '<button id="dd_start2" ' + //disabled="disabled" ' +
+                ' class=\"startDD button\" style=\"max-height:18px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;min-width: 150px\" ' +
+                ' href=\"javascript:void(0);\" >Выбрать</button></div>';
+
+
+            $('#order_delivery_variant_id_' + ddelivery_insales.delivery_id[0]).parent().next().append(buttonCode1 );
+
+            if( ddelivery_insales.delivery_id.length == 2 ){
+                $('#order_delivery_variant_id_' + ddelivery_insales.delivery_id[1]).parent().next().append(buttonCode2);
+            }
+            $('.startDD').on('click', function(){
+                var radio;
+                if(  ddelivery_insales.delivery_id.length == 2  ){
+                    if( $(this).attr('id') == 'dd_start1' ){
+                        DDeliveryIntegration.typeOfWindow = 'onlyMap';
+                        radio = ddelivery_insales.delivery_id[0];
+                    }else if($(this).attr('id') == 'dd_start2'){
+                        DDeliveryIntegration.typeOfWindow = 'onlyCourier';
+                        radio = ddelivery_insales.delivery_id[1];
+                    }
+                }else{
+                    radio = ddelivery_insales.delivery_id[0];
+                }
+                $('#order_delivery_variant_id_' + radio).click();
+
+                //alert('xxx');
+                DDeliveryIntegration.openPopup();
+                return false;
+            });
+            // Спрятать плохие поля
+            $('.delivery_variants .radio_button').on('change',function(){
+                if( ddelivery_insales.delivery_id.indexOf(  parseInt( $(this).val())) != -1 ){
+                    $('#shipping_address_city').attr('disabled','disabled');
+                    $('#shipping_address_zip').attr('disabled','disabled');
+                }else{
+                    $('#shipping_address_city').removeAttr('disabled');
+                    $('#shipping_address_zip').removeAttr('disabled');
+                }
+            });
+            // Клик по кнопке
+            /*
+             $('.startDD').on('click', function(){
+             var radio;
+             if(  ddelivery_insales.delivery_id.length == 2  ){
+             if( $(this).attr('id') == 'dd_start1' ){
+             DDeliveryIntegration.typeOfWindow = 'onlyMap';
+             radio = ddelivery_insales.delivery_id[0];
+             }else if($(this).attr('id') == 'dd_start2'){
+             DDeliveryIntegration.typeOfWindow = 'onlyCourier';
+             radio = ddelivery_insales.delivery_id[1];
+             }
+             }else{
+             radio = ddelivery_insales.delivery_id[0];
+             }
+             $('#order_delivery_variant_id_' + radio).click();
+
+             alert('xxx');
+             //DDeliveryIntegration.openPopup();
+
+             });
+             */
+
+        });
+
+
+
         return th;
     })();
 var DDeliveryIntegration = topWindow.DDeliveryIntegration;
 
-$(function(){
-    $(document).ready(function(){
-
-        $(".button" ).on('click',function(){
-            var activeBtn = 0;
-            $('input[name="order[delivery_variant_id]"]').each(function(){
-                if( $(this).attr('checked') == 'checked' ){
-                    activeBtn = $(this).val();
-                }
-            });
-
-            if( ddelivery_insales.delivery_id.indexOf(parseInt(activeBtn)) != -1){
-                if( $('.dd_last_check').val() != '' ){
-                    $('#order_form').submit();
-                    return true;
-                }else{
-                    alert('Уточните выбор текущего способа доставки доставки ');
-                    return false;
-                }
-            }
-        });
-
-
-        var buttonCode1 = '<div class=\"dd_asset_conteiner\" style=\"position: relative\">' +
-                            '<input type=\"hidden\" class=\"dd_last_check\" value=\"\">' +
-                            '<button id="dd_start1" disabled="disabled" onclick=\"return false\" class=\"startDD button\" style=\"max-height:18px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;min-width: 150px\" ' +
-                            ' href=\"javascript:void(0);\" >Выбрать</button></div>';
-
-        var buttonCode2 =    '<div class=\"dd_asset_conteiner\" style=\"position: relative\">' +
-                             '<input type=\"hidden\" class=\"dd_last_check\" value=\"\">' +
-                             '<button id="dd_start2" disabled="disabled" onclick=\"return false\" class=\"startDD button\" style=\"max-height:18px;font:12px Tahoma,sans-serif; padding:  2px 9px;display:block;min-width: 150px\" ' +
-                             ' href=\"javascript:void(0);\" >Выбрать</button></div>';
-
-
-
-        $('#order_delivery_variant_id_' + ddelivery_insales.delivery_id[0]).parent().next().append(buttonCode1 );
-
-        if( ddelivery_insales.delivery_id.length == 2 ){
-            $('#order_delivery_variant_id_' + ddelivery_insales.delivery_id[1]).parent().next().append(buttonCode2);
-        }
-
-        // Спрятать плохие поля
-        $('.delivery_variants .radio_button').on('change',function(){
-            if( ddelivery_insales.delivery_id.indexOf(  parseInt( $(this).val())) != -1 ){
-                $('#shipping_address_city').attr('disabled','disabled');
-                $('#shipping_address_zip').attr('disabled','disabled');
-            }else{
-                $('#shipping_address_city').removeAttr('disabled');
-                $('#shipping_address_zip').removeAttr('disabled');
-            }
-        });
-        // Клик по кнопке
-        $('.startDD').on('click', function(){
-            var radio;
-            if(  ddelivery_insales.delivery_id.length == 2  ){
-                if( $(this).attr('id') == 'dd_start1' ){
-                    DDeliveryIntegration.typeOfWindow = 'onlyMap';
-                    radio = ddelivery_insales.delivery_id[0];
-                }else if($(this).attr('id') == 'dd_start2'){
-                    DDeliveryIntegration.typeOfWindow = 'onlyCourier';
-                    radio = ddelivery_insales.delivery_id[1];
-                }
-            }else{
-                radio = ddelivery_insales.delivery_id[0];
-            }
-            $('#order_delivery_variant_id_' + radio).click();
-            DDeliveryIntegration.openPopup();
-
-        });
-
-
-    });
-});
 
 // IE 7 not support Array.indexOf
 if (!Array.prototype.indexOf) {

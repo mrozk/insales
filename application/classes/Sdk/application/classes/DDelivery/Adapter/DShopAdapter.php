@@ -18,8 +18,7 @@ use DDelivery\Sdk\DDeliverySDK;
  * Class DShopAdapter
  * @package DDelivery\Adapter
  */
-abstract class DShopAdapter
-{
+abstract class DShopAdapter{
     /**
      * Тип кеширования централизованый(забираются все точки с сервера)
      */
@@ -30,7 +29,7 @@ abstract class DShopAdapter
      */
     const CACHING_TYPE_INDIVIDUAL = 'individual';
 
-    const SDK_VERSION = '2.1.1';
+    const SDK_VERSION = '2.1.7';
     /**
      * Имя редактируется
      */
@@ -102,6 +101,15 @@ abstract class DShopAdapter
      */
     const FIELD_REQUIRED_EMAIL = 32768;
 
+    /**
+     * Адресс, квартира редактируется
+     */
+    const FIELD_EDIT_INDEX = 65536;
+    /**
+     * Адресс, квартира обязательное
+     */
+    const FIELD_REQUIRED_INDEX = 131072;
+
 
     /**
      * Кеш объекта
@@ -110,7 +118,9 @@ abstract class DShopAdapter
     private $productsFromCart = null;
 
     const DB_MYSQL = 1;
+
     const DB_SQLITE = 2;
+
 
     /**
      * Сопоставление cтатуса заказов на стороне cms
@@ -162,6 +172,25 @@ abstract class DShopAdapter
 
     /**
      *
+     * Формируем сообщение для логов
+     *
+     * @param \Exception $e
+     * @param array $extraParams
+     * @return mixed
+     */
+    abstract public function  getErrorMsg( \Exception $e, $extraParams = array() );
+    /**
+     *
+     * Залоггировать ошибку
+     *
+     * @param \Exception $e
+     * @return mixed
+     */
+    abstract public function  logMessage( \Exception $e );
+
+
+    /**
+     *
      * Тип кеширования, для централизированого подхода и для индивидуального решения
      * разные
      *
@@ -195,7 +224,7 @@ abstract class DShopAdapter
      * @param DDeliveryOrder $order
      * @return mixed
      */
-    public function finalFilterSelfCompanies( $companyArray,$order ){
+    public function finalFilterSelfCompanies( $companyArray, $order ){
         return $companyArray;
     }
 
@@ -344,7 +373,7 @@ abstract class DShopAdapter
             'articule 222',
             'Веселый клоун'	//	string $name Название вещи
         );
-        $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'articule 222', 'Грустный клоун');
+        $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'articule another', 'Грустный клоун');
         return $products;
     }
     /**
@@ -361,7 +390,18 @@ abstract class DShopAdapter
         }
         return $this->productsFromCart;
     }
-    
+
+    /**
+     *
+     * Перед получение списка точек
+     *
+     * @param $resultPoints array
+     * @param $order DDeliveryOrder
+     * @param $resultCompanies array
+     *
+     * @return array
+     */
+    public abstract function prePointListReturn( $resultPoints, $order, $resultCompanies );
     /**
      * Возвращает API ключ, вы можете получить его для Вашего приложения в личном кабинете
      * @return string
@@ -448,10 +488,10 @@ abstract class DShopAdapter
      * Если есть необходимость искать точки на сервере ddelivery
      * 
      * @param \DDelivery\Order\DDeliveryOrder $order
-     * 
+     * @param int $pointId
      * @return boolean
      */
-    public function preGoToFindPoints( $order ){
+    public function preGoToFindPoints( $order , $pointId = 0 ){
         return true;        	
     }
     
@@ -461,7 +501,7 @@ abstract class DShopAdapter
      * 
      * @param \DDelivery\Order\DDeliveryOrder $order
      * 
-     * @return float
+     * @return bool
      */
     public function sendOrderToDDeliveryServer( $order ){
         return true;    	
@@ -515,12 +555,7 @@ abstract class DShopAdapter
      * Верните id города в системе DDelivery
      * @return int
      */
-    public function getClientCityId() {
-        if(isset($_COOKIE['ddCityId'])){
-            return $_COOKIE['ddCityId'];
-        }
-        return 0;
-    }
+    public abstract function getClientCityId();
 
 
     /**
@@ -620,4 +655,47 @@ abstract class DShopAdapter
     public function onFinishResultReturn( $order, $resultArray ){
         return $resultArray;
     }
+
+    /**
+     * Ширина модуля
+     * @return string
+     */
+    public function getModuleWidth(){
+        return '1000';
+    }
+
+    /**
+     * Высота модуля
+     * @return string
+     */
+    public function getModuleHeight(){
+        return '650';
+    }
+
+    /**
+     * Получить массив с кастомными курьерскими компаниями
+     * @return array
+     */
+    public abstract function getCustomCourierCompanies();
+
+    /**
+     * Получить массив с кастомными компаниями самовывоза
+     * @return array
+     */
+    public abstract function getCustomSelfCompanies();
+
+    /**
+     * Получить массив с кастомными точками самовывоза
+     * @return array
+     */
+    public abstract function getCustomSelfPoints();
+
+    /**
+     *
+     * Текст когда компании не найдены
+     *
+     * @param DDeliveryOrder $order
+     * @return mixed
+     */
+    public abstract function getEmptyCompanyError($order);
 }

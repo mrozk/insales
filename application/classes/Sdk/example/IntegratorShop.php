@@ -10,8 +10,7 @@ use DDelivery\Order\DDeliveryOrder;
 use DDelivery\Order\DDeliveryProduct;
 use DDelivery\Order\DDStatusProvider;
 
-class IntegratorShop extends \DDelivery\Adapter\PluginFilters
-{
+class IntegratorShop extends \DDelivery\Adapter\PluginFilters{
     /**
      * Синхронизация локальных статусов и статусов дделивери
      * @var array
@@ -28,6 +27,9 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                                         DDStatusProvider::ORDER_RETURNED_MI => 2,
                                         DDStatusProvider::ORDER_WAITING => 25,
                                         DDStatusProvider::ORDER_CANCEL => 26 );
+
+
+
     /**
      * Верните true если нужно использовать тестовый(stage) сервер
      * @return bool
@@ -56,7 +58,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
             'Веселый клоун',	//	string $name Название вещи
             'artikul222'
         );
-        $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'Грустный клоун', 'artikul222');
+        $products[] = new DDeliveryProduct(2, 10, 13, 15, 0.3, 1500, 2, 'Грустный клоун', 'another artikul222');
         return $products;
     }
 
@@ -182,9 +184,11 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * либо константа \DDelivery\Adapter\PluginFilters::PAYMENT_PREPAYMENT - если способ облаты - предоплата,
      * либо константа \DDelivery\Adapter\PluginFilters::PAYMENT_POST_PAYMENT -  если способ оплаты оплата при получении
      *
+     * @param $order DDeliveryOrder
+     *
      * @return int
      */
-    public function filterPointByPaymentTypeCourier(){
+    public function filterPointByPaymentTypeCourier( $order ){
         return \DDelivery\Adapter\PluginFilters::PAYMENT_PREPAYMENT;
     }
 
@@ -194,10 +198,12 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * либо константа \DDelivery\Adapter\PluginFilters::PAYMENT_PREPAYMENT - если способ облаты - предоплата,
      * либо константа \DDelivery\Adapter\PluginFilters::PAYMENT_POST_PAYMENT -  если способ оплаты оплата при получении
      *
+     * @param $order DDeliveryOrder
+     *
      * @return int
      */
-    public function filterPointByPaymentTypeSelf(){
-        return \DDelivery\Adapter\PluginFilters::PAYMENT_POST_PAYMENT;
+    public function filterPointByPaymentTypeSelf( $order ){
+        return \DDelivery\Adapter\PluginFilters::PAYMENT_PREPAYMENT;
     }
 
     /**
@@ -216,9 +222,15 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return array
      */
     public function getIntervalsByPoint(){
+        return array(
+            array('min' => 0, 'max'=>10000, 'type'=>self::INTERVAL_RULES_MARKET_ALL, 'amount'=>100),
+            //array('min' => 100, 'max'=>200, 'type'=>self::INTERVAL_RULES_CLIENT_ALL, 'amount'=>60),
+            //array('min' => 200, 'max'=>5000, 'type'=>self::INTERVAL_RULES_MARKET_PERCENT, 'amount'=>50),
+            //array('min' => 5000, 'max'=>null, 'type'=>self::INTERVAL_RULES_MARKET_ALL),
+        );
         return array();
         return array(
-            array('min' => 0, 'max'=>100, 'type'=>self::INTERVAL_RULES_MARKET_AMOUNT, 'amount'=>30),
+            array('min' => 0, 'max'=>100, 'type'=>self::INTERVAL_RULES_MARKET_AMOUNT, 'amount'=>100),
             array('min' => 100, 'max'=>200, 'type'=>self::INTERVAL_RULES_CLIENT_ALL, 'amount'=>60),
             array('min' => 200, 'max'=>5000, 'type'=>self::INTERVAL_RULES_MARKET_PERCENT, 'amount'=>50),
             array('min' => 5000, 'max'=>null, 'type'=>self::INTERVAL_RULES_MARKET_ALL),
@@ -292,6 +304,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getClientCityId(){
         // Если нет информации о городе, оставьте вызов родительского метода.
+        //return 151185;
         return parent::getClientCityId();
     }
 
@@ -327,7 +340,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @param DDeliveryOrder $order
      * @return mixed
      */
-    public function finalFilterSelfCompanies( $companyArray, DDeliveryOrder $order ){
+    public function finalFilterSelfCompanies( $companyArray, $order ){
+        $companyArray = parent::finalFilterSelfCompanies( $companyArray, $order );
         return $companyArray;
     }
 
@@ -339,7 +353,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @param DDeliveryOrder $order
      * @return mixed
      */
-    public function finalFilterCourierCompanies( $companyArray, DDeliveryOrder $order ){
+    public function finalFilterCourierCompanies( $companyArray, $order ){
+        $companyArray = parent::finalFilterCourierCompanies( $companyArray, $order );
         return $companyArray;
     }
 
@@ -390,7 +405,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         | self::FIELD_EDIT_ADDRESS | self::FIELD_REQUIRED_ADDRESS
         | self::FIELD_EDIT_ADDRESS_HOUSE | self::FIELD_REQUIRED_ADDRESS_HOUSE
         | self::FIELD_EDIT_ADDRESS_HOUSING
-        | self::FIELD_EDIT_ADDRESS_FLAT | self::FIELD_REQUIRED_ADDRESS_FLAT | self::FIELD_EDIT_EMAIL;
+        | self::FIELD_EDIT_ADDRESS_FLAT | self::FIELD_REQUIRED_ADDRESS_FLAT | self::FIELD_EDIT_EMAIL
+        | self::FIELD_EDIT_INDEX;
     }
 
     /**
@@ -412,6 +428,102 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getTemplate(){
         return 'blue';
+    }
+
+    /**
+     *
+     * Получить массив с кастомными курьерскими компаниями
+     *
+     * @return array
+     */
+    public function getCustomCourierCompanies(){
+        return array();
+        return array(
+            'custom_company1' => array(
+                'city' => 151184,
+                'delivery_company' => 'custom_company1',
+                'delivery_company_name' => 'XXX company',
+                'pickup_price' => 250,
+                'delivery_price' => 170,
+                'delivery_price_fee' => 0,
+                'declared_price_fee' => 30,
+                'delivery_time_min' => 2,
+                'delivery_time_max' => 3,
+                'delivery_time_avg' => 3,
+                'return_price' => 0,
+                'return_client_price' => 0,
+                'return_partial_price' => 0,
+                'total_price' => 450
+            )
+        );
+    }
+
+    /**
+     *
+     * Получить массив с кастомными компаниями самовывоза
+     *
+     * @return array
+     */
+    public function getCustomSelfCompanies(){
+        return array();
+        return array(
+            'custom_self_company1' => array(
+                'city' => 151184,
+                'delivery_company' => 'custom_self_company1',
+                'delivery_company_name' => 'XXX Self company',
+                'pickup_price' => 250,
+                'delivery_price' => 170,
+                'delivery_price_fee' => 0,
+                'declared_price_fee' => 30,
+                'delivery_time_min' => 2,
+                'delivery_time_max' => 3,
+                'delivery_time_avg' => 3,
+                'return_price' => 0,
+                'return_client_price' => 0,
+                'return_partial_price' => 0,
+                'total_price' => 450
+            )
+        );
+    }
+
+    /**
+     *
+     * Получить массив с кастомными точками самовывоза
+     *
+     * @return array
+     */
+    public function getCustomSelfPoints(){
+        return array();
+        return array(
+            1000900 => array(
+                '_id' => 1000900,
+                'name' => 'xxxxxxx',
+                'city_id' => 151184,
+                'city' => 'Москва',
+                'region' => 'Москва',
+                'region_id' => '77',
+                'city_type' => 'г',
+                'postal_code' => '101000',
+                'area' =>'',
+                'kladr' => '77000000000',
+                'company' => 'XXX Self company',
+                'company_id' => 'custom_self_company1',
+                'company_code' => 'MSK3',
+                'metro' => '',
+                'description_in' =>'',
+                'description_out' =>'',
+                'indoor_place' =>'',
+                'address' => 'Своя собственная точка доставки`',
+                'schedule' => 'пн.-пт. 11-20, сб. 11-17, вс. 11-16',
+                'longitude' => '37.582745',
+                'latitude' => '55.778628',
+                'type' => 2,
+                'status' => 2,
+                'has_fitting_room' => '',
+                'is_cash' => 1,
+                'is_card' => ''
+            )
+        );
     }
 
 }

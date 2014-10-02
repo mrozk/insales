@@ -178,7 +178,7 @@ class Controller_Cabinet extends  Controller_Base{
                         $settings->common_description = 'Доставка товаров во все населенные пункты России + пункты самовывоза в 150 городах';
                     }
 
-                    $payload = self::getShippingMethod( $settings->common_caption, $settings->common_description );
+                    $payload = self::getShippingMethod( $settings->common_caption, $settings->common_description, $insales_user->insales_id );
                     $delivery_variants = $insales_api->api('POST', '/admin/delivery_variants.xml', $payload);
                     $delivery_variants = new SimpleXMLElement($delivery_variants);
                     $delivery = $delivery_variants->id ;
@@ -199,12 +199,12 @@ class Controller_Cabinet extends  Controller_Base{
                         $settings->courier_description = 'Доставка товаров во все населенные пункты России + пункты самовывоза в 150 городах';
                     }
 
-                    $payload = self::getShippingMethod( $settings->self_caption, $settings->self_description );
+                    $payload = self::getShippingMethod( $settings->self_caption, $settings->self_description, $insales_user->insales_id );
                     $delivery_variants = $insales_api->api('POST', '/admin/delivery_variants.xml', $payload);
 
                     $delivery_variants = new SimpleXMLElement( $delivery_variants );
 
-                    $payload = self::getShippingMethod( $settings->courier_caption, $settings->self_description );
+                    $payload = self::getShippingMethod( $settings->courier_caption, $settings->self_description, $insales_user->insales_id );
                     $delivery_variants2 = $insales_api->api('POST', '/admin/delivery_variants.xml', $payload);
                     $delivery_variants2 = new SimpleXMLElement( $delivery_variants2 );
 
@@ -301,12 +301,12 @@ class Controller_Cabinet extends  Controller_Base{
         }
     }
 
-    public static  function getShippingMethod( $title, $description ){
+    public static  function getShippingMethod( $title, $description, $insalesID = 0 ){
         return $payload = '<?xml version="1.0" encoding="UTF-8"?>
                                 <delivery-variant>
                                   <title>' . $title . '</title>
                                   <position type="integer">1</position>
-                                  <url>' . URL::base(TRUE, FALSE) . 'hello/gus/</url>
+                                  <url>' . URL::base(TRUE, FALSE) . 'hello/gus/' . $insalesID . '/</url>
                                   <description>' . $description . '</description>
                                   <type>DeliveryVariant::External</type>
                                   <delivery-locations type="array"/>
@@ -358,7 +358,7 @@ class Controller_Cabinet extends  Controller_Base{
         $options = array();
         $payment_gateways = json_decode( $insales_api->api('GET', '/admin/payment_gateways.json') );
 
-        $options[0] = 'Выберитите поле';
+        $options[0] = 'Выберите поле';
         if( count( $payment_gateways ) )
         {
             foreach( $payment_gateways as $gateways )
@@ -414,7 +414,7 @@ class Controller_Cabinet extends  Controller_Base{
         */
         $payment_gateways = json_decode( $insales_api->api('GET', '/admin/fields.json') );
         //print_r($payment_gateways);
-        $options[0] = 'Выберитите поле';
+        $options[0] = 'Выберите поле';
         if( count( $payment_gateways ) )
         {
             foreach( $payment_gateways as $gateways )
@@ -433,7 +433,7 @@ class Controller_Cabinet extends  Controller_Base{
         $options = array();
         $payment_gateways = json_decode( $insales_api->api('GET', '/admin/properties.json') );
 
-        $options[0] = 'Выберитите поле';
+        $options[0] = 'Выберите поле';
         if( count( $payment_gateways ) )
         {
             foreach( $payment_gateways as $gateways )
@@ -452,7 +452,7 @@ class Controller_Cabinet extends  Controller_Base{
         */
         $payment_gateways = json_decode( $insales_api->api('GET', '/admin/product_fields.json') );
         //print_r($payment_gateways);
-        $options[0] = 'Выберитите поле';
+        $options[0] = 'Выберите поле';
         if( count( $payment_gateways ) )
         {
               foreach( $payment_gateways as $gateways )

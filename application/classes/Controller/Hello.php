@@ -11,6 +11,16 @@ class Controller_Hello extends Controller
     }
     public function action_gus()
     {
+
+        $id = $this->request->param('id');
+
+        $result = 'jQuery(".loader").css("display","none");';
+        // $result .= 'updatePriceAndSend("' . $id . '");';
+        echo $result;
+        return;
+        //echo $this->request()->param('id');
+
+        /*
         header('Content-Type: text/javascript; charset=UTF-8');
         $result = 'jQuery(".loader").css("display","none");';
         if( isset($_SERVER["HTTP_REFERER"]) ){
@@ -33,5 +43,6 @@ class Controller_Hello extends Controller
                 return;
             }
         }
+        */
     }
 }

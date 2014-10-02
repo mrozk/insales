@@ -20,7 +20,7 @@
                                         <img class="big" src="<?=$staticURL?>img/logo/<?=$ico?>.png" alt="<?=$selfCompany['delivery_company_name']?>"/>
                                     </span>
 
-                    <span class="price"><?=$this->getClientPrice($selfCompany, $this->order, \DDelivery\Sdk\DDeliverySDK::TYPE_SELF)?> <i class="icon-rub">&nbsp;</i></span>
+                    <span class="price"><?=$this->getClientPrice($selfCompany, $this->order)?> <i class="icon-rub">&nbsp;</i></span>
 
                     <span class="date">
                         <strong><?=$selfCompany['delivery_time_min']?></strong> <?=\DDelivery\Utils::plural($selfCompany['delivery_time_min'], 'день', 'дня&nbsp;', 'дней', 'дней', false)?>
@@ -29,11 +29,11 @@
                 </a>
             </li>
         <?endforeach;?>
-<?php   }else{ ?>
-            <li>
-                <div style="text-align: center">
-                    Извините, этот способ доставки не доступен для выбранного города.
-                </div>
-            </li>
-<?php        } ?>
+    <?php   }else{ ?>
+        <li>
+            <div style="text-align: center">
+                <?=$this->shop->getEmptyCompanyError($this->order);?>
+            </div>
+        </li>
+    <?php        } ?>
 </ul>
