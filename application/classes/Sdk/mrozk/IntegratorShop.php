@@ -18,8 +18,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
 
     public $info;
 
-    public function __construct( $request, $settings, $info = null )
-    {
+    public function __construct( $request, $settings, $info = null ){
         if( $info != null ){
             $this->info = $info;
         }
@@ -70,8 +69,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * Настройки базы данных
      * @return array
      */
-    public function getDbConfig()
-    {
+    public function getDbConfig(){
         $config = Kohana::$config->load('database')->get('default');
         return array(
             'pdo' => new \PDO( $config['connection']['dsn'], $config['connection']['username'],
@@ -114,14 +112,11 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * Верните true если нужно использовать тестовый(stage) сервер
      * @return bool
      */
-    public function isTestMode()
-    {
-        if ( $this->settings->rezhim  == '1')
-        {
+    public function isTestMode(){
+        if ( $this->settings->rezhim  == '1'){
             return true;
         }
-        elseif($this->settings->rezhim  == '2')
-        {
+        elseif($this->settings->rezhim  == '2'){
             return false;
         }
         //return true;
@@ -183,16 +178,16 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
             //echo $insales_user->id;
     }
 
-    public function setCmsOrderStatus( $cmsOrderID, $status )
-    {
+    public function setCmsOrderStatus( $cmsOrderID, $status ){
 
     }
 
-    public function isStatusToSendOrder( $cmsStatus )
-    {
-        if( $cmsStatus == $this->settings->status )
-        {
+    public function isStatusToSendOrder( $cmsStatus ){
+        echo $this->settings->status;
+        if( $cmsStatus == $this->settings->status ){
             return true;
+        }else{
+            return false;
         }
     }
     /**
@@ -219,12 +214,15 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      */
     public function getPhpScriptURL(){
         $url = array();
-        $url['client_name'] = $this->request->query('client_name');
+        $url['client'] = $this->request->query('client');
+        /*
         $url['client_phone'] = $this->request->query('client_phone');
+        */
         $url['token'] = $this->request->query('token');
         $url['shipping_address'] = $this->request->query('shipping_address');
         $url['type_of_window'] = $this->request->query('type_of_window');
-
+        $url['wayId'] = $this->request->query('wayId');
+        $url['address'] = $this->request->query('address');
         // Тоесть до этого файла
         return URL::base( $this->request ) . 'sdk/?' . http_build_query($url);
     }
@@ -361,22 +359,28 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         $interval2 = array();
         $interval3 = array();
 
-        if( ( isset( $this->settings->from1 ) && !empty($this->settings->from1) ) && ( isset( $this->settings->to1 ) && !empty($this->settings->to1)  ) && ( isset( $this->settings->sum1 ) ) )
-        {
-            $interval1 = array('min' => $this->settings->from1, 'max' => $this->settings->to1,
-                               'type' => (int)$this->settings->val1, 'amount' => $this->settings->sum1);
+        if( ( isset( $this->settings->from1 )) && ( isset( $this->settings->to1 )
+                && !empty($this->settings->to1)  )
+                && ( isset( $this->settings->sum1 ) ) ){
+
+                $interval1 = array('min' => $this->settings->from1, 'max' => $this->settings->to1,
+                                   'type' => (int)$this->settings->val1, 'amount' => $this->settings->sum1);
         }
 
-        if( ( isset( $this->settings->from2 ) && !empty($this->settings->from2) ) && ( isset( $this->settings->to2 ) && !empty($this->settings->to2) ) && ( isset( $this->settings->sum2 ) ) )
-        {
-            $interval2 = array('min' => $this->settings->from2, 'max' => $this->settings->to2,
-                               'type' => (int)$this->settings->val2, 'amount' => $this->settings->sum2);
+        if( ( isset( $this->settings->from2 ) ) && ( isset( $this->settings->to2 )
+                && !empty($this->settings->to2) )
+                && ( isset( $this->settings->sum2 ) ) ){
+
+                $interval2 = array('min' => $this->settings->from2, 'max' => $this->settings->to2,
+                                   'type' => (int)$this->settings->val2, 'amount' => $this->settings->sum2);
         }
 
-        if( ( isset( $this->settings->from3 ) && !empty($this->settings->from3) ) && ( isset( $this->settings->to3 ) && !empty($this->settings->to3) ) && ( isset( $this->settings->sum3 ) ) )
-        {
-            $interval3 = array('min' => $this->settings->from3, 'max' => $this->settings->to3,
-                               'type' => (int)$this->settings->val3, 'amount' => $this->settings->sum3);
+        if( ( isset( $this->settings->from3 )) && ( isset( $this->settings->to3 )
+                && !empty($this->settings->to3) )
+                && ( isset( $this->settings->sum3 ) ) ){
+
+                $interval3 = array('min' => $this->settings->from3, 'max' => $this->settings->to3,
+                                   'type' => (int)$this->settings->val3, 'amount' => $this->settings->sum3);
         }
         return array($interval1, $interval2, $interval3);
 
@@ -427,15 +431,19 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
     {
         return '';
     }
-
+    public function getClientEmail(){
+        $client_email = $this->request->query( 'client' );
+        $client_email = $client_email['email'];
+        return $client_email;
+    }
     /**
      * Если вы знаете имя покупателя, сделайте чтобы оно вернулось в этом методе
      * @return string|null
      */
     public function getClientFirstName() {
-        $client_name = $this->request->query( 'client_name' );
-        if( !empty( $client_name ) ){
-            return $client_name;
+        $client_name = $this->request->query( 'client' );
+        if( !empty( $client_name['name'] ) ){
+            return $client_name['name'];
         }
         return '';
     }
@@ -471,7 +479,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return string|null
      */
     public function getClientPhone() {
-        $phone = $this->formatPhone( $this->request->query( 'client_phone' ) );
+        $phone = $this->request->query( 'client' );
+        $phone = $this->formatPhone( $phone['phone'] );
         $phone  = substr( $phone, -10);
         return '+7' . $phone;
     }
@@ -481,13 +490,41 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return string[]
      */
     public function getClientAddress() {
-        /// return array(1,2,3,4,5,6,7,8);
-
-        $shipping_address = $this->request->query('shipping_address');
         $street = '';
         $house = '';
         $corp = '';
         $flat = '';
+
+        $fields_values = $this->request->query('address');
+        if(isset($fields_values['fields_values'])){
+            foreach($fields_values['fields_values'] as $item){
+
+                if( array_key_exists($item['name'], $this->settings->address_caption )){
+                    $var = $item['name'];
+                    if( !empty( $this->settings->address['street'] ) ){
+                        if($this->settings->address_caption->$var == $this->settings->address['street']){
+                            $street = $item['value'];
+                        }
+                    }
+                    if( !empty( $this->settings->address['house'] ) ){
+                        if($this->settings->address_caption->$var == $this->settings->address['house']){
+                            $house = $item['value'];
+                        }
+                    }
+                    if( !empty( $this->settings->address['corp'] ) ){
+                        if($this->settings->address_caption->$var == $this->settings->address['corp']){
+                            $corp = $item['value'];
+                        }
+                    }
+                    if( !empty( $this->settings->address['flat'] ) ){
+                        if($this->settings->address_caption->$var == $this->settings->address['flat']){
+                            $flat = $item['value'];
+                        }
+                    }
+                }
+            }
+        }
+        /*
         if( !empty( $this->settings->address['street'] ) ){
             if(isset( $shipping_address['fields_values_attributes'][$this->settings->address['street']] )){
                 $street = $shipping_address['fields_values_attributes'][$this->settings->address['street']]['value'];
@@ -511,7 +548,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                 $flat = $shipping_address['fields_values_attributes'][$this->settings->address['flat']]['value'];
             }
         }
-
+        */
         return array( $street, $house, $corp, $flat );
 
         //return  array(1,2,3,4);
@@ -635,7 +672,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return array
      */
     public function getSelfPaymentVariants( $order ){
-        return array();
+        return array($this->settings->payment);
     }
 
     /**
@@ -644,7 +681,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return array
      */
     public function getCourierPaymentVariants( $order ){
-        return array();
+        return array($this->settings->payment);
     }
 
 
@@ -723,7 +760,8 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
         return $price;
     }
 
-
-
+    public function getPaymentFilterEnabled( $order ){
+        return true;
+    }
 
 }

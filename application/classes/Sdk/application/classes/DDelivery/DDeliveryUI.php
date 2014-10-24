@@ -6,16 +6,12 @@
 * @author  mrozk
 */
 namespace DDelivery;
+use DDelivery\DB\ConnectInterface;
 use DDelivery\Order\DDStatusProvider;
 use DDelivery\Adapter\DShopAdapter;
-use DDelivery\DataBase\City;
-use DDelivery\DataBase\Order;
-use DDelivery\DataBase\SQLite;
 use DDelivery\Sdk\DCache;
 use DDelivery\Sdk\DDeliverySDK;
 use DDelivery\Order\DDeliveryOrder;
-use DDelivery\Adapter\DShopAdapterImpl;
-use DDelivery\Sdk\Messager;
 
 
 /**
@@ -55,6 +51,9 @@ use DDelivery\Sdk\Messager;
          */
         private $order;
 
+        /**
+         * @var DCityLocator
+         */
         public $cityLocator;
 
         /**
@@ -65,7 +64,7 @@ use DDelivery\Sdk\Messager;
         private $cache;
 
         /**
-         * @var /PDO бд
+         * @var ConnectInterface бд
          */
         private $pdo;
         /**
@@ -197,7 +196,7 @@ use DDelivery\Sdk\Messager;
                     if($order->type == DDeliverySDK::TYPE_SELF){
                         return $this->createSelfOrder($order);
                     }elseif( $order->type == DDeliverySDK::TYPE_COURIER ){
-                            return $this->createCourierOrder($order);
+                        return $this->createCourierOrder($order);
                     }
                 }
             }
@@ -350,7 +349,6 @@ use DDelivery\Sdk\Messager;
                 $this->_initOrderInfo( $currentOrder, $item );
             }else{
                 throw new DDeliveryException('Заказ DD в локальной БД не найден');
-                return;
             }
 
             return $currentOrder;
@@ -452,11 +450,13 @@ use DDelivery\Sdk\Messager;
             {
                 $errors[] = "Не найден id заказа в CMS";
             }
-            if( (count($this->shop->getSelfPaymentVariants( $order ))  > 0) &&
-                    !in_array( $order->paymentVariant, $this->shop->getCourierPaymentVariants( $order ) ) ){
-                $errors[] = "Нет попадания в список возможных способов оплаты";
+            $enabled = $this->paymentPriceEnable($order);
+            if( !$enabled ){
+                if( (count($this->shop->getCourierPaymentVariants( $order ))  > 0) &&
+                         in_array( $order->paymentVariant, $this->shop->getCourierPaymentVariants( $order ) ) ){
+                    $errors[] = "Нет попадания в список возможных способов оплаты";
+                }
             }
-
             if(count($errors))
             {
                 throw new DDeliveryException(implode(', ', $errors));
@@ -503,17 +503,48 @@ use DDelivery\Sdk\Messager;
             if( ! $order->shopRefnum ){
                 $errors[] = "Не найден id заказа в CMS";
             }
-
-            if( (count($this->shop->getSelfPaymentVariants( $order ))  > 0) &&
-                    !in_array( $order->paymentVariant, $this->shop->getSelfPaymentVariants( $order ) ) ){
-                $errors[] = "Нет попадания в список возможных способов оплаты";
+            $enabled = $this->paymentPriceEnable($order);
+            if( !$enabled ){
+                if( (count($this->shop->getSelfPaymentVariants( $order ))  > 0) &&
+                            in_array( $order->paymentVariant, $this->shop->getSelfPaymentVariants( $order ) ) ){
+                    $errors[] = "Нет попадания в список возможных способов оплаты";
+                }
             }
-
             if(count($errors)){
                 throw new DDeliveryException(implode(', ', $errors));
             }
             return true;
         }
+
+        /**
+         *
+         * Проверка на доступность НПП
+         *
+         * @param DDeliveryOrder $order
+         * @return bool
+         *
+         * @throws DDeliveryException
+         */
+        public function paymentPriceEnable( $order ){
+            $city = $order->city;
+            $company = $order->companyId;
+            $enabled = $this->shop->getPaymentFilterEnabled( $order );
+            if( $enabled ){
+                if( !empty($city) && !empty($company) ){
+                    $paymentPrice = $this->sdk->paymentPriceEnable( $city, $company );
+                    //print_r($paymentPrice);
+                    //return (int)false;
+                    return $paymentPrice->success;
+                }else{
+                    throw new DDeliveryException('Не хватает параметров для расчета НПП');
+                }
+            }else{
+                return true;
+            }
+        }
+
+
+
 
         /**
          *
@@ -538,8 +569,6 @@ use DDelivery\Sdk\Messager;
          * @return int
          */
         public function createCourierOrder( $order ){
-            /** @var DDeliveryPointCourier $point */
-
             if(! $this->shop->sendOrderToDDeliveryServer($order) ){
                 return 0;
             } else {
@@ -849,7 +878,6 @@ use DDelivery\Sdk\Messager;
                 return $resultCompanies;
             }else{
                 throw new DDeliveryException('Недостаточно параметров для расчета цены');
-                return false;
             }
         }
 
@@ -1053,13 +1081,18 @@ use DDelivery\Sdk\Messager;
          * @return array
          * @throws DDeliveryException
          */
-        public  function getAvailablePaymentVariants( DDeliveryOrder $order ){
-            if( $order->type == DDeliverySDK::TYPE_SELF ){
-                return $this->shop->getSelfPaymentVariants( $order );
-            }else if( $order->type == DDeliverySDK::TYPE_COURIER ){
-                return $this->shop->getCourierPaymentVariants( $order );
+        public  function getAvailablePaymentVariants( $order ){
+            $enabled = $this->paymentPriceEnable($order);
+            if($enabled){
+                return array();
             }else{
-                throw new DDeliveryException("Не определен способ доставки");
+                if( $order->type == DDeliverySDK::TYPE_SELF ){
+                    return $this->shop->getSelfPaymentVariants( $order );
+                }else if( $order->type == DDeliverySDK::TYPE_COURIER ){
+                    return $this->shop->getCourierPaymentVariants( $order );
+                }else{
+                    throw new DDeliveryException("Не определен способ доставки");
+                }
             }
         }
 
@@ -1465,15 +1498,7 @@ use DDelivery\Sdk\Messager;
             $comment = '';
             $point = $this->order->getPoint();
 
-            if( $this->order->type == DDeliverySDK::TYPE_SELF ){
-                $comment = 'Самовывоз, ' . $this->order->cityName . ' ' . $point['address'] .
-                            (', ' . $point['delivery_company_name']) .
-                            (', ' . $point['name'] . ', ID точки - ' . $point['_id'] ) .
-                            (', ' . (($point['type'] == 1)?'Постомат':'ПВЗ'));
-            }else if( $this->order->type == DDeliverySDK::TYPE_COURIER ){
-                $comment = 'Доставка курьером по адресу '.$this->order->getFullAddress().
-                            (', ' . $point['delivery_company_name']) ;
-            }
+            $comment = $this->getPointComment($this->order);
 
             $this->shop->onFinishChange( $this->order );
 
@@ -1484,6 +1509,7 @@ use DDelivery\Sdk\Messager;
                             'orderId' => $this->order->localId,
                             'clientPrice'=>$this->getClientPrice($point, $this->order, $this->order->type),
                             'userInfo' => $this->getDDUserInfo($this->order),
+                            'filter' => $this->getAvailablePaymentVariants($this->order)
                             );
             $returnArray = $this->shop->onFinishResultReturn( $this->order, $returnArray );
             return json_encode( $returnArray );
@@ -1755,7 +1781,14 @@ use DDelivery\Sdk\Messager;
                 44 => array('name' => 'Почта России', 'ico' => 'russianpost'),
                 45 => array('name' => 'Aplix курьерская доставка', 'ico' => 'aplix'),
                 48 => array('name' => 'Aplix IML курьерская доставка', 'ico' => 'aplix_imlogistics'),
+                49 => array('name' => 'IML Забор', 'ico' => 'imlogistics'),
+                50 => array('name' => 'Почта России 1-й класс', 'ico' => 'mail'),
+                51 => array('name' => 'EMS Почта России', 'ico' => 'ems'),
 
+                52 => array('name' => 'ЕКБ-доставка забор', 'ico' => 'pack'),
+                53 => array('name' => 'ЕКБ-доставка курьер', 'ico' => 'pack'),
+                54 => array('name' => 'Почта России 1-й класс.', 'ico' => 'mail'),
+                55 => array('name' => 'Почта России.', 'ico' => 'mail')
             );
         }
 
@@ -1837,7 +1870,7 @@ use DDelivery\Sdk\Messager;
         public function _initDb(DShopAdapter $dShopAdapter)
         {
             $dbConfig = $dShopAdapter->getDbConfig();
-            if (isset($dbConfig['pdo']) && $dbConfig['pdo'] instanceof \PDO) {
+            if (isset($dbConfig['pdo']) && ($dbConfig['pdo'] instanceof \PDO || $dbConfig['pdo'] instanceof ConnectInterface)) {
                 $this->pdo = $dbConfig['pdo'];
             } elseif ($dbConfig['type'] == DShopAdapter::DB_SQLITE) {
                 if (!$dbConfig['dbPath'])
@@ -1857,6 +1890,27 @@ use DDelivery\Sdk\Messager;
                 throw new DDeliveryException('Not support database type');
             }
             $this->pdoTablePrefix = isset($dbConfig['prefix']) ? $dbConfig['prefix'] : '';
+        }
+
+        /**
+         * Получить описание точки в заказе
+         * @param $order
+         * @return string
+         */
+        public function getPointComment( $order ){
+            $comment = '';
+            $point = $order->getPoint();
+
+            if( $order->type == DDeliverySDK::TYPE_SELF ){
+                $comment = 'Самовывоз, ' . $order->cityName . ' ' . $point['address'] .
+                    (', ' . $point['delivery_company_name']) .
+                    (', ' . $point['name'] . ', ID точки - ' . $point['_id'] ) .
+                    (', ' . (($point['type'] == 1)?'Постомат':'ПВЗ'));
+            }else if( $order->type == DDeliverySDK::TYPE_COURIER ){
+                $comment = 'Доставка курьером по адресу ' . $order->getFullAddress() .
+                    (', ' . $point['delivery_company_name']) ;
+            }
+            return $comment;
         }
 
 

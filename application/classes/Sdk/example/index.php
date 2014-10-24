@@ -4,7 +4,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     </head>
     <body>
-        <script src="../../../../html/js/ddelivery.js"></script>
+        <script src="../html/js/ddelivery.js"></script>
 
         <a href="javascript:void(0)" id="select_way" class="trigger">Выбрать точку доставки</a>
 
@@ -53,7 +53,8 @@
                         */
 
                         var callback = {
-                            close: function(){
+                            close: function(data){
+                                console.log(data);
                                 hideCover();
                                 document.getElementById('ddelivery_container').style.display = 'none';
                             },

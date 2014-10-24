@@ -30,6 +30,8 @@
                 <?php */
                 ?>
                 <div style="text-align: right">
+                    <a  class="btn btn-danger"  href="/admin/main/cleansettings/">Очистить кеш настроек</a>
+                    <a  class="btn btn-danger"  href="/admin/main/cleancities/">Очистить кеш точек</a>
                     <a class="btn btn-success" onclick="" href="/admin/auth/logout/">Выход</a>
                 </div>
             </div>

@@ -68,18 +68,23 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters{
      */
     public function getDbConfig(){
 
-
         return array(
             'pdo' => new \PDO('mysql:host=localhost;dbname=ddelivery', 'root', 'root', array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")),
             'prefix' => '',
         );
-
         return array(
             'type' => self::DB_SQLITE,
             'dbPath' => $this->getPathByDB(),
             'prefix' => '',
         );
 
+        $connect = mysql_connect('localhost', 'root', '0');
+        mysql_select_db('bitrix', $connect);
+        mysql_query('SET NAMES utf8');
+        return array(
+            'pdo' => new DDelivery\DB\Mysql\Connect($connect),
+            'prefix' => 'ddelivery_',
+        );
 
 
         return array(
@@ -222,12 +227,6 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters{
      * @return array
      */
     public function getIntervalsByPoint(){
-        return array(
-            array('min' => 0, 'max'=>10000, 'type'=>self::INTERVAL_RULES_MARKET_ALL, 'amount'=>100),
-            //array('min' => 100, 'max'=>200, 'type'=>self::INTERVAL_RULES_CLIENT_ALL, 'amount'=>60),
-            //array('min' => 200, 'max'=>5000, 'type'=>self::INTERVAL_RULES_MARKET_PERCENT, 'amount'=>50),
-            //array('min' => 5000, 'max'=>null, 'type'=>self::INTERVAL_RULES_MARKET_ALL),
-        );
         return array();
         return array(
             array('min' => 0, 'max'=>100, 'type'=>self::INTERVAL_RULES_MARKET_AMOUNT, 'amount'=>100),
@@ -358,23 +357,6 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters{
         return $companyArray;
     }
 
-    /**
-     * Получить доступные способы оплаты для Самовывоза ( можно анализировать содержимое order )
-     * @param $order DDeliveryOrder
-     * @return array
-     */
-    public function getSelfPaymentVariants( $order ){
-        return array();
-    }
-
-    /**
-     * Получить доступные способы оплаты для курьера ( можно анализировать содержимое order )
-     * @param $order DDeliveryOrder
-     * @return array
-     */
-    public function getCourierPaymentVariants( $order ){
-        return array();
-    }
 
     /**
      *
@@ -524,6 +506,14 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters{
                 'is_card' => ''
             )
         );
+    }
+
+    public  function getSelfPaymentVariants($order){
+        return array(2);
+    }
+
+    public function getCourierPaymentVariants($order){
+        return array(3);
     }
 
 }

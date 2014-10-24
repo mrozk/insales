@@ -68,7 +68,7 @@ abstract class PluginFilters extends DShopAdapter
     const AROUND_CEIL = 3;
 
 
-    public  function  getErrorMsg( \Exception $e, $extraParams = array() ){
+    public function  getErrorMsg( \Exception $e, $extraParams = array() ){
         return $e->getMessage();
     }
     /**
@@ -186,8 +186,7 @@ abstract class PluginFilters extends DShopAdapter
      *
      * @return float
      */
-    public function getDeclaredPrice($order)
-    {
+    public function getDeclaredPrice($order){
         return ($order->amount / 100) * $this->getDeclaredPercent();
     }
 
@@ -203,8 +202,7 @@ abstract class PluginFilters extends DShopAdapter
      * @param float $price
      * @return float
      */
-    public function aroundPrice($price)
-    {
+    public function aroundPrice($price){
         $step = $this->aroundPriceStep();
         $type = $this->aroundPriceType();
 
@@ -461,4 +459,24 @@ abstract class PluginFilters extends DShopAdapter
     public function getEmptyCompanyError( $order ){
         return 'Извините, этот способ доставки не доступен для выбранного города.';
     }
+
+    /**
+     * Учитывать фильтрацию НПП при работе
+     * @param $order DDeliveryOrder
+     * @return array
+     */
+    public function getPaymentFilterEnabled( $order ){
+        return true;
+    }
+
+    public  function getSelfPaymentVariants($order){
+        return array();
+    }
+
+    public function getCourierPaymentVariants($order){
+        return array();
+    }
+
+
+
 }

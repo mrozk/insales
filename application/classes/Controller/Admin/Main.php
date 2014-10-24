@@ -1,5 +1,8 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
+include_once( APPPATH . 'classes/Sdk/application/bootstrap.php');
+include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop.php');
+
 class Controller_Admin_Main extends Controller_Admin_Layout{
     public function _extractPost(){
         $zabor = $this->request->post('zabor');
@@ -89,13 +92,19 @@ class Controller_Admin_Main extends Controller_Admin_Layout{
             $settings = $this->_extractPost();
             $settings['insalesuser_id'] = $insales_user->id;
 
+            $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
+            $addr = self::getAddressDescriptionFields($insales_api);
+            $settings['address_caption'] = $addr;
+
+            $settings['url'] = $insales_user->shop;
+            $settings['id'] = $insales_user->id;
+
             $settings = json_encode( $settings );
 
             $query = DB::update( 'insalesusers')->set( array('settings' => $settings) )
                 ->where('id','=', $id)->execute() ;
-            $memcache = MemController::getMemcacheInstance();
-            if( !empty( $insales_user->shop ) ){
-                $memcache->set( $insales_user->shop, $settings);
+            if( !empty( $insales_user->id ) ){
+                MemController::instance()->set('insales_' . $insales_user->id, $settings);
             }
 
             Notice::add( Notice::SUCCESS,'Успешно сохранено' );
@@ -104,6 +113,33 @@ class Controller_Admin_Main extends Controller_Admin_Layout{
             Notice::add( Notice::ERROR, 'Ошибка сохранения' );
             $this->redirect( URL::base( $this->request ) . 'admin/main/user/?id=' . $id );
         }
+    }
+
+    public function action_cleansettings(){
+        $query = DB::select('id')->from('insalesusers')->as_object()->execute();
+        foreach( $query as $item ){
+            MemController::instance()->set('insales_' . $item->id, '');
+            //echo MemController::instance()->get('insales_' . $item->id);
+        }
+        Notice::add( Notice::SUCCESS,'Кеш настоек успешно очищен' );
+        $this->redirect( URL::base( $this->request )  . 'admin/main/');
+    }
+
+
+    public function action_cleancities(){
+        $query = DB::select('id')->from('insalesusers')->limit(1)->as_object()->execute();
+        foreach( $query as $item ){
+            $settings = MemController::initSettingsMemcache($item->id);
+        }
+        try{
+            $IntegratorShop = new IntegratorShop( $this->request, $settings);
+            $ddeliveryUI = new \DDelivery\DDeliveryUI($IntegratorShop);  //DDeliveryUI( $IntegratorShop, true );
+            $ddeliveryUI->cleanCache();
+        }catch (\Exception $e){
+            $IntegratorShop->logMessage($e);
+        }
+        Notice::add( Notice::SUCCESS, 'Кеш городов успешно очищен' );
+        $this->redirect( URL::base( $this->request )  . 'admin/main/');
     }
 
 

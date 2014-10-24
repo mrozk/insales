@@ -1,31 +1,28 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
+include_once( APPPATH . 'classes/Sdk/application/bootstrap.php');
+include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop.php');
+
 class Controller_Cabinet extends  Controller_Base{
 
     public function _extractPost(){
         $zabor = $this->request->post('zabor');
-        if( empty( $zabor ) )
-        {
+        if( empty( $zabor ) ){
             $this->request->post('zabor', '');
         }
 
         $pvz_companies = $this->request->post('pvz_companies');
         $cur_companies = $this->request->post('cur_companies');
-        if( is_array( $pvz_companies ) )
-        {
+        if( is_array( $pvz_companies ) ){
             $pvz_companies = implode( ',', $this->request->post('pvz_companies') );
         }
-        else
-        {
+        else{
             $pvz_companies = '';
         }
 
-        if( is_array( $cur_companies ) )
-        {
+        if( is_array( $cur_companies ) ){
             $cur_companies = implode( ',', $this->request->post('cur_companies') );
-        }
-        else
-        {
+        }else{
             $cur_companies = '';
         }
         $this->request->post('pvz_companies', $pvz_companies);
@@ -76,7 +73,6 @@ class Controller_Cabinet extends  Controller_Base{
                     'self_description' => $this->request->post('self_description'),
                     'courier_description' => $this->request->post('courier_description'),
                     'source_params' => $this->request->post('source_params'),
-
                     'params_width' => $this->request->post('params_width'),
                     'params_length' => $this->request->post('params_length'),
                     'params_height'  => $this->request->post('params_height')
@@ -84,33 +80,61 @@ class Controller_Cabinet extends  Controller_Base{
 
 
     }
+
+    public static  function getAddressDescriptionFields( $insales_api ){
+        $options = array();
+        /*
+        $payment_gateways = json_decode( $insales_api->api('GET', '/admin/option_names.json') );
+        */
+        $payment_gateways = json_decode( $insales_api->api('GET', '/admin/fields.json') );
+        //print_r($payment_gateways);
+        if( count( $payment_gateways ) )
+        {
+            foreach( $payment_gateways as $gateways )
+            {
+                if($gateways->for_buyer && ($gateways->type !='Field::Phone')){
+                    $options[$gateways->office_title] = $gateways->id;
+                }
+            }
+        }
+
+        return $options;
+    }
+
+
     public function action_save(){
         $session = Session::instance();
         $insalesuser = (int)$session->get('insalesuser');
-        if ( !empty( $insalesuser ) )
-        {
+        if ( !empty( $insalesuser ) ){
             $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
 
-            if($insales_user->loaded())
-            {
+            if($insales_user->loaded()){
+
                 $settings = $this->_extractPost();
                 $settings['insalesuser_id'] = $insales_user->id;
-                $settings = json_encode( $settings );
 
+
+
+                $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
+                $addr = self::getAddressDescriptionFields($insales_api);
+                $settings['address_caption'] = $addr;
+
+                $settings['url'] = $insales_user->shop;
+                $settings['id'] = $insales_user->id;
+                $settings = json_encode( $settings );
                 $query = DB::update( 'insalesusers')->set( array('settings' => $settings) )
                          ->where('insales_id','=', $insalesuser)->execute() ;
-                $memcache = MemController::getMemcacheInstance();
-                if( !empty( $insales_user->shop ) ){
-                    $memcache->set( $insales_user->shop, $settings);
+                //$memcache = MemController::getMemcacheInstance();
+
+                if( !empty( $insales_user->id ) ){
+                    MemController::instance()->set('insales_' . $insales_user->id, $settings);
                 }
 
                 Notice::add( Notice::SUCCESS,'Успешно сохранено' );
                 $this->redirect( URL::base( $this->request ) . 'cabinet/' );
             }
 
-        }
-        else
-        {
+        }else{
             Notice::add( Notice::ERROR,'Доступ только из админпанели магазина insales' );
             $this->redirect( URL::base( $this->request ) . 'cabinet/' );
         }
@@ -145,30 +169,48 @@ class Controller_Cabinet extends  Controller_Base{
                         </field>';
     }
 
+    public static function getTopJsTagFile($insales_api){
+        $xml = '<js-tag>
+                    <type type="string">JsTag::FileTag</type>
+                    <content>' . URL::base(TRUE, FALSE) . 'html/values.js</content>
+                </js-tag>';
+        $insales_api->api('POST', '/admin/js_tags.xml', $xml);
+    }
+    public static function getTopJsTag( $insales_api, $insalesID, $fieldOrderId, $fieldInsId,
+                                        $fieldInsComment, $delivery){
+        $xml = '<js-tag>
+                    <type type="string">JsTag::TextTag</type>
+                        <content>
+                            var ddConfig = {
+                                ddGetPoint:"' . URL::base(TRUE, FALSE) . 'sdk/getprice/",
+                                ddBaseUrl:"' . URL::base(TRUE, FALSE) . 'sdk/putcart/' . $insalesID . '/",
+                                sdkPath: "' . URL::base(TRUE, FALSE) . 'sdk/",
+                                wayId: [' . $delivery . '],
+                                fieldOrderId: ' . $fieldOrderId . ',
+                                fieldInsId: ' . $fieldInsId . ',
+                                fieldInsComment: ' . $fieldInsComment . ',
+                                insalesId: ' . $insalesID . '
+                            }
+                            window.ddConfig = ddConfig;
+                    </content>
+                </js-tag>';
+        $insales_api->api('POST', '/admin/js_tags.xml', $xml);
+    }
 
     public function action_addway(){
         $session = Session::instance();
         $insalesuser = (int)$session->get('insalesuser');
 
-        if ( $insalesuser )
-        {
-            $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
-            $settings = json_decode($insales_user->settings);
 
-            if ( $insales_user->loaded() )
-            {
+        if ( $insalesuser ){
+            $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
+
+            if ( $insales_user->loaded() ){
+                $settings = json_decode($insales_user->settings);
 
                 $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
-
-                self::preClean( $insales_api );
-
                 $variantsSettings = explode(',', $insales_user->delivery_variant_id);
-
-                if( count( $variantsSettings ) > 0 ){
-                    foreach($variantsSettings as $item){
-                        $insales_api->api('DELETE', '/admin/delivery_variants/' . $item . '.json');
-                    }
-                }
+                self::preClean( $insales_api, $variantsSettings );
 
                 if( $settings->type != '4' ){
                     if( $settings->common_caption == '' ){
@@ -210,6 +252,7 @@ class Controller_Cabinet extends  Controller_Base{
 
                     $delivery = ($delivery_variants->id . ', ' . $delivery_variants2->id) ;
                 }
+
                 // Добавляем поля для хранения id заказа ddelivery
                 $field = self::isFieldExists($insales_api, 'ddelivery_id');
                 if( $field === false ){
@@ -242,12 +285,24 @@ class Controller_Cabinet extends  Controller_Base{
                 // $delivery = new SimpleXMLElement($delivery);
                 // Добавляем Способ доставки
                 $payload = self::getWidgetXml();
-                $w = $insales_api->api('POST', '/admin/application_widgets.xml  ', $payload);
+                $w = $insales_api->api('POST', '/admin/application_widgets.xml', $payload);
+
+
                 // Добавляем JS
-                $payload = self::getXmlJsToInsales( $insales_user->id, $data->id, $data2->id, $delivery, $data3->id);
-                // json_decode( $insales_api->api('PUT', '/admin/delivery_variants/' . $delivery->id . '.json', $payload) );
+                $payload = self::getXmlJsToInsales( $insales_user->id, $data->id,
+                                                    $data2->id, $delivery, $data3->id);
+
                 $insales_api->api('PUT', '/admin/delivery_variants/' . $delivery_variants->id . '.xml', $payload);
                 // Добавляем JS
+
+                // Добавляем JS общий
+                self::getTopJsTag($insales_api, $insales_user->id, $data->id, $data2->id, $data3->id, $delivery);
+
+                self::getTopJsTagFile($insales_api);
+
+                // Добавляем JS общий
+
+
                 // Подписываемся на хук на создание заказа
                 $payload = self::getXmlCreateHook( $insales_user->id );
                 $insales_api->api('POST', '/admin/webhooks.xml', $payload) ;
@@ -282,7 +337,23 @@ class Controller_Cabinet extends  Controller_Base{
     }
 
 
-    public static  function preClean( $insales_api ){
+    public static  function preClean( $insales_api, $variantsSettings ){
+
+        $api = json_decode( $insales_api->api('GET', '/admin/js_tags.json'));
+        foreach( $api as $item ){
+            if( strpos($item->content, 'ddConfig') || strpos($item->content, 'values.js') ){
+                $insales_api->api('DELETE', '/admin/js_tags/' . $item->id  .  '.json');
+            }
+        }
+
+
+        if( count( $variantsSettings ) > 0 ){
+            foreach($variantsSettings as $item){
+                $insales_api->api('DELETE', '/admin/delivery_variants/' . $item . '.json');
+            }
+        }
+
+
         $data = json_decode( $insales_api->api('GET', '/admin/webhooks.json') );
         if( count($data) ){
             foreach( $data as $item ){
@@ -293,10 +364,12 @@ class Controller_Cabinet extends  Controller_Base{
             }
         }
 
-        $data = json_decode( $insales_api->api('GET', '/admin/application_widgets.json') );
-        if( count($data) ){
-            foreach( $data as $item ){
-                $insales_api->api('DELETE', '/admin/application_widgets/' . $item->id . '.json');
+        $xml = json_decode( $insales_api->api('GET', '/admin/application_widgets.json') );
+        if( count($xml) > 0 ){
+            foreach( $xml as $item ) {
+                if(strpos($item->code, 'ddelivery_id') > 0) {
+                    $insales_api->api('DELETE', '/admin/application_widgets/' . $item->id . '.json');
+                }
             }
         }
     }
@@ -334,22 +407,12 @@ class Controller_Cabinet extends  Controller_Base{
                                <format type="integer">1</format>
                            </webhook>';
     }
-    public static  function getXmlJsToInsales( $insalesuser_id, $field_id, $field2_id, $deliveryID, $field3_id)
-    {
-
+    public static  function getXmlJsToInsales($deliveryID){
         return $payload = '<?xml version="1.0" encoding="UTF-8"?>
                             <delivery-variant>
                               <id type="integer">' . $deliveryID . '</id>
                               <javascript>&lt;script type="text/javascript" src="' . URL::base(TRUE, FALSE) . 'html/js/ddelivery.js"&gt;&lt;/script&gt;
-                                     &lt;script type="text/javascript"&gt;var ddelivery_insales={
-                                     "delivery_id" : [ ' . $deliveryID . '],
-                                     "field_id":' .  $field_id . ',
-                                     "field2_id":' . $field2_id . ',"_id":' . $insalesuser_id . ',
-                                     "field3_id":' . $field3_id . ',
-                                     "url": "' . URL::base(TRUE, FALSE) . '"
-                                       };
-                                       &lt;/script&gt;
-                                    &lt;script type="text/javascript" src="' . URL::base(TRUE, FALSE) . 'html/action.js"&gt;&lt;/script&gt;
+                                          &lt;script type="text/javascript" src="' . URL::base(TRUE, FALSE) . 'html/action.js"&gt;&lt;/script&gt;
                               </javascript>
                             </delivery-variant>';
     }
@@ -382,6 +445,7 @@ class Controller_Cabinet extends  Controller_Base{
             $usersettings = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
 
             $insales_api =  new InsalesApi($usersettings->passwd, $usersettings->shop);
+
 
             $payment = self::getPaymentWays($insales_api);
             $fields = self::getFields( $insales_api);
@@ -508,6 +572,97 @@ class Controller_Cabinet extends  Controller_Base{
 
 
     public static  function getWidgetXml(){
+        return "<application-widget>
+                <code>
+                  &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
+                  &lt;head&gt;
+                    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;/&gt;
+                    &lt;style&gt;
+                      table#statuses {
+                        border-collapse: collapse;
+                        border-right: 1px solid black;
+                        border-left: 1px solid black;
+                      }
+                table#statuses td, table#statuses th {
+                border: 1px solid black;
+                }
+                &lt;/style&gt;
+                &lt;/head&gt;
+                &lt;body&gt;
+                &lt;p&gt;Номер заказа: &lt;b&gt;&lt;span id='order_number'&gt;&lt;span&gt;&lt;/b&gt;&lt;/p&gt;
+                    &lt;table id='statuses' style='border: 1px solid black;'&gt;
+                      &lt;tr&gt;
+                        &lt;th&gt;Дата&lt;/th&gt;
+                        &lt;th&gt;Статус&lt;/th&gt;
+                      &lt;/tr&gt;
+                    &lt;/table&gt;
+
+                    &lt;script&gt;
+                      var data = {};
+                      // функция которая вызывается во внешнем js файле и устанавливает значение переменной data
+                      function set_data(input_object) {
+                          data = input_object;
+                      }
+                      var table = document.getElementById('statuses');
+
+                      // устанавливаем номер заказа, используя id из переменной window.order_info
+                      var order_number_field = document.getElementById('order_number');
+                      order_number_field.innerHTML = window.order_info.id;
+
+                      // подключаем скрипт который передаёт нам данные через JSONP
+                      var script = document.createElement('script');
+                      script.src = 'http://www.insales.ru/assets/js/widget_example_jsonp_data.js';
+                      document.documentElement.appendChild(script);
+
+                      var fields = window.order_info.fields_values;
+                      var size = fields.length;
+                      var i = 0;
+                      var green_lite = 0;
+                      var ddelivery_id = 0;
+                      var ddelivery_insales = 0;
+                      while(size != 0){
+
+                            if( fields[size - 1].name == 'ddelivery_id' ){
+                                if(fields[size - 1].value != 0){
+                                    ddelivery_id = fields[size - 1].value;
+                                }
+                            }
+                            if( fields[size - 1].name == 'ddelivery_insales' ){
+                                if(fields[size - 1].value != 0){
+                                    ddelivery_insales = fields[size - 1].value;
+                                }
+                            }
+                            if( (ddelivery_id > 0) &amp;&amp; (ddelivery_insales > 0)){
+                                green_lite = 1;
+                                break;
+                            }
+
+                            size--;
+
+                      }
+                      // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
+                      if( green_lite != 0 ){
+                              // подключаем скрипт который передаёт нам данные через JSONP
+                              var script = document.createElement('script');
+                              script.src = '" . URL::base(TRUE, FALSE) . "sdk/orderinfo/?order=' + ddelivery_id + '&amp;ddelivery_insales=' + ddelivery_insales;
+                              document.documentElement.appendChild(script);
+
+                              // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
+                              script.onload = function() {
+                                  for (var key in data) {
+                                      var new_tr = document.createElement('tr');
+                                      new_tr.innerHTML= '&lt;td&gt;'+ key +'&lt;/td&gt;&lt;td&gt;'+ data[key] +'&lt;/td&gt;';
+                                  table.appendChild(new_tr);
+                                }
+                              }
+                          }
+                    &lt;/script&gt;
+                  &lt;/body&gt;
+                  &lt;/html&gt;
+                </code>
+                <height>460</height>
+                </application-widget>";
+        /*
         return $pulet = "<application-widget>
             <code>
               &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
@@ -547,6 +702,7 @@ class Controller_Cabinet extends  Controller_Base{
                   var i = 0;
                   var green_lite = 0;
                   var ddelivery_id = 0;
+                  var ddelivery_insales = 0;
                   while(size != 0){
                     if( fields[size - 1].name == 'ddelivery_id' ){
                         if(fields[size - 1].value != 0){
@@ -554,13 +710,23 @@ class Controller_Cabinet extends  Controller_Base{
                             ddelivery_id = fields[size - 1].value;
                         }
                     }
+                    if( fields[size - 1].name == 'ddelivery_insales' ){
+                        if(fields[size - 1].value != 0){
+                            green_lite = 1;
+                            ddelivery_insales = fields[size - 1].value;
+                        }
+                    }
+                    if( ddelivery_id > 0 &&  ddelivery_insales > 0){
+                        green_lite = 1;
+                        break;
+                    }
 
                     size--;
                   };
                   if( green_lite != 0 ){
                             // подключаем скрипт который передаёт нам данные через JSONP
                       var script = document.createElement('script');
-                      script.src = '" . URL::base(TRUE, FALSE) . "sdk/orderinfo/?order=' + ddelivery_id;
+                      script.src = '" . URL::base(TRUE, FALSE) . "sdk/orderinfo/?order=' + ddelivery_id + '&ddelivery_insales=' + ddelivery_insales;
                       document.documentElement.appendChild(script);
 
                       // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
@@ -578,6 +744,7 @@ class Controller_Cabinet extends  Controller_Base{
             </code>
             <height>200</height>
             </application-widget>";
+        */
     }
 
 

@@ -17,7 +17,8 @@ class Controller_Orders extends Controller
         if (!isset($HTTP_RAW_POST_DATA))
             $HTTP_RAW_POST_DATA = file_get_contents("php://input");
 
-
+            $query = DB::insert('ordddd', array( 'creater', 'orderer' ))
+                ->values(array($HTTP_RAW_POST_DATA, "asdsd"))->execute();
             $data = json_decode( $HTTP_RAW_POST_DATA );
 
             if( count( $data->fields_values ) ){
@@ -172,7 +173,7 @@ class Controller_Orders extends Controller
     }
 
     public function action_get(){
-        $query = DB::query(Database::SELECT, 'SELECT * FROM ordddd WHERE id =4475');
+        $query = DB::query(Database::SELECT, 'SELECT * FROM ordddd WHERE id = 4482');
 
         //$query->param(':user', 'john');
         $query->as_object();
@@ -210,11 +211,9 @@ class Controller_Orders extends Controller
 
                         $order->firstName = $data->shipping_address->name;
                         $order->toEmail = $data->client->email;
-                        echo $order->toPhone;
                         $order->toPhone = $IntegratorShop->formatPhone( $data->shipping_address->phone );
                         $order->toPhone = substr( $order->toPhone , -10);
-                        echo $data->shipping_address->phone;
-                        //echo $order->toPhone;
+
                         if( $order->type == \DDelivery\Sdk\DDeliverySDK::TYPE_COURIER ){
                             $toFlat = $this->findInArray( $data->shipping_address->fields_values,  $settings->address['flat'] );
                             $order->toFlat = (($toFlat != '')?$toFlat:$order->toFlat);
@@ -232,6 +231,7 @@ class Controller_Orders extends Controller
 
                         if( $order->localId ){
                             if( $IntegratorShop->isStatusToSendOrder( $data->fulfillment_status ) && $order->ddeliveryID == 0 ){
+
                                 if($order->type == \DDelivery\Sdk\DDeliverySDK::TYPE_SELF){
                                     $ddeliveryUI->createSelfOrder($order);
                                 }

@@ -4,7 +4,6 @@ use DDelivery\DDeliveryUI;
 
 include_once( APPPATH . 'classes/Sdk/application/bootstrap.php');
 include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop.php');
-include_once( APPPATH . 'classes/Sdk/mrozk/IntegratorShop2.php');
 
 class Controller_Sdk extends Controller
 {
@@ -80,11 +79,13 @@ class Controller_Sdk extends Controller
 
     public function action_orderinfo(){
         $order = (int)$this->request->query('order');
-
+        $ddelivery_insales = (int)$this->request->query('ddelivery_insales');
         try{
-            $IntegratorShop = new IntegratorShop2();
-            $ddeliveryUI = new DDeliveryUI($IntegratorShop,true);
+            //$IntegratorShop = new IntegratorShop2();
+            $settings = MemController::initSettingsMemcache( $ddelivery_insales);
 
+            $IntegratorShop = new IntegratorShop($this->request, $settings);
+            $ddeliveryUI = new DDeliveryUI($IntegratorShop,true);
             $order = $ddeliveryUI->initOrder($order);
 
             if( $order->localId ){
@@ -96,11 +97,8 @@ class Controller_Sdk extends Controller
                         $ddeliveryUI->checkOrderSelfValues( $order );
                     }
                 }catch (\DDelivery\DDeliveryException $e){
-                    //$errorMsg = $e->getMessage(); $errorMsg .= $ddeliveryUI->formatPhone($order->toPhone);
                     $errorMsg = $e->getMessage();
                 }
-
-                //
                 $answer = (($order->ddeliveryID == 0)?'Заявка на DDelivery не отправлена':'Номер заявки на DDelivery - ' . $order->ddeliveryID );
                 echo "set_data({'" . (($errorMsg == '')?'':'<span style="color: #ff0000">Ошибка ввода информациии ' . $errorMsg . '</span> <br /> ') . ' ' . "ID заказа -" . $order->shopRefnum . "':'" . $answer . "'});";
             }
@@ -114,8 +112,7 @@ class Controller_Sdk extends Controller
     {
         $insales_user = ORM::factory('InsalesUser', array('id' => $clientID));
 
-        if ( $insales_user->loaded() )
-        {
+        if ( $insales_user->loaded() ){
 
             $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
 
@@ -272,15 +269,51 @@ class Controller_Sdk extends Controller
         return $result_products;
     }
 
+
+    public function action_getprice(){
+        header('Content-Type: text/javascript; charset=UTF-8');
+        $token = $this->request->query('tokenBody');
+
+        $success = "false";
+        $userInfo = array();
+
+        if( isset( $token ) && !empty($token) ){
+
+            $has_token = MemController::instance()->get('token_' . $token);
+            //print_r($has_token);
+            $info = json_decode( $has_token, true );
+            if( isset( $info['order_id'] ) && !empty($info['order_id']) ){
+                $settings = MemController::initSettingsMemcache($info['id']);
+                $IntegratorShop = new IntegratorShop( $this->request, $settings, $info['cart_full'] );
+                $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
+                $order = $ddeliveryUI->initOrder((int)$info['order_id']);
+                $point = $order->getPoint();
+
+                if( !empty( $point ) ){
+                    $clientPrice = $ddeliveryUI->getClientPrice($point, $order);
+                    $comment =  $ddeliveryUI->getPointComment($order);
+                    //$userInfo = $ddeliveryUI->paymentPriceEnable('');
+                    $filter = $ddeliveryUI->getAvailablePaymentVariants($order);
+
+                    $userInfo = array('filter' => $filter,'price'=>$clientPrice);
+                    $success = "true";
+                }
+            }
+        }
+        $response = array( 'success' => $success, 'userInfo' => $userInfo);
+        $result = 'jsonCallback2(' . json_encode($response) . ');';
+        echo $result;
+        exit();
+    }
     public function action_putcart(){
         header('Content-Type: text/javascript; charset=UTF-8');
         $token = $this->request->query('tokenBody');
         if( isset( $token ) && !empty($token) ){
             $has_token = MemController::instance()->get('token_' . $token);
             if( !empty($has_token) ){
-                $token = true;
+                $token = 1;
             }else{
-                $token = false;
+                $token = 0;
             }
         }else{
             $id = (int)$this->request->param('id');
@@ -288,244 +321,80 @@ class Controller_Sdk extends Controller
 
             $token = md5( microtime() . mt_rand(1,20) . $id );
             $cart = array('cart' => $productIdsString, 'id' => $id);
-            MemController::instance()->set('token_' . $token, json_encode($cart) );
+
+            MemController::instance()->set('token_' . $token, json_encode($cart), null, 900 );
 
         }
         $result = 'jsonCallback("' . $token . '");';
         echo $result;
         exit();
-        //return;
-        /*
-        $token = $this->request->post('token');
-        $cart = $this->request->query('data');
-        $memcache = new Memcache;
-        $memcache->connect('localhost', 11211) or die ("Could not connect to Memcache");
-        $has_token = $memcache->get( 'card_' . $token );
-        if($has_token){
-            $memcache->set( 'card_' . $token, $cart );
-        }
-        echo '{}';
-        exit();
-        */
     }
 
     public function action_index(){
         $token = $this->request->query('token');
         $has_token = MemController::instance()->get('token_' . $token);
-        try{
-            if(!empty($has_token)){
-                $info = json_decode( $has_token, true );
-                if( isset($info['id']) ){
-                    $settings = MemController::initSettingsMemcache($info['id']);
-                    if( !isset( $info['cart_full'] ) && isset($info['cart'])){
-                        $info['cart_full'] = $this->getItemsFromInsales( $info['cart'], $settings, 'http://' . $settings->url);
-                        MemController::instance()->set('token_' . $token, json_encode($info));
-                    }
+        if(!empty($has_token)){
+            $info = json_decode( $has_token, true );
 
-                    $IntegratorShop = new IntegratorShop( $this->request, $settings, $info['cart_full'] );
+            if( isset($info['id']) ){
+                $settings = MemController::initSettingsMemcache($info['id']);
+                if( empty($settings) ){
+                    echo ('Ошибка инициализации');
+                    return;
+                }
+
+                if( !isset( $info['cart_full'] ) && isset($info['cart'])){
+                    $info['cart_full'] = $this->getItemsFromInsales( $info['cart'], $settings, 'http://' . $settings->url);
+                    MemController::instance()->set('token_' . $token, json_encode($info), null, 900 );
+                }
+                $order_id = $this->request->post('order_id');
+                $IntegratorShop = new IntegratorShop( $this->request, $settings, $info['cart_full'] );
+
+                try{
                     $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
                     $order = $ddeliveryUI->getOrder();
                     $order->addField1 = $settings->id;
+
                     $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
 
-                }else{
-                    throw new Exception('Магазин не идентифицирован');
+                    $order = $ddeliveryUI->getOrder();
+
+                    if( isset($order->localId) && !empty($order->localId)  ){
+                        $point = $order->getPoint();
+                            if( !empty($point) ){
+                                $info['order_id'] = (int)$order_id;
+                                $info['way_id'] = $this->request->query('wayId');
+                                MemController::instance()->set('token_' . $token, json_encode($info), null, 900 );
+                            }
+                    }
+
+                }catch (\DDelivery\DDeliveryException $e){
+                    $IntegratorShop->logMessage($e);
                 }
             }else{
-                throw new Exception('Пустой токен');
+                echo ('Магазин не идентифицирован');
             }
-        }catch (Exception $e){
-            echo  $e->getMessage();
+        }else{
+            // Пустой токен
+            echo ('Для продолжения работы перезагрузите страницу');
         }
-        /*
-         $token = $this->request->query('token');
-         $items = $this->request->query('items');
-
-         $has_token = MemController::getMemcacheInstance()->get( 'card_' . $token );
-
-         if($has_token){
-             $info = json_decode( $has_token, true );
-             $settings = MemController::initSettingsMemcache($info['host']);
-             $settingsToIntegrator = json_decode($settings);
-             if( isset($items) && !empty( $items ) ){
-                 $info['cart'] = $this->getItemsFromInsales($info['scheme'] . '://' . $info['host'], $items, $settingsToIntegrator);
-                 MemController::getMemcacheInstance()->set( 'card_' . $token, json_encode( $info ), 0, 1200  );
-             }
-             try{
-                 $IntegratorShop = new IntegratorShop( $this->request, $settingsToIntegrator, $info );
-                 //echo $IntegratorShop->getApiKey();
-                 $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
-                 $order = $ddeliveryUI->getOrder();
-                 $order->addField1 = $settingsToIntegrator->insalesuser_id;
-                 $ddeliveryUI->render(isset($_REQUEST) ? $_REQUEST : array());
-             }
-             catch( \DDelivery\DDeliveryException $e ){
-                 echo $e->getMessage();
-                 $ddeliveryUI->logMessage($e);
-             }
-         }else{
-             echo 'Перезагрузите страницу браузера для продолжения';
-         }
-        */
     }
 
 
     public function action_test(){
-
         $insales_user = ORM::factory('InsalesUser', array('id' => 29));
-        $settings = json_decode($insales_user->settings );
-
-        //$IntegratorShop = new IntegratorShop( $this->request, $settings );
-        //$IntegratorShop = new IntegratorShop2( );
-        //$ddeliveryUI = new DDeliveryUI( $IntegratorShop,true );
-
+        echo $insales_user->shop;
         $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
 
-        $xml = "<js-tag>
-                    <type type=\"string\">JsTag::TextTag</type>
-                    <content>
-                        window.onload = function(){
-                           CheckoutDelivery.find( 242743 ).setFieldsValues( [{fieldId: 1723622, value: 'xxxx' }] );
-                           //console.log( CheckoutDelivery.find( 242743 ));
-                           //console.log( CheckoutPaymentGateway );
-                           //console.log( CheckoutDelivery.find( 242743 ) );
-                           console.log(window.ORDER);
-                           console.log(CheckoutDelivery.find( 242743 ));
-                        }
-                    </content>
-                </js-tag>";
 
-
-        $xml = "<js-tag>
-                    <type type=\"string\">JsTag::FileTag</type>
-                    <content>http://devinsales.ddelivery.ru/html/values.js</content>
-                </js-tag>";
-
-        //print_r( $insales_api->api('POST', '/admin/js_tags.xml', $xml) );
-        //echo '<pre>';
-        /*
-       $order = $ddeliveryUI->initOrder( 1035 );
-        echo '<pre>';
-        //print_r($order);
-        echo $ddeliveryUI->createSelfOrder($order);
-        echo '<pre>';
-        */
-        //echo '</pre>';
-        /*
-        $insales_user = ORM::factory('InsalesUser', array('id' => 52));
-        $insales_api =  new InsalesApi( $insales_user->passwd, $insales_user->shop );
-        print_r($insales_api->api('DELETE', '/admin/delivery_variants/239921.xml') );
-        print_r($insales_api->api('DELETE', '/admin/delivery_variants/239920.xml') );
-        */
-        /*
-        $insales_user = ORM::factory('InsalesUser', array('id' => 29));
-
-        if ( $insales_user->loaded() )
-        {
-            echo $insales_user->id;
-        }
-        */
-        /*
-        $IntegratorShop = new IntegratorShop2( );
-        $ddeliveryUI = new DDeliveryUI( $IntegratorShop );
-        echo '<pre>';
-        print_r($ddeliveryUI->initOrder(360));
-        echo '</pre>';
-
-        echo 'xxx';
-        */
-        /*
-        $session = Session::instance();
-        $insalesuser = (int)$session->get('insalesuser');
-        echo $insalesuser;
-
-        if( !$insalesuser )
-        {
-            return;
-        }
-
-        $insales_user = ORM::factory('InsalesUser', array('insales_id' => $insalesuser));
-
-        if ( $insales_user->loaded() )
-        {
-
-            $insales_api =  new InsalesApi(  $insales_user->passwd,  $insales_user->shop );
-            // print_r( $insales_api->api('GET','/admin/delivery_variants.xml') );
-            $pulet = "<application-widget>
-<code>
-  &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;
-  &lt;head&gt;
-    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;/&gt;
-    &lt;style&gt;
-      table#statuses {
-        border-collapse: collapse;
-        border-right: 1px solid black;
-        border-left: 1px solid black;
-      }
-      table#statuses td, table#statuses th {
-        border: 1px solid black;
-      }
-    &lt;/style&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-
-    &lt;table id='statuses' style='border: 1px solid black;'&gt;
-
-    &lt;/table&gt;
-
-    &lt;script&gt;
-      var data = {};
-      // функция которая вызывается во внешнем js файле и устанавливает значение переменной data
-      function set_data(input_object) {
-        data = input_object;
-      }
-      var table = document.getElementById('statuses');
-
-      // устанавливаем номер заказа, используя id из переменной window.order_info
-      var order_number_field = document.getElementById('order_number');
-      // order_number_field.innerHTML = window.order_info.id;
-      fields = window.order_info.fields_values;
-      size = fields.length;
-      var i = 0;
-      var green_lite = 0;
-      while(size != 0){
-        if( fields[size - 1].name == 'ddelivery_id' ){
-            if(fields[size - 1].value != 0){
-                green_lite = 1;
+        $variantsSettings = explode(',', $insales_user->delivery_variant_id);
+        if( count( $variantsSettings ) > 0 ){
+            foreach($variantsSettings as $item){
+                $insales_api->api('DELETE', '/admin/delivery_variants/' . $item . '.json');
             }
         }
 
-        size--;
-      };
-      if( green_lite != 0 ){
-                // подключаем скрипт который передаёт нам данные через JSONP
-          var script = document.createElement('script');
-
-          script.src = '" . URL::base( $this->request ) . "sdk/orderinfo/?order=' + window.order_info.id;
-          document.documentElement.appendChild(script);
-
-          // после отработки внешнего скрипта, заполняем таблицу пришедшими данными
-          script.onload = function() {
-              for (var key in data) {
-                  var new_tr = document.createElement('tr');
-                  new_tr.innerHTML= '&lt;td&gt;'+ key +'&lt;/td&gt;&lt;td&gt;'+ data[key] +'&lt;/td&gt;';
-              table.appendChild(new_tr);
-            }
-          }
-      }
-    &lt;/script&gt;
-  &lt;/body&gt;
-  &lt;/html&gt;
-</code>
-<height>200</height>
-</application-widget>";
-
-            $result =  $insales_api->api('POST','/admin/application_widgets.xml', $pulet);
-            // $result =  $insales_api->api('GET','/admin/application_widgets.xml', $pulet);
-            //  $result =  $insales_api->api('DELETE','/admin/application_widgets/7006.xml', $pulet);
-            echo '<pre>';
-            print_r($result);
-            echo '</pre>';
-        } */
+        Controller_Cabinet::getTopJsTag($insales_api, 29, 1723621, 1723622,
+                                        1817097, 242743, 242744);
     }
 }
