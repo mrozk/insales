@@ -453,6 +453,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
      * @return string|null
      */
     public function getClientLastName() {
+        /*
         $client_name = $this->request->query( 'client_name' );
         if( !empty( $client_name ) ){
             $data = explode(' ', trim($client_name));
@@ -460,6 +461,7 @@ class IntegratorShop extends \DDelivery\Adapter\PluginFilters
                 return $data[1];
             }
         }
+        */
         return '';
     }
     /**
